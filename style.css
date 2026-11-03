@@ -253,8 +253,8 @@ body {
   position: relative;
   z-index: 10;
   padding: 0;
-  width: 90%;
-  max-width: 780px;
+  width: 93.3%;
+  max-width: 93.3vw; /* To bằng đúng kích thước bảng hiệu billboard phía trên */
   margin: 0 auto;
 }
 
