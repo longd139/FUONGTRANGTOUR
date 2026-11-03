@@ -81,6 +81,7 @@ body {
 
 /* ================== PHẦN THÔNG TIN TUYẾN XE ================== */
 .top-header-section {
+  display: none; /* Tạm thời ẩn theo yêu cầu */
   position: relative;
   z-index: 10;
   padding: 4px 14px 4px 14px;
