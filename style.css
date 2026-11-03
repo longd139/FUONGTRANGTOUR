@@ -39,10 +39,8 @@ body {
   height: 96vh;
   max-height: 820px;
   aspect-ratio: 9 / 16;
-  /* Nền mặt tiền phòng vé xe khách màu cam */
-  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.35) 100%),
-              url("public/Mặt tiền phòng vé xe khách màu cam.png") no-repeat center center;
-  background-size: cover;
+  /* Tạm thời ẩn ảnh nền phòng vé theo yêu cầu để thiết kế bối cảnh */
+  background: #181922;
   border-radius: 28px;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.85), 0 0 0 3px #2b2d42;
   overflow: hidden;
@@ -222,15 +220,15 @@ body {
   left: 4px;
 }
 
-/* ================== KHU VỰC 3: XE KHÁCH FUONG TRANG (ẢNH THỰC TẾ) ================== */
+/* ================== KHU VỰC 3: XE KHÁCH FUONG TRANG (CHÍNH GIỮA MÀN HÌNH) ================== */
 .bus-dock-section {
   position: relative;
   flex: 1;
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 8px;
+  justify-content: center; /* Đưa xe lên chính giữa màn hình theo chiều dọc */
+  align-items: center;
   z-index: 4;
 }
 
@@ -238,11 +236,11 @@ body {
   position: relative;
   width: 98%;
   max-width: 430px;
-  height: 215px;
+  height: 220px;
   margin: 0 auto;
   transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
 }
 
@@ -297,12 +295,7 @@ body {
 }
 
 .road-track {
-  width: 94%;
-  height: 6px;
-  background: rgba(30, 32, 40, 0.85);
-  border-radius: 3px;
-  margin: 4px auto 0 auto;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  display: none;
 }
 
 /* ================== NHÂN VẬT 2D HOẠT HÌNH ================== */
