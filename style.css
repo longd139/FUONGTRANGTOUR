@@ -132,7 +132,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 5;
-  margin-top: 75px; /* Hạ xe khách thấp xuống để bánh xe tiếp đất sàn nhà ga */
+  margin-top: 175px; /* Hạ thêm 100px để bánh xe đặt chuẩn trên sàn nhà ga */
 }
 
 .bus-container {
