@@ -132,7 +132,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 5;
-  margin-top: 175px; /* Hạ thêm 100px để bánh xe đặt chuẩn trên sàn nhà ga */
+  margin-top: -25px; /* Áp sát nóc xe vào ngay dưới đáy bảng 20 slot */
 }
 
 .bus-container {
@@ -242,7 +242,7 @@ body {
   overflow: hidden;
 }
 
-/* ================== KHU VỰC 20 GIƯỜNG NẰM NẰM NGAY TRÊN CHIẾC XE ================== */
+/* ================== KHU VỰC 20 GIƯỜNG NẰM NẰM SÁT NGAY TRÊN NÓC XE ================== */
 .waiting-lounge-container {
   display: block;
   position: relative;
@@ -250,7 +250,7 @@ body {
   padding: 0;
   width: 90%;
   max-width: 780px;
-  margin: 0 auto 6px auto; /* Nằm ngay sát phía trên chiếc xe */
+  margin: 155px auto 0 auto; /* Hạ bảng xuống sát ngay trên chiếc xe */
 }
 
 .waiting-lounge {
