@@ -61,9 +61,9 @@ body {
 
 /* ================== BIỂN HIỆU FƯỜNG TRANG PHÁT SÁNG NẰM TRÊN CÙNG ================== */
 .main-signboard-wrap {
-  width: 95%;
-  max-width: 420px;
-  margin: 12px auto 2px auto;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -73,10 +73,10 @@ body {
 .signboard-img {
   width: 100%;
   height: auto;
-  max-height: 110px;
+  max-height: 125px;
   object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(245, 90, 0, 0.35));
-  border-radius: 12px;
+  filter: none; /* Bỏ shadow để liền mạch hoàn toàn với nền trắng */
+  border-radius: 0;
 }
 
 /* ================== PHẦN THÔNG TIN TUYẾN XE ================== */
@@ -88,13 +88,12 @@ body {
 
 /* Bảng trạng thái vé chuyến xe */
 .trip-board {
-  background: rgba(255, 255, 255, 0.96);
-  border: 2.5px solid var(--color-brand-orange);
+  background: #ffffff;
+  border: 2px solid var(--color-brand-orange);
   border-radius: 14px;
   padding: 8px 14px;
   color: #222;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-  backdrop-filter: blur(5px);
+  box-shadow: none; /* Bỏ shadow để liền mạch */
 }
 
 .trip-info {
@@ -161,7 +160,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65));
+  filter: none; /* Bỏ shadow để liền mạch với nền */
   pointer-events: none;
   transition: transform 0.2s ease;
 }
@@ -234,7 +233,7 @@ body {
   display: flex;
   flex-direction: column;
   border: 1.5px solid #495057;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  box-shadow: none;
   z-index: 5;
 }
 
