@@ -307,18 +307,22 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  height: 84px;
+  height: 92px; /* Tăng chiều cao để cả giường trên và giường dưới đều rộng rãi */
 }
 
 /* Ô giường trên và giường dưới */
 .bunk-slot {
-  flex: 1;
+  flex: 1 1 50%;
+  height: 50%;
+  max-height: 50%;
+  min-height: 0; /* Khóa cứng tỉ lệ 50-50, giường trên không phình to đè giường dưới */
   background: #f8fafc;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
   transition: all 0.25s ease;
 }
 
@@ -332,13 +336,14 @@ body {
 }
 
 .bunk-label {
-  font-size: 7.5px;
+  font-size: 8px;
   font-weight: 800;
   color: #94a3b8;
   position: absolute;
-  top: 1px;
-  left: 3px;
+  top: 2px;
+  left: 4px;
   pointer-events: none;
+  z-index: 2;
 }
 
 .bunk-slot.occupied .bunk-label {
@@ -346,11 +351,15 @@ body {
 }
 
 .bunk-slot .char-2d {
-  position: static;
-  transform: scale(0.62) !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -46%) scale(0.65) !important;
   transform-origin: center center !important;
-  margin-top: -3px;
-  filter: none;
+  margin: 0 !important;
+  filter: none !important;
+  pointer-events: none;
+  width: auto;
 }
 
 /* ================== NHÂN VẬT 2D HOẠT HÌNH TRÊN SÂN BẾN XE ================== */
@@ -493,12 +502,6 @@ body {
 @keyframes legWalk {
   0% { transform: translateY(0); }
   100% { transform: translateY(-3px); }
-}
-
-.seat-slot .char-2d {
-  position: static;
-  transform: scale(0.72);
-  margin-top: -3px;
 }
 
 /* ================== TOAST THÔNG BÁO CHO MOBILE ================== */
