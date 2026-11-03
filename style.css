@@ -126,7 +126,6 @@ body {
   gap: 8px;
 }
 
-/* Bảng hiệu bến xe */
 .station-banner {
   display: flex;
   justify-content: space-between;
@@ -240,7 +239,7 @@ body {
   transition: width 0.4s ease;
 }
 
-/* ================== KHU VỰC 1: SÂN NGOÀI PHÍA XA (MÀN HÌNH DỌC) ================== */
+/* ================== KHU VỰC 1: SÂN NGOÀI PHÍA XA ================== */
 .zone-far {
   position: relative;
   width: 100%;
@@ -343,7 +342,7 @@ body {
   left: 4px;
 }
 
-/* ================== KHU VỰC 3: XE KHÁCH 2D FUONG TRANG ================== */
+/* ================== KHU VỰC 3: XE KHÁCH FUONG TRANG (ẢNH THỰC TẾ ĐÃ TÁCH NỀN) ================== */
 .bus-dock-section {
   position: relative;
   flex: 1;
@@ -357,200 +356,44 @@ body {
 
 .bus-container {
   position: relative;
-  width: 370px;
-  height: 150px;
+  width: 90%;
+  max-width: 380px;
+  height: 165px;
   margin: 0 auto;
   transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Thân xe */
-.bus-body {
-  position: absolute;
-  width: 100%;
-  height: 125px;
-  background: linear-gradient(180deg, #ff7a29 0%, var(--color-brand-orange) 60%, var(--color-brand-orange-dark) 100%);
-  border-radius: 20px 32px 10px 10px;
-  border: 3px solid #fff;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.35);
-  overflow: hidden;
-}
-
-.bus-destination-sign {
-  position: absolute;
-  top: 5px;
-  right: 25px;
-  background: #111;
-  color: var(--color-gold);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 10px;
-  padding: 2px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--color-gold);
-}
-
-.bus-windows {
   display: flex;
-  gap: 8px;
-  padding-left: 15px;
-}
-
-.bus-windows.top-deck {
-  margin-top: 26px;
-}
-
-.bus-windows.bottom-deck {
-  margin-top: 8px;
-}
-
-.window {
-  width: 52px;
-  height: 24px;
-  background: linear-gradient(135deg, #a7d9fc, #d8f1ff);
-  border-radius: 6px;
-  border: 1.5px solid #fff;
-  position: relative;
-  overflow: hidden;
-}
-
-.window.front-window {
-  width: 65px;
-  border-radius: 6px 18px 6px 6px;
-}
-
-.curtain {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  background: #ffcad4;
-  border-bottom: 1.5px solid #e07a5f;
-}
-
-.bus-middle-stripe {
-  background: #fff;
-  height: 17px;
-  margin: 4px 0;
-  display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  gap: 6px;
 }
 
-.bus-brand-name {
-  color: var(--color-brand-orange-dark);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: 1.5px;
-}
-
-.bus-sub {
-  color: var(--color-brand-green);
-  font-weight: 900;
-  font-size: 9px;
-}
-
-.bus-door {
-  width: 32px;
-  height: 36px;
-  background: #d3d3d3;
-  border: 1.5px solid #fff;
-  border-radius: 4px;
-  margin-left: auto;
-  margin-right: 15px;
-  position: relative;
-}
-
-.door-panel {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  background: #b0bec5;
-  border-radius: 3px;
-  transition: transform 0.5s ease;
-}
-
-.bus-door.open .door-panel {
-  transform: scaleX(0.1);
-}
-
-.bus-front-light {
-  position: absolute;
-  bottom: 14px;
-  right: 4px;
-  width: 10px;
-  height: 12px;
-  background: #fffb00;
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px #fffb00;
-}
-
-.bus-plate {
-  position: absolute;
-  bottom: 5px;
-  right: 18px;
-  background: #fff;
-  color: #111;
-  font-weight: 900;
-  font-size: 8px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  border: 1px solid #333;
-}
-
-/* Bánh xe */
-.bus-wheels {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+/* Ảnh xe khách đã tách nền */
+.bus-photo {
   width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+  transition: transform 0.2s ease;
 }
 
-.wheel {
-  position: absolute;
-  bottom: -10px;
-  width: 42px;
-  height: 42px;
-  background: #2b2d42;
-  border-radius: 50%;
-  border: 5px solid #1a1a24;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+/* Rung máy nhẹ khi khởi hành */
+.bus-container.driving .bus-photo {
+  animation: busEngineVibrate 0.1s infinite alternate ease-in-out;
 }
 
-.wheel-rear { left: 60px; }
-.wheel-front { right: 55px; }
-
-.wheel-rim {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  background: #adb5bd;
-  border-radius: 50%;
-  border: 1.5px dashed #495057;
+@keyframes busEngineVibrate {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-3px); }
 }
 
-.bus-container.driving .wheel-rim {
-  animation: spinWheel 0.35s linear infinite;
-}
-
-@keyframes spinWheel {
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Ống khói */
+/* Ống khói phía sau xe */
 .bus-exhaust {
   position: absolute;
-  bottom: 6px;
-  left: -15px;
+  bottom: 25px;
+  left: 10px;
   opacity: 0;
   pointer-events: none;
+  z-index: 2;
 }
 
 .bus-container.driving .bus-exhaust {
@@ -591,7 +434,6 @@ body {
   z-index: 5;
 }
 
-/* Tên người dùng */
 .char-tag {
   background: rgba(0, 0, 0, 0.85);
   color: #fff;
@@ -611,7 +453,6 @@ body {
   font-size: 8px;
 }
 
-/* Thân nhân vật 2D Chibi */
 .char-figure {
   position: relative;
   width: 30px;
@@ -700,7 +541,6 @@ body {
   border-radius: 0 0 2px 2px;
 }
 
-/* Bước đi */
 .char-2d.walking .char-figure {
   animation: walkBob 0.3s infinite alternate ease-in-out;
 }
@@ -722,7 +562,6 @@ body {
   100% { transform: translateY(-3px); }
 }
 
-/* Ngồi vào ghế */
 .seat-slot .char-2d {
   position: static;
   transform: scale(0.9);

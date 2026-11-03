@@ -30,7 +30,6 @@ const seatsGrid = document.getElementById("seats-grid");
 const seatCountEl = document.getElementById("seat-count");
 const tripProgressEl = document.getElementById("trip-progress");
 const busContainer = document.getElementById("fuong-trang-bus");
-const busDoor = document.getElementById("bus-door");
 const toastBanner = document.getElementById("toast-banner");
 const toastAvatar = document.getElementById("toast-avatar");
 const toastTitle = document.getElementById("toast-title");
@@ -211,11 +210,9 @@ function triggerBusDeparture() {
   speakStationAnnouncement("Chuyến xe FUONG TRANG đi Đà Lạt đã đủ khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!");
   showToast("🚌 XUẤT BẾN!", "Chuyến xe FUONG TRANG khởi hành đi Đà Lạt!", "🚀");
 
-  busDoor.classList.remove("open");
-
   setTimeout(() => {
     busContainer.classList.add("driving");
-    busContainer.style.transform = "translateX(480px)";
+    busContainer.style.transform = "translateX(500px)";
 
     setTimeout(() => {
       resetTripForNextBatch();
@@ -230,7 +227,7 @@ function resetTripForNextBatch() {
 
   busContainer.classList.remove("driving");
   busContainer.style.transition = "none";
-  busContainer.style.transform = "translateX(-450px)";
+  busContainer.style.transform = "translateX(-500px)";
 
   setTimeout(() => {
     busContainer.style.transition = "transform 1.1s cubic-bezier(0.25, 1, 0.5, 1)";
@@ -239,7 +236,6 @@ function resetTripForNextBatch() {
 
     setTimeout(() => {
       busContainer.classList.remove("driving");
-      busDoor.classList.add("open");
       state.isDeparting = false;
       showToast("✨ CHUYẾN MỚI BẮT ĐẦU!", "Xe FUONG TRANG mới đã vào bến! Tặng quà để đặt vé!", "🚌");
     }, 1200);
@@ -351,7 +347,6 @@ function stopAutoDemo() {
 document.addEventListener("DOMContentLoaded", () => {
   initSeats();
   initTestControls();
-  busDoor.classList.add("open");
 
   setTimeout(() => onPassengerJoin("Bác Ba Phi"), 400);
   setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 800);
