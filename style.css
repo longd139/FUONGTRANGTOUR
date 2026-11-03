@@ -59,11 +59,31 @@ body {
   }
 }
 
-/* ================== PHẦN ĐỈNH: BẢNG TRẠNG THÁI TUYẾN XE GỌN GÀNG ================== */
+/* ================== BIỂN HIỆU FƯỜNG TRANG PHÁT SÁNG NẰM TRÊN CÙNG ================== */
+.main-signboard-wrap {
+  width: 95%;
+  max-width: 420px;
+  margin: 12px auto 2px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.signboard-img {
+  width: 100%;
+  height: auto;
+  max-height: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(245, 90, 0, 0.35));
+  border-radius: 12px;
+}
+
+/* ================== PHẦN THÔNG TIN TUYẾN XE ================== */
 .top-header-section {
   position: relative;
   z-index: 10;
-  padding: 12px 14px 4px 14px;
+  padding: 4px 14px 4px 14px;
 }
 
 /* Bảng trạng thái vé chuyến xe */
