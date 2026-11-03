@@ -229,15 +229,15 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
   z-index: 4;
 }
 
 .bus-container {
   position: relative;
-  width: 92%;
-  max-width: 390px;
-  height: 170px;
+  width: 98%;
+  max-width: 430px;
+  height: 215px;
   margin: 0 auto;
   transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -250,7 +250,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65));
   pointer-events: none;
   transition: transform 0.2s ease;
 }
@@ -268,8 +268,8 @@ body {
 /* Ống khói phía sau xe */
 .bus-exhaust {
   position: absolute;
-  bottom: 25px;
-  left: 10px;
+  bottom: 30px;
+  left: 8px;
   opacity: 0;
   pointer-events: none;
   z-index: 2;

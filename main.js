@@ -212,7 +212,7 @@ function triggerBusDeparture() {
 
   setTimeout(() => {
     busContainer.classList.add("driving");
-    busContainer.style.transform = "translateX(500px)";
+    busContainer.style.transform = "translateX(560px)";
 
     setTimeout(() => {
       resetTripForNextBatch();
@@ -227,7 +227,7 @@ function resetTripForNextBatch() {
 
   busContainer.classList.remove("driving");
   busContainer.style.transition = "none";
-  busContainer.style.transform = "translateX(-500px)";
+  busContainer.style.transform = "translateX(-560px)";
 
   setTimeout(() => {
     busContainer.style.transition = "transform 1.1s cubic-bezier(0.25, 1, 0.5, 1)";
