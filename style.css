@@ -94,33 +94,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-.live-status-pill {
-  background: #ff0055;
-  color: #fff;
-  font-weight: 900;
-  font-size: 9px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  border: 1.5px solid #fff;
-  box-shadow: 0 2px 6px rgba(255, 0, 85, 0.4);
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  background: #fff;
-  border-radius: 50%;
-  animation: pulseDot 1s infinite alternate;
-}
-
-@keyframes pulseDot {
-  from { opacity: 0.3; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1.2); }
-}
-
 .trip-seats b {
   color: #d90429;
   font-size: 14px;
