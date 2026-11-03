@@ -70,15 +70,32 @@ function speakStationAnnouncement(text) {
   }
 }
 
-/* ================== KHỞI TẠO DÃY GHẾ CHỜ VIP ================== */
+/* ================== KHỞI TẠO 10 KHOANG x 2 GIƯỜNG TRÊN/DƯỚI ================== */
 function initSeats() {
   seatsGrid.innerHTML = "";
-  for (let i = 1; i <= CONFIG.TOTAL_SEATS; i++) {
-    const seat = document.createElement("div");
-    seat.className = "seat-slot";
-    seat.id = `seat-slot-${i}`;
-    seat.innerHTML = `<span class="seat-label">G${i < 10 ? '0' + i : i}</span>`;
-    seatsGrid.appendChild(seat);
+  let slotIndex = 1;
+  for (let comp = 1; comp <= 10; comp++) {
+    const compBox = document.createElement("div");
+    compBox.className = "compartment-box";
+    const compNum = comp < 10 ? '0' + comp : comp;
+
+    // Giường trên
+    const topSlot = document.createElement("div");
+    topSlot.className = "bunk-slot bunk-top";
+    topSlot.id = `seat-slot-${slotIndex}`;
+    topSlot.innerHTML = `<span class="bunk-label">G${compNum}-T</span>`;
+    slotIndex++;
+
+    // Giường dưới
+    const bottomSlot = document.createElement("div");
+    bottomSlot.className = "bunk-slot bunk-bottom";
+    bottomSlot.id = `seat-slot-${slotIndex}`;
+    bottomSlot.innerHTML = `<span class="bunk-label">G${compNum}-D</span>`;
+    slotIndex++;
+
+    compBox.appendChild(topSlot);
+    compBox.appendChild(bottomSlot);
+    seatsGrid.appendChild(compBox);
   }
   updateTripBoard();
 }
@@ -178,8 +195,8 @@ function onPassengerGift(username, giftName) {
     return;
   }
 
-  showToast("🎟️ MỜI VÀO GHẾ VIP!", `${username} tặng ${giftName} và nhận vé VIP!`, "🌸");
-  speakStationAnnouncement(`Mời quý khách ${username} vào phòng chờ lên xe!`);
+  showToast("🎟️ ĐÃ ĐẶT GIƯỜNG!", `${username} tặng ${giftName} và nhận vé giường nằm!`, "🌸");
+  speakStationAnnouncement(`Mời quý khách ${username} vào giường nằm!`);
 
   state.farPassengers = state.farPassengers.filter(u => u !== username);
   const existingChar = document.getElementById(`char-${username.replace(/\s+/g, '_')}`);
