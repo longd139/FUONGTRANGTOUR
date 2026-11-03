@@ -4,8 +4,8 @@
 
 // Cấu hình
 const CONFIG = {
-  TOTAL_SEATS: 10,
-  AUTO_DEPART_DELAY: 2200, // Đợi 2.2s khi đủ 10 người thì xuất bến
+  TOTAL_SEATS: 20,
+  AUTO_DEPART_DELAY: 2200, // Đợi 2.2s khi đủ 20 người thì xuất bến
   RANDOM_NAMES: [
     "Anh Hai Lúa", "Chị Út Miền Tây", "Bác Ba Phi", "Cô Tám Bến Tre", 
     "Bé Bắp", "Hoàng Tử Gió", "Mèo Cam", "Sơn Ca", "Bé Bự", "Tuấn Khang",
@@ -85,9 +85,11 @@ function initSeats() {
 
 function updateTripBoard() {
   const count = state.seatedPassengers.length;
-  seatCountEl.innerText = `${count}/${CONFIG.TOTAL_SEATS}`;
+  if (seatCountEl) seatCountEl.innerText = `${count}/${CONFIG.TOTAL_SEATS}`;
+  const slotCounter = document.getElementById("slot-counter");
+  if (slotCounter) slotCounter.innerText = `${count}/${CONFIG.TOTAL_SEATS}`;
   const percent = (count / CONFIG.TOTAL_SEATS) * 100;
-  tripProgressEl.style.width = `${percent}%`;
+  if (tripProgressEl) tripProgressEl.style.width = `${percent}%`;
 }
 
 /* ================== TẠO HÌNH NHÂN VẬT 2D HOẠT HÌNH ================== */
@@ -207,8 +209,8 @@ function triggerBusDeparture() {
   state.isDeparting = true;
 
   playBusHorn();
-  speakStationAnnouncement("Chuyến xe FUONG TRANG đi Đà Lạt đã đủ khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!");
-  showToast("🚌 XUẤT BẾN!", "Chuyến xe FUONG TRANG khởi hành đi Đà Lạt!", "🚀");
+  speakStationAnnouncement("Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!");
+  showToast("🚌 XUẤT BẾN!", "Chuyến xe FUONG TRANG đủ 20 khách khởi hành đi Đà Lạt!", "🚀");
 
   setTimeout(() => {
     busContainer.classList.add("driving");
