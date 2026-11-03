@@ -145,7 +145,40 @@ function createCharacterElement(username, gift = null) {
   return charDiv;
 }
 
-/* ================== SỰ KIỆN 1: NGƯỜI VÀO XEM (SÂN NGOÀI) ================== */
+/* ================== TÍNH TOÁN KHÔNG GIAN SÂN VÀ HIỆU ỨNG PHỐI CẢNH 3D ================== */
+function getCourtyardBounds() {
+  const stageEl = document.getElementById("game-stage");
+  const busPhoto = document.getElementById("bus-photo");
+  const stageRect = stageEl ? stageEl.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight, top: 0, left: 0 };
+  
+  let groundTop = stageRect.height * 0.48;
+  if (busPhoto) {
+    const photoRect = busPhoto.getBoundingClientRect();
+    // Bánh xe tiếp đất cách mép dưới của ảnh xe khoảng 10px (do khoảng trống transparent đã trừ bớt)
+    groundTop = Math.max(photoRect.bottom - stageRect.top - 12, 80);
+  }
+  
+  const groundBottom = stageRect.height - 45; // Sát đáy màn hình
+  const width = stageRect.width;
+
+  return { groundTop, groundBottom, width };
+}
+
+function getPerspectiveInfo(y, groundTop, groundBottom) {
+  const depthRange = Math.max(groundBottom - groundTop, 1);
+  const progress = Math.max(0, Math.min(1, (y - groundTop) / depthRange));
+  
+  // Ở xa (sát bánh xe, progress = 0): scale = 0.52 (nhỏ gọn)
+  // Ở gần (sát đáy màn hình, progress = 1): scale = 1.18 (to rõ ràng)
+  const scale = 0.52 + progress * 0.66;
+  
+  // z-index: người ở gần (Y lớn) sẽ đứng đè lên người ở xa (Y nhỏ)
+  const zIndex = Math.floor(10 + progress * 80);
+  
+  return { progress, scale, zIndex };
+}
+
+/* ================== SỰ KIỆN 1: NGƯỜI VÀO XEM (SÂN BẾN XE) ================== */
 function onPassengerJoin(username) {
   if (state.isDeparting) return;
 
@@ -153,8 +186,8 @@ function onPassengerJoin(username) {
     return;
   }
 
-  // Tối đa 12 người ở sân ngoài màn hình điện thoại
-  if (state.farPassengers.length >= 12) {
+  // Tối đa 25 người cùng lúc trên khoảng sân rộng
+  if (state.farPassengers.length >= 25) {
     const oldest = state.farPassengers.shift();
     const oldEl = document.getElementById(`char-${oldest.replace(/\s+/g, '_')}`);
     if (oldEl) oldEl.remove();
@@ -164,10 +197,21 @@ function onPassengerJoin(username) {
   const charEl = createCharacterElement(username);
   charEl.classList.add("walking");
 
-  const startX = -50;
-  const containerW = farContainer.clientWidth || 360;
-  const targetX = 15 + Math.random() * (containerW - 80);
-  const targetY = 40 + Math.random() * 80;
+  const { groundTop, groundBottom, width } = getCourtyardBounds();
+
+  // Tọa độ Y ngẫu nhiên trải đều từ dưới bánh xe đổ xuống đáy màn hình
+  const targetY = groundTop + Math.random() * (groundBottom - groundTop);
+  // Tọa độ X ngẫu nhiên trên chiều ngang sân (chừa mép 30px)
+  const targetX = 30 + Math.random() * Math.max(width - 120, 40);
+
+  // Tính hiệu ứng phối cảnh: ở xa thì nhỏ, ở gần thì to
+  const { scale, zIndex } = getPerspectiveInfo(targetY, groundTop, groundBottom);
+  charEl.style.transform = `scale(${scale.toFixed(3)})`;
+  charEl.style.zIndex = zIndex;
+
+  // Xuất phát từ mép trái hoặc phải đi vào
+  const fromLeft = Math.random() > 0.5;
+  const startX = fromLeft ? -60 : width + 40;
 
   charEl.style.left = `${startX}px`;
   charEl.style.top = `${targetY}px`;
@@ -177,9 +221,42 @@ function onPassengerJoin(username) {
     charEl.style.left = `${targetX}px`;
     setTimeout(() => {
       charEl.classList.remove("walking");
-    }, 800);
+    }, 850);
   }, 40);
 }
+
+/* Thỉnh thoảng nhân vật đi lại vài bước thư thái trên sân */
+function wanderPassenger(charEl) {
+  if (!charEl || charEl.classList.contains("walking")) return;
+  const { groundTop, groundBottom, width } = getCourtyardBounds();
+  
+  const currentLeft = parseFloat(charEl.style.left) || (width / 2);
+  const currentTop = parseFloat(charEl.style.top) || (groundTop + 50);
+
+  const newX = Math.max(30, Math.min(width - 100, currentLeft + (Math.random() * 120 - 60)));
+  const newY = Math.max(groundTop, Math.min(groundBottom, currentTop + (Math.random() * 60 - 30)));
+
+  const { scale, zIndex } = getPerspectiveInfo(newY, groundTop, groundBottom);
+
+  charEl.classList.add("walking");
+  charEl.style.left = `${newX}px`;
+  charEl.style.top = `${newY}px`;
+  charEl.style.transform = `scale(${scale.toFixed(3)})`;
+  charEl.style.zIndex = zIndex;
+
+  setTimeout(() => {
+    charEl.classList.remove("walking");
+  }, 850);
+}
+
+setInterval(() => {
+  if (state.isDeparting) return;
+  const chars = document.querySelectorAll(".courtyard-passengers-layer .char-2d");
+  if (chars.length > 0) {
+    const randomChar = chars[Math.floor(Math.random() * chars.length)];
+    wanderPassenger(randomChar);
+  }
+}, 4500);
 
 /* ================== SỰ KIỆN 2: TẶNG QUÀ & VÀO GHẾ VIP ================== */
 function onPassengerGift(username, giftName) {
@@ -369,4 +446,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setTimeout(() => onPassengerJoin("Bác Ba Phi"), 400);
   setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 800);
+  setTimeout(() => onPassengerJoin("Anh Ba Sài Gòn"), 1200);
 });
