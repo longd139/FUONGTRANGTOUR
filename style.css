@@ -112,23 +112,101 @@ body {
   transition: width 0.4s ease;
 }
 
-/* ================== KHU VỰC 1: SÂN NGOÀI PHÍA XA ================== */
+/* ================== KHU VỰC XE KHÁCH FUONG TRANG (ĐƯỢC ĐƯA LÊN CAO) ================== */
+.bus-dock-section {
+  position: relative;
+  width: 100%;
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 4;
+}
+
+.bus-container {
+  position: relative;
+  width: 98%;
+  max-width: 430px;
+  height: 225px;
+  margin: 0 auto;
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ảnh xe khách đã tách nền */
+.bus-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65));
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+/* Rung máy nhẹ khi khởi hành */
+.bus-container.driving .bus-photo {
+  animation: busEngineVibrate 0.1s infinite alternate ease-in-out;
+}
+
+@keyframes busEngineVibrate {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-3px); }
+}
+
+/* Ống khói phía sau xe */
+.bus-exhaust {
+  position: absolute;
+  bottom: 30px;
+  left: 8px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bus-container.driving .bus-exhaust {
+  opacity: 1;
+}
+
+.smoke-puff {
+  position: absolute;
+  background: rgba(220, 220, 220, 0.7);
+  border-radius: 50%;
+  animation: puff 0.6s infinite ease-out;
+}
+
+.p1 { width: 14px; height: 14px; left: -8px; animation-delay: 0.1s; }
+.p2 { width: 20px; height: 20px; left: -18px; animation-delay: 0.25s; }
+.p3 { width: 26px; height: 26px; left: -32px; animation-delay: 0.4s; }
+
+@keyframes puff {
+  0% { transform: scale(0.3) translateY(0); opacity: 0.8; }
+  100% { transform: scale(1.6) translateY(-20px); opacity: 0; }
+}
+
+.road-track {
+  display: none;
+}
+
+/* ================== KHU VỰC NGƯỜI CHỜ DƯỚI LÒNG ĐƯỜNG (DƯỚI ĐÁY XE) ================== */
 .zone-far {
   position: relative;
   width: 100%;
-  height: 145px;
+  height: 180px;
   z-index: 2;
-  margin-top: 6px;
-  background: rgba(0, 0, 0, 0.22);
-  border-bottom: 3px dashed rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(1.5px);
+  margin-top: auto; /* Tự động đẩy xuống đáy màn hình */
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 3px dashed rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(2px);
 }
 
 .zone-badge {
   position: absolute;
-  top: 6px;
+  top: 8px;
   left: 12px;
-  background: rgba(20, 22, 32, 0.92);
+  background: rgba(20, 22, 32, 0.94);
   padding: 3px 10px;
   border-radius: 14px;
   color: #edf2f4;
@@ -218,84 +296,6 @@ body {
   position: absolute;
   top: 2px;
   left: 4px;
-}
-
-/* ================== KHU VỰC 3: XE KHÁCH FUONG TRANG (CHÍNH GIỮA MÀN HÌNH) ================== */
-.bus-dock-section {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Đưa xe lên chính giữa màn hình theo chiều dọc */
-  align-items: center;
-  z-index: 4;
-}
-
-.bus-container {
-  position: relative;
-  width: 98%;
-  max-width: 430px;
-  height: 220px;
-  margin: 0 auto;
-  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Ảnh xe khách đã tách nền */
-.bus-photo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65));
-  pointer-events: none;
-  transition: transform 0.2s ease;
-}
-
-/* Rung máy nhẹ khi khởi hành */
-.bus-container.driving .bus-photo {
-  animation: busEngineVibrate 0.1s infinite alternate ease-in-out;
-}
-
-@keyframes busEngineVibrate {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-3px); }
-}
-
-/* Ống khói phía sau xe */
-.bus-exhaust {
-  position: absolute;
-  bottom: 30px;
-  left: 8px;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.bus-container.driving .bus-exhaust {
-  opacity: 1;
-}
-
-.smoke-puff {
-  position: absolute;
-  background: rgba(220, 220, 220, 0.7);
-  border-radius: 50%;
-  animation: puff 0.6s infinite ease-out;
-}
-
-.p1 { width: 14px; height: 14px; left: -8px; animation-delay: 0.1s; }
-.p2 { width: 20px; height: 20px; left: -18px; animation-delay: 0.25s; }
-.p3 { width: 26px; height: 26px; left: -32px; animation-delay: 0.4s; }
-
-@keyframes puff {
-  0% { transform: scale(0.3) translateY(0); opacity: 0.8; }
-  100% { transform: scale(1.6) translateY(-20px); opacity: 0; }
-}
-
-.road-track {
-  display: none;
 }
 
 /* ================== NHÂN VẬT 2D HOẠT HÌNH ================== */

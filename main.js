@@ -148,7 +148,7 @@ function onPassengerJoin(username) {
   const startX = -50;
   const containerW = farContainer.clientWidth || 360;
   const targetX = 15 + Math.random() * (containerW - 80);
-  const targetY = 22 + Math.random() * 55;
+  const targetY = 40 + Math.random() * 80;
 
   charEl.style.left = `${startX}px`;
   charEl.style.top = `${targetY}px`;

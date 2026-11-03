@@ -12,7 +12,7 @@
 <body>
   <!-- Màn hình chính Stream Overlay tỉ lệ chuẩn điện thoại 9:16 -->
   <main id="game-stage">
-    <!-- PHẦN ĐỈNH: Thông tin chuyến xe & Trạng thái Live gọn gàng -->
+    <!-- PHẦN ĐỈNH: Thông tin chuyến xe -->
     <header class="top-header-section">
       <div class="trip-board">
         <div class="trip-info">
@@ -25,26 +25,7 @@
       </div>
     </header>
 
-    <!-- KHU VỰC 1: SÂN CHỜ PHÍA XA (Người xem mới vào live) -->
-    <section class="zone-far" id="zone-far">
-      <div class="zone-badge">
-        <span>SÂN CHỜ NGOÀI BẾN (CHƯA CÓ VÉ)</span>
-        <small>Tặng hoa / quà để vào ghế VIP!</small>
-      </div>
-      <div id="far-passengers-container" class="passengers-layer"></div>
-    </section>
-
-    <!-- KHU VỰC 2: PHÒNG CHỜ VIP (Dãy 10 ghế ngồi) -->
-    <section class="waiting-lounge-container">
-      <div class="waiting-lounge">
-        <div class="lounge-roof">PHÒNG CHỜ VIP CÓ MÁY LẠNH</div>
-        <div class="seats-grid" id="seats-grid">
-          <!-- 10 ghế do JavaScript render -->
-        </div>
-      </div>
-    </section>
-
-    <!-- KHU VỰC 3: XE KHÁCH FUONG TRANG (ẢNH THỰC TẾ) & ĐƯỜNG CHẠY -->
+    <!-- KHU VỰC XE KHÁCH FUONG TRANG (ĐƯỢC ĐƯA LÊN CAO) -->
     <section class="bus-dock-section">
       <div class="bus-container" id="fuong-trang-bus">
         <img src="public/removeBg.png" alt="Xe khách FUONG TRANG" class="bus-photo" id="bus-photo">
@@ -57,6 +38,25 @@
         </div>
       </div>
       <div class="road-track"></div>
+    </section>
+
+    <!-- PHÒNG CHỜ VIP (Tạm thời ẩn) -->
+    <section class="waiting-lounge-container">
+      <div class="waiting-lounge">
+        <div class="lounge-roof">PHÒNG CHỜ VIP CÓ MÁY LẠNH</div>
+        <div class="seats-grid" id="seats-grid">
+          <!-- 10 ghế do JavaScript render -->
+        </div>
+      </div>
+    </section>
+
+    <!-- KHU VỰC NGƯỜI CHỜ DƯỚI LÒNG ĐƯỜNG (Ở PHÍA DƯỚI XE) -->
+    <section class="zone-far" id="zone-far">
+      <div class="zone-badge">
+        <span>HÀNH KHÁCH CHỜ DƯỚI ĐƯỜNG (CHƯA CÓ VÉ)</span>
+        <small>Tặng hoa / quà để được lên xe!</small>
+      </div>
+      <div id="far-passengers-container" class="passengers-layer"></div>
     </section>
 
     <!-- THÔNG BÁO NỔI TOAST -->
