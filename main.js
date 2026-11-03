@@ -439,12 +439,192 @@ function stopAutoDemo() {
   }
 }
 
+/* ================== SPRITE FRAMES CHO CHARACTER_1 ================== */
+const SPRITE_FRAMES = [
+  "public/CHARACTER_1/1.png",
+  "public/CHARACTER_1/2.png",
+  "public/CHARACTER_1/3.png",
+  "public/CHARACTER_1/4.png",
+  "public/CHARACTER_1/5.png"
+];
+
+// Preload tất cả các frame ảnh để chuyển động mượt mà không bị chớp giật
+SPRITE_FRAMES.forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
+
+/* Quản lý nhân vật Sprite (CHARACTER_1) */
+let spritePlayer = null;
+
+function initSpritePlayer() {
+  const container = document.getElementById("far-passengers-container");
+  if (!container) return;
+
+  const playerEl = document.createElement("div");
+  playerEl.className = "char-2d char-sprite";
+  playerEl.id = "sprite-player-char1";
+  playerEl.innerHTML = `
+    <div class="char-tag">
+      <span class="char-badge">⭐</span>
+      <span class="char-name">Hành Khách VIP</span>
+    </div>
+    <div class="char-sprite-wrapper" id="sprite-char1-wrapper">
+      <img src="public/CHARACTER_1/1.png" class="char-sprite-img" id="sprite-char1-img" alt="character">
+    </div>
+  `;
+  container.appendChild(playerEl);
+
+  const wrapperEl = playerEl.querySelector("#sprite-char1-wrapper");
+  const imgEl = playerEl.querySelector("#sprite-char1-img");
+
+  const bounds = getCourtyardBounds();
+  const startX = bounds.width / 2 - 29;
+  const startY = bounds.groundTop + (bounds.groundBottom - bounds.groundTop) * 0.55;
+
+  spritePlayer = {
+    el: playerEl,
+    wrapperEl: wrapperEl,
+    imgEl: imgEl,
+    x: startX,
+    y: startY,
+    targetX: startX,
+    targetY: startY,
+    speed: 135,          // px/giây khi di chuyển
+    frame: 0,            // Frame hiện tại (0 -> 4 ứng với 1.png -> 5.png)
+    frameTimer: 0,
+    frameDuration: 100,  // 100ms mỗi frame bước chân
+    direction: 1,        // 1: nhìn sang phải, -1: nhìn sang trái
+    idleTimer: 1.5       // Đếm ngược thời gian đứng yên trước khi tự đi tiếp
+  };
+
+  // Hỗ trợ phím mũi tên & WASD điều khiển trực tiếp (tham khảo code người dùng)
+  const keys = new Set();
+  window.addEventListener("keydown", e => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
+      keys.add(e.key);
+    }
+  });
+
+  window.addEventListener("keyup", e => {
+    keys.delete(e.key);
+  });
+
+  window.addEventListener("blur", () => keys.clear());
+
+  // Vòng lặp chuyển động mượt mà 60fps bằng requestAnimationFrame
+  let lastTime = 0;
+  function updateSpriteLoop(time) {
+    if (!lastTime) lastTime = time;
+    const dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+
+    const currentBounds = getCourtyardBounds();
+    const minX = 25;
+    const maxX = Math.max(currentBounds.width - 75, minX + 50);
+    const minY = currentBounds.groundTop;
+    const maxY = currentBounds.groundBottom;
+
+    // 1. Kiểm tra nếu người dùng nhấn phím điều khiển
+    let dx = 0;
+    let dy = 0;
+    if (keys.has("ArrowLeft") || keys.has("a") || keys.has("A")) dx--;
+    if (keys.has("ArrowRight") || keys.has("d") || keys.has("D")) dx++;
+    if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) dy--;
+    if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) dy++;
+
+    let isMoving = false;
+
+    if (dx !== 0 || dy !== 0) {
+      // Đang điều khiển bằng bàn phím
+      const len = Math.hypot(dx, dy);
+      dx /= len;
+      dy /= len;
+
+      spritePlayer.x += dx * spritePlayer.speed * dt;
+      spritePlayer.y += dy * spritePlayer.speed * dt;
+      spritePlayer.targetX = spritePlayer.x;
+      spritePlayer.targetY = spritePlayer.y;
+
+      if (dx !== 0) {
+        spritePlayer.direction = dx > 0 ? 1 : -1;
+      }
+      isMoving = true;
+      spritePlayer.idleTimer = 2.0; // Reset thời gian chờ tự động
+    } else {
+      // 2. Chế độ tự động thong thả đi dạo khắp khoảng sân được phép di chuyển
+      const dist = Math.hypot(spritePlayer.targetX - spritePlayer.x, spritePlayer.targetY - spritePlayer.y);
+      if (dist > 5) {
+        const autoDx = (spritePlayer.targetX - spritePlayer.x) / dist;
+        const autoDy = (spritePlayer.targetY - spritePlayer.y) / dist;
+
+        spritePlayer.x += autoDx * (spritePlayer.speed * 0.72) * dt;
+        spritePlayer.y += autoDy * (spritePlayer.speed * 0.72) * dt;
+
+        if (Math.abs(autoDx) > 0.08) {
+          spritePlayer.direction = autoDx > 0 ? 1 : -1;
+        }
+        isMoving = true;
+      } else {
+        // Đã đến điểm đích, đứng yên tại chỗ
+        spritePlayer.idleTimer -= dt;
+        if (spritePlayer.idleTimer <= 0) {
+          // Chọn điểm đích ngẫu nhiên mới bất kỳ đâu trên sân
+          spritePlayer.targetX = minX + Math.random() * (maxX - minX);
+          spritePlayer.targetY = minY + Math.random() * (maxY - minY);
+          spritePlayer.idleTimer = 2.2 + Math.random() * 3.5; // Đứng nghỉ ngắm cảnh 2 - 5 giây
+        }
+      }
+    }
+
+    // Giữ nhân vật luôn nằm trong ranh giới sân được phép di chuyển (từ dưới bánh xe đến đáy màn hình)
+    spritePlayer.x = Math.max(minX, Math.min(spritePlayer.x, maxX));
+    spritePlayer.y = Math.max(minY, Math.min(spritePlayer.y, maxY));
+
+    // 3. Hoạt hình bước chân:
+    // Khi di chuyển: chạy từ ảnh 1 đến ảnh 5
+    // Khi đứng yên: hiển thị đúng ảnh 1
+    if (isMoving) {
+      spritePlayer.frameTimer += dt * 1000;
+      if (spritePlayer.frameTimer >= spritePlayer.frameDuration) {
+        spritePlayer.frame = (spritePlayer.frame + 1) % SPRITE_FRAMES.length;
+        spritePlayer.frameTimer %= spritePlayer.frameDuration;
+      }
+    } else {
+      spritePlayer.frame = 0; // Đứng yên là ảnh 1.png
+      spritePlayer.frameTimer = 0;
+    }
+
+    // Cập nhật nguồn ảnh tương ứng
+    const currentFrameSrc = SPRITE_FRAMES[spritePlayer.frame];
+    if (spritePlayer.imgEl.getAttribute("src") !== currentFrameSrc) {
+      spritePlayer.imgEl.src = currentFrameSrc;
+    }
+
+    // 4. Hiệu ứng phối cảnh 3D: ở xa thì nhỏ, ở gần thì to
+    const depth = getPerspectiveInfo(spritePlayer.y, minY, maxY);
+
+    // Cập nhật vị trí, tỉ lệ thu phóng và lớp hiển thị
+    spritePlayer.el.style.left = `${spritePlayer.x}px`;
+    spritePlayer.el.style.top = `${spritePlayer.y}px`;
+    spritePlayer.el.style.transform = `scale(${depth.scale.toFixed(3)})`;
+    spritePlayer.el.style.zIndex = depth.zIndex;
+
+    // Hướng nhìn nhân vật (lật ảnh qua scaleX mà không làm ngược chữ bảng tên)
+    spritePlayer.wrapperEl.style.transform = `scaleX(${spritePlayer.direction})`;
+
+    requestAnimationFrame(updateSpriteLoop);
+  }
+
+  requestAnimationFrame(updateSpriteLoop);
+}
+
 // Khởi động
 document.addEventListener("DOMContentLoaded", () => {
   initSeats();
   initTestControls();
+  initSpritePlayer(); // Khởi tạo nhân vật Sprite CHARACTER_1
 
-  setTimeout(() => onPassengerJoin("Bác Ba Phi"), 400);
-  setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 800);
-  setTimeout(() => onPassengerJoin("Anh Ba Sài Gòn"), 1200);
+  setTimeout(() => onPassengerJoin("Bác Ba Phi"), 500);
+  setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 900);
 });

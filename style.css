@@ -375,6 +375,30 @@ body {
   pointer-events: auto;
 }
 
+/* Nhân vật Sprite di chuyển bằng requestAnimationFrame 60fps */
+.char-2d.char-sprite {
+  transition: none !important;
+}
+
+/* Khung hiển thị Sprite ảnh (CHARACTER_1) */
+.char-sprite-wrapper {
+  position: relative;
+  width: 58px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: bottom center;
+}
+
+.char-sprite-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  image-rendering: auto;
+}
+
 .char-tag {
   background: rgba(0, 0, 0, 0.88);
   color: #fff;
