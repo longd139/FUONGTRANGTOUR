@@ -157,6 +157,7 @@ body {
 
 /* ================== KHU VỰC 2: PHÒNG CHỜ VIP (DÃY GHẾ NGỒI) ================== */
 .waiting-lounge-container {
+  display: none; /* Tạm thời ẩn để thiết kế bối cảnh */
   position: relative;
   z-index: 4;
   padding: 8px 14px;
