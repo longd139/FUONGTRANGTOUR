@@ -25,7 +25,20 @@
       </div>
     </header>
 
-    <!-- KHU VỰC XE KHÁCH FUONG TRANG (ĐƯỢC ĐƯA LÊN CAO) -->
+    <!-- 1. TRÊN ĐỈNH: KHU VỰC 20 SLOT GIƯỜNG NẰM TRÊN - DƯỚI -->
+    <section class="waiting-lounge-container">
+      <div class="waiting-lounge">
+        <div class="lounge-header">
+          <span class="lounge-title">🎟️ 20 SLOT GIƯỜNG NẰM (TRÊN / DƯỚI)</span>
+          <span class="lounge-counter" id="slot-counter">0/20</span>
+        </div>
+        <div class="seats-grid" id="seats-grid">
+          <!-- 10 khoang x 2 giường trên/dưới do JavaScript render -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CHÍNH GIỮA MÀN HÌNH: XE KHÁCH FUONG TRANG -->
     <section class="bus-dock-section">
       <div class="bus-container" id="fuong-trang-bus">
         <img src="public/removeBg.png" alt="Xe khách FUONG TRANG" class="bus-photo" id="bus-photo">
@@ -40,20 +53,7 @@
       <div class="road-track"></div>
     </section>
 
-    <!-- KHU VỰC 20 SLOT GIƯỜNG NẰM TRÊN - DƯỚI (Ở GIỮA XE VÀ ĐƯỜNG) -->
-    <section class="waiting-lounge-container">
-      <div class="waiting-lounge">
-        <div class="lounge-header">
-          <span class="lounge-title">🎟️ 20 SLOT GIƯỜNG NẰM (TRÊN / DƯỚI)</span>
-          <span class="lounge-counter" id="slot-counter">0/20</span>
-        </div>
-        <div class="seats-grid" id="seats-grid">
-          <!-- 10 khoang x 2 giường trên/dưới do JavaScript render -->
-        </div>
-      </div>
-    </section>
-
-    <!-- KHU VỰC NGƯỜI CHỜ DƯỚI LÒNG ĐƯỜNG (Ở PHÍA DƯỚI XE) -->
+    <!-- 3. DƯỚI ĐÁY: KHU VỰC NGƯỜI CHỜ DƯỚI LÒNG ĐƯỜNG -->
     <section class="zone-far" id="zone-far">
       <div class="zone-badge">
         <span>HÀNH KHÁCH CHỜ DƯỚI ĐƯỜNG (CHƯA CÓ VÉ)</span>
