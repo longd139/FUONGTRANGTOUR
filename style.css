@@ -21,8 +21,8 @@
 
 body {
   font-family: var(--font-text);
-  background: #0b0c10;
-  color: #fff;
+  background: #e9ecef;
+  color: #222;
   overflow: hidden;
   width: 100vw;
   height: 100vh;
@@ -39,10 +39,10 @@ body {
   height: 96vh;
   max-height: 820px;
   aspect-ratio: 9 / 16;
-  /* Tạm thời ẩn ảnh nền phòng vé theo yêu cầu để thiết kế bối cảnh */
-  background: #181922;
+  /* Đổi màu nền thành màu trắng theo yêu cầu */
+  background: #ffffff;
   border-radius: 28px;
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.85), 0 0 0 3px #2b2d42;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 0 0 2px #ced4da;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -197,16 +197,15 @@ body {
   height: 180px;
   z-index: 2;
   margin-top: auto; /* Tự động đẩy xuống đáy màn hình */
-  background: rgba(0, 0, 0, 0.35);
-  border-top: 3px dashed rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(2px);
+  background: #f8f9fa;
+  border-top: 3px dashed #ced4da;
 }
 
 .zone-badge {
   position: absolute;
   top: 8px;
   left: 12px;
-  background: rgba(20, 22, 32, 0.94);
+  background: #212529;
   padding: 3px 10px;
   border-radius: 14px;
   color: #edf2f4;
@@ -214,8 +213,8 @@ body {
   font-weight: 800;
   display: flex;
   flex-direction: column;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  border: 1.5px solid #495057;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   z-index: 5;
 }
 
