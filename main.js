@@ -59,15 +59,69 @@ function playBusHorn() {
   }
 }
 
+/* ================== LOA PHÁT THANH BẾN XE TIẾNG VIỆT CHUẨN ================== */
+let currentStationAudio = null;
+
 function speakStationAnnouncement(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'vi-VN';
-    utterance.rate = 1.05;
-    utterance.pitch = 1.1;
-    window.speechSynthesis.speak(utterance);
+  // Dừng âm thanh trước nếu đang phát dở
+  if (currentStationAudio) {
+    try {
+      currentStationAudio.pause();
+      currentStationAudio.currentTime = 0;
+    } catch (e) {}
+    currentStationAudio = null;
   }
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {}
+  }
+
+  // 1. Ưu tiên phát bằng giọng đọc tiếng Việt chất lượng cao (Google TTS tiếng Việt chuẩn 100%)
+  try {
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(text)}`;
+    const audio = new Audio(ttsUrl);
+    currentStationAudio = audio;
+    audio.volume = 1.0;
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn("Chuyển sang Web Speech API:", err);
+        speakWithSpeechSynthesis(text);
+      });
+    }
+  } catch (e) {
+    speakWithSpeechSynthesis(text);
+  }
+}
+
+function speakWithSpeechSynthesis(text) {
+  if (!('speechSynthesis' in window)) return;
+
+  const voices = window.speechSynthesis.getVoices();
+  // Tìm kiếm giọng tiếng Việt trong hệ thống
+  const viVoice = voices.find(v => 
+    (v.lang && (v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vie'))) ||
+    (v.name && v.name.toLowerCase().includes('vietnam'))
+  );
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'vi-VN';
+  if (viVoice) {
+    utterance.voice = viVoice;
+  }
+  utterance.rate = 1.0;
+  utterance.pitch = 1.05;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+// Lắng nghe tải voices của trình duyệt
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
 }
 
 /* ================== KHỞI TẠO 10 KHOANG x 2 GIƯỜNG TRÊN/DƯỚI ================== */
