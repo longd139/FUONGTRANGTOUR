@@ -10,118 +10,210 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Màn hình chính Stream Overlay tỉ lệ chuẩn điện thoại 9:16 -->
-  <main id="game-stage">
-    <!-- PHẦN THÔNG TIN CHUYẾN XE (TẠM ẨN) -->
-    <header class="top-header-section">
-      <div class="trip-board">
-        <div class="trip-info">
-          <span class="trip-dest">🚌 SÀI GÒN ➔ ĐÀ LẠT</span>
-          <span class="trip-seats">GHẾ: <b id="seat-count">0/10</b></span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div id="trip-progress" class="progress-bar-fill" style="width: 0%"></div>
-        </div>
-      </div>
-    </header>
+  <!-- GIAO DIỆN CHIA 2 BÊN: BÊN TRÁI MÀN HÌNH ĐIỆN THOẠI 9:16 LIVE, BÊN PHẢI CÀI ĐẶT QUẢN TRỊ -->
+  <div class="workspace-layout" id="workspace-layout">
+    <!-- CỘT BÊN TRÁI: MÀN HÌNH ĐIỆN THOẠI CHUẨN 9:16 ĐỂ LIVE -->
+    <div class="stream-column" id="stream-column">
+      <div class="phone-frame">
+        <main id="game-stage">
+          <!-- PHẦN THÔNG TIN CHUYẾN XE (TẠM ẨN) -->
+          <header class="top-header-section">
+            <div class="trip-board">
+              <div class="trip-info">
+                <span class="trip-dest">🚌 SÀI GÒN ➔ ĐÀ LẠT</span>
+                <span class="trip-seats">GHẾ: <b id="seat-count">0/10</b></span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div id="trip-progress" class="progress-bar-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </header>
 
-    <!-- CỤM TRUNG TÂM: 20 SLOT NẰM NGAY TRÊN CHIẾC XE KHÁCH PHÓNG TO -->
-    <div class="bus-center-wrapper">
-      <!-- 20 SLOT GIƯỜNG NẰM TRÊN - DƯỚI -->
-      <section class="waiting-lounge-container">
-        <div class="waiting-lounge">
-          <div class="lounge-header">
-            <span class="lounge-title">🎟️ 20 SLOT GIƯỜNG NẰM (TRÊN / DƯỚI)</span>
-            <span class="lounge-counter" id="slot-counter">0/20</span>
+          <!-- CỤM TRUNG TÂM: 20 SLOT NẰM NGAY TRÊN CHIẾC XE KHÁCH PHÓNG TO -->
+          <div class="bus-center-wrapper">
+            <!-- 20 SLOT GIƯỜNG NẰM TRÊN - DƯỚI -->
+            <section class="waiting-lounge-container">
+              <div class="waiting-lounge">
+                <div class="lounge-header">
+                  <span class="lounge-title">🎟️ 20 SLOT GIƯỜNG NẰM (TRÊN / DƯỚI)</span>
+                  <span class="lounge-counter" id="slot-counter">0/20</span>
+                </div>
+                <div class="seats-grid" id="seats-grid">
+                  <!-- 10 khoang x 2 giường trên/dưới do JavaScript render -->
+                </div>
+              </div>
+            </section>
+
+            <!-- CHIẾC XE KHÁCH FUONG TRANG PHÓNG TO -->
+            <section class="bus-dock-section">
+              <div class="bus-container" id="fuong-trang-bus">
+                <img src="public/removeBg.png" alt="Xe khách FUONG TRANG" class="bus-photo" id="bus-photo">
+                
+                <!-- Ống khói khi khởi hành -->
+                <div class="bus-exhaust" id="bus-exhaust">
+                  <div class="smoke-puff p1"></div>
+                  <div class="smoke-puff p2"></div>
+                  <div class="smoke-puff p3"></div>
+                </div>
+              </div>
+              <div class="road-track"></div>
+            </section>
           </div>
-          <div class="seats-grid" id="seats-grid">
-            <!-- 10 khoang x 2 giường trên/dưới do JavaScript render -->
+
+          <!-- 3. KHU VỰC TOÀN BỘ KHOẢNG SÂN BẾN XE DÀNH CHO HÀNH KHÁCH CHỜ (DƯỚI BÁNH XE ĐỔ XUỐNG) -->
+          <div id="far-passengers-container" class="courtyard-passengers-layer"></div>
+
+          <section class="zone-far" id="zone-far">
+            <div class="zone-badge">
+              <span>SÂN BẾN XE FUONG TRANG (CHƯA CÓ VÉ)</span>
+              <small>Tặng hoa / quà để được lên xe!</small>
+            </div>
+          </section>
+
+          <!-- THÔNG BÁO NỔI TOAST -->
+          <div id="toast-banner" class="toast-banner hidden">
+            <div class="toast-avatar" id="toast-avatar">🌸</div>
+            <div class="toast-content">
+              <div class="toast-title" id="toast-title">CẢM ƠN DONATE!</div>
+              <div class="toast-desc" id="toast-desc">Hành khách vừa đặt vé xe VIP!</div>
+            </div>
           </div>
-        </div>
-      </section>
+        </main>
+      </div>
+    </div>
 
-      <!-- CHIẾC XE KHÁCH FUONG TRANG PHÓNG TO -->
-      <section class="bus-dock-section">
-        <div class="bus-container" id="fuong-trang-bus">
-          <img src="public/removeBg.png" alt="Xe khách FUONG TRANG" class="bus-photo" id="bus-photo">
-          
-          <!-- Ống khói khi khởi hành -->
-          <div class="bus-exhaust" id="bus-exhaust">
-            <div class="smoke-puff p1"></div>
-            <div class="smoke-puff p2"></div>
-            <div class="smoke-puff p3"></div>
+    <!-- CỘT BÊN PHẢI: BẢNG CÀI ĐẶT QUẢN TRỊ & ĐIỀU KHIỂN BOT STREAMER -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="admin-header">
+        <div class="admin-title-wrap">
+          <h2>⚙️ BẢNG QUẢN TRỊ LIVE STREAM</h2>
+          <span class="badge-status">🟢 Bến Xe Sẵn Sàng</span>
+        </div>
+        <div class="admin-actions">
+          <button id="btn-copy-obs" class="btn btn-obs" title="Sao chép liên kết chỉ lấy khung live cho OBS Browser Source">
+            🎥 Copy Link OBS
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-scrollable">
+        <!-- PHẦN 1: CÀI ĐẶT BOT CHÀO KHI VÀO LIVE -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">👋</span>
+              <h3>1. Cài đặt BOT chào người xem mới</h3>
+            </div>
+            <label class="switch" title="Bật/Tắt phát âm thanh chào mừng">
+              <input type="checkbox" id="setting-enable-join-voice">
+              <span class="slider"></span>
+            </label>
           </div>
-        </div>
-        <div class="road-track"></div>
-      </section>
-    </div>
+          <div class="card-body">
+            <label class="field-label">Câu loa phát thanh chào mừng khi có người vào xem:</label>
+            <div class="input-with-btn">
+              <input type="text" id="setting-join-template" class="form-input" value="Chào mừng {username} đến với Bến Xe FUONG TRANG!">
+              <button id="btn-test-join-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            </div>
+            <p class="field-hint">💡 Dùng <code>{username}</code> để tự động chèn tên người xem.</p>
+          </div>
+        </section>
 
-    <!-- 3. KHU VỰC TOÀN BỘ KHOẢNG SÂN BẾN XE DÀNH CHO HÀNH KHÁCH CHỜ (DƯỚI BÁNH XE ĐỔ XUỐNG) -->
-    <div id="far-passengers-container" class="courtyard-passengers-layer"></div>
+        <!-- PHẦN 2: CÀI ĐẶT LỜI CẢM ƠN KHI TẶNG QUÀ -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">🎟️</span>
+              <h3>2. Lời cảm ơn khi tặng quà & xếp giường</h3>
+            </div>
+            <label class="switch" title="Bật/Tắt loa gọi tên vào giường">
+              <input type="checkbox" id="setting-enable-gift-voice" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="card-body">
+            <label class="field-label">Câu loa phát thanh mời khách lên giường nằm VIP:</label>
+            <div class="input-with-btn">
+              <input type="text" id="setting-gift-template" class="form-input" value="Mời quý khách {username} vào giường nằm VIP!">
+              <button id="btn-test-gift-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            </div>
+            <p class="field-hint">💡 Dùng <code>{username}</code> (tên khách) và <code>{gift}</code> (tên quà).</p>
+          </div>
+        </section>
 
-    <section class="zone-far" id="zone-far">
-      <div class="zone-badge">
-        <span>SÂN BẾN XE FUONG TRANG (CHƯA CÓ VÉ)</span>
-        <small>Tặng hoa / quà để được lên xe!</small>
+        <!-- PHẦN 3: CÀI ĐẶT THÔNG BÁO XUẤT BẾN -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">🚌</span>
+              <h3>3. Thông báo xuất bến (đủ 20 khách)</h3>
+            </div>
+            <label class="switch" title="Bật/Tắt loa xuất bến">
+              <input type="checkbox" id="setting-enable-depart-voice" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="card-body">
+            <label class="field-label">Lời phát thanh khởi hành đi Đà Lạt:</label>
+            <div class="input-with-btn">
+              <textarea id="setting-depart-template" class="form-input form-textarea" rows="2">Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!</textarea>
+              <button id="btn-test-depart-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            </div>
+            <div class="checkbox-row">
+              <label><input type="checkbox" id="setting-enable-horn" checked> Kèm tiếng còi xe khách bíp bíp</label>
+            </div>
+          </div>
+        </section>
+
+        <!-- PHẦN 4: ĐIỀU KHIỂN & MÔ PHỎNG SỰ KIỆN LIVE -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">🎮</span>
+              <h3>4. Thử nghiệm sự kiện TikTok Live</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="sim-grid">
+              <div class="sim-box">
+                <label class="field-label">Thử người vào xem:</label>
+                <div class="input-group">
+                  <input type="text" id="input-username" class="form-input" value="Bác Ba Phi" placeholder="Nhập tên...">
+                  <button id="btn-simulate-join" class="btn btn-join">🚶 Vào xem</button>
+                </div>
+              </div>
+
+              <div class="sim-box">
+                <label class="field-label">Thử tặng quà:</label>
+                <div class="input-group">
+                  <select id="select-gift" class="form-input">
+                    <option value="🌸 Hoa Hồng">🌸 Tặng Hoa</option>
+                    <option value="🍦 Cây Kem">🍦 Tặng Kem</option>
+                    <option value="🧢 Nón Lá">🧢 Tặng Nón</option>
+                    <option value="💖 Trái Tim">💖 Tặng Tim</option>
+                  </select>
+                  <button id="btn-simulate-gift" class="btn btn-gift">🎁 Tặng Quà</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons-group">
+              <button id="btn-quick-fill" class="btn btn-fill">⚡ Lên đủ 20 người ngay</button>
+              <button id="btn-depart" class="btn btn-depart">🚌 Xuất bến ngay</button>
+              <button id="btn-reset" class="btn btn-reset">🔄 Đặt lại bến</button>
+            </div>
+
+            <div class="auto-row">
+              <label class="auto-label">
+                <input type="checkbox" id="chk-auto-demo">
+                <span>Tự động chạy liên tục (Auto Demo)</span>
+              </label>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
-
-    <!-- THÔNG BÁO NỔI TOAST -->
-    <div id="toast-banner" class="toast-banner hidden">
-      <div class="toast-avatar" id="toast-avatar">🌸</div>
-      <div class="toast-content">
-        <div class="toast-title" id="toast-title">CẢM ƠN DONATE!</div>
-        <div class="toast-desc" id="toast-desc">Hành khách vừa đặt vé xe VIP!</div>
-      </div>
-    </div>
-  </main>
-
-  <!-- BẢNG ĐIỀU KHIỂN TEST DÀNH CHO STREAMER -->
-  <aside class="test-panel" id="test-panel">
-    <div class="test-panel-header">
-      <h3>🎮 TEST TIKTOK LIVE</h3>
-      <button id="btn-toggle-panel" title="Thu gọn/Mở rộng">_</button>
-    </div>
-    <div class="test-panel-body">
-      <p class="panel-hint">Mô phỏng sự kiện trên màn hình dọc:</p>
-      
-      <div class="test-group">
-        <label>1. Người xem vào phòng live:</label>
-        <div class="input-row">
-          <input type="text" id="input-username" placeholder="Nhập tên..." value="Bác Ba Phi">
-          <button id="btn-simulate-join" class="btn btn-join">🚶 Vào xem</button>
-        </div>
-      </div>
-
-      <div class="test-group">
-        <label>2. Người xem tặng quà:</label>
-        <div class="input-row">
-          <select id="select-gift">
-            <option value="🌸 Hoa Hồng">🌸 Tặng Hoa</option>
-            <option value="🍦 Cây Kem">🍦 Tặng Kem</option>
-            <option value="🧢 Nón Lá">🧢 Tặng Nón</option>
-            <option value="💖 Trái Tim">💖 Tặng Tim</option>
-          </select>
-          <button id="btn-simulate-gift" class="btn btn-gift">🎁 Tặng Quà</button>
-        </div>
-      </div>
-
-      <div class="test-group">
-        <label>3. Thử nghiệm nhanh:</label>
-        <div class="action-grid">
-          <button id="btn-quick-fill" class="btn btn-outline">⚡ Lên đủ 20 người</button>
-          <button id="btn-depart" class="btn btn-warning">🚌 Xuất bến ngay</button>
-          <button id="btn-reset" class="btn btn-danger">🔄 Đặt lại bến</button>
-        </div>
-      </div>
-
-      <div class="test-group">
-        <label>
-          <input type="checkbox" id="chk-auto-demo"> Tự động chạy (Auto Demo)
-        </label>
-      </div>
-    </div>
-  </aside>
+    </aside>
+  </div>
 
   <script src="main.js"></script>
 </body>

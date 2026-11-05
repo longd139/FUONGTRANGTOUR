@@ -24,6 +24,38 @@ const state = {
   autoDemoInterval: null
 };
 
+/* ================== QUẢN TRỊ CÀI ĐẶT BOT LIVESTREAM ================== */
+const defaultSettings = {
+  enableJoinVoice: false, // Mặc định tắt để tránh ồn khi live đông, streamer có thể bật bất cứ lúc nào
+  joinTemplate: "Chào mừng {username} đến với Bến Xe FUONG TRANG!",
+  enableGiftVoice: true,
+  giftTemplate: "Mời quý khách {username} vào giường nằm VIP!",
+  enableDepartVoice: true,
+  departTemplate: "Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!",
+  enableHorn: true
+};
+
+let appSettings = { ...defaultSettings };
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem("fuong_trang_admin_settings");
+    if (saved) {
+      appSettings = { ...defaultSettings, ...JSON.parse(saved) };
+    }
+  } catch (e) {
+    console.warn("Không thể tải cài đặt:", e);
+  }
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem("fuong_trang_admin_settings", JSON.stringify(appSettings));
+  } catch (e) {
+    console.warn("Không thể lưu cài đặt:", e);
+  }
+}
+
 // DOM Elements
 const farContainer = document.getElementById("far-passengers-container");
 const seatsGrid = document.getElementById("seats-grid");
@@ -275,6 +307,11 @@ function onPassengerJoin(username) {
     charEl.style.left = `${targetX}px`;
     setTimeout(() => {
       charEl.classList.remove("walking");
+      // Nếu bật BOT chào người xem mới
+      if (appSettings.enableJoinVoice) {
+        const welcome = appSettings.joinTemplate.replace("{username}", username);
+        speakStationAnnouncement(welcome);
+      }
     }, 850);
   }, 40);
 }
@@ -327,7 +364,12 @@ function onPassengerGift(username, giftName) {
   }
 
   showToast("🎟️ ĐÃ ĐẶT GIƯỜNG!", `${username} tặng ${giftName} và nhận vé giường nằm!`, "🌸");
-  speakStationAnnouncement(`Mời quý khách ${username} vào giường nằm!`);
+  if (appSettings.enableGiftVoice) {
+    const giftSpeech = appSettings.giftTemplate
+      .replace(/{username}/g, username)
+      .replace(/{gift}/g, giftName);
+    speakStationAnnouncement(giftSpeech);
+  }
 
   state.farPassengers = state.farPassengers.filter(u => u !== username);
   const existingChar = document.getElementById(`char-${username.replace(/\s+/g, '_')}`);
@@ -356,8 +398,12 @@ function triggerBusDeparture() {
   if (state.isDeparting) return;
   state.isDeparting = true;
 
-  playBusHorn();
-  speakStationAnnouncement("Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!");
+  if (appSettings.enableHorn) {
+    playBusHorn();
+  }
+  if (appSettings.enableDepartVoice) {
+    speakStationAnnouncement(appSettings.departTemplate);
+  }
   showToast("🚌 XUẤT BẾN!", "Chuyến xe FUONG TRANG đủ 20 khách khởi hành đi Đà Lạt!", "🚀");
 
   setTimeout(() => {
@@ -406,64 +452,171 @@ function showToast(title, desc, icon = "🌸") {
   }, 3200);
 }
 
-/* ================== GẮN SỰ KIỆN TEST PANEL ================== */
+/* ================== GẮN SỰ KIỆN BẢNG QUẢN TRỊ & MÔ PHỎNG ================== */
 function initTestControls() {
-  const btnToggle = document.getElementById("btn-toggle-panel");
-  const testPanel = document.getElementById("test-panel");
-  btnToggle.addEventListener("click", () => {
-    testPanel.classList.toggle("collapsed");
-    btnToggle.innerText = testPanel.classList.contains("collapsed") ? "+" : "_";
+  loadSettings();
+
+  // Kiểm tra nếu đang mở ở chế độ OBS (URL có ?mode=obs)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("mode") === "obs" || urlParams.get("mode") === "live") {
+    document.body.classList.add("obs-mode");
+    const workspace = document.getElementById("workspace-layout");
+    if (workspace) workspace.classList.add("obs-mode");
+  }
+
+  // 1. Đồng bộ các input cài đặt từ appSettings
+  const chkJoinVoice = document.getElementById("setting-enable-join-voice");
+  const inputJoinTpl = document.getElementById("setting-join-template");
+  const chkGiftVoice = document.getElementById("setting-enable-gift-voice");
+  const inputGiftTpl = document.getElementById("setting-gift-template");
+  const chkDepartVoice = document.getElementById("setting-enable-depart-voice");
+  const inputDepartTpl = document.getElementById("setting-depart-template");
+  const chkHorn = document.getElementById("setting-enable-horn");
+
+  if (chkJoinVoice) chkJoinVoice.checked = appSettings.enableJoinVoice;
+  if (inputJoinTpl) inputJoinTpl.value = appSettings.joinTemplate;
+  if (chkGiftVoice) chkGiftVoice.checked = appSettings.enableGiftVoice;
+  if (inputGiftTpl) inputGiftTpl.value = appSettings.giftTemplate;
+  if (chkDepartVoice) chkDepartVoice.checked = appSettings.enableDepartVoice;
+  if (inputDepartTpl) inputDepartTpl.value = appSettings.departTemplate;
+  if (chkHorn) chkHorn.checked = appSettings.enableHorn;
+
+  // Lắng nghe thay đổi cài đặt
+  if (chkJoinVoice) chkJoinVoice.addEventListener("change", e => {
+    appSettings.enableJoinVoice = e.target.checked;
+    saveSettings();
+  });
+  if (inputJoinTpl) inputJoinTpl.addEventListener("input", e => {
+    appSettings.joinTemplate = e.target.value;
+    saveSettings();
+  });
+  if (chkGiftVoice) chkGiftVoice.addEventListener("change", e => {
+    appSettings.enableGiftVoice = e.target.checked;
+    saveSettings();
+  });
+  if (inputGiftTpl) inputGiftTpl.addEventListener("input", e => {
+    appSettings.giftTemplate = e.target.value;
+    saveSettings();
+  });
+  if (chkDepartVoice) chkDepartVoice.addEventListener("change", e => {
+    appSettings.enableDepartVoice = e.target.checked;
+    saveSettings();
+  });
+  if (inputDepartTpl) inputDepartTpl.addEventListener("input", e => {
+    appSettings.departTemplate = e.target.value;
+    saveSettings();
+  });
+  if (chkHorn) chkHorn.addEventListener("change", e => {
+    appSettings.enableHorn = e.target.checked;
+    saveSettings();
   });
 
-  document.getElementById("btn-simulate-join").addEventListener("click", () => {
-    const input = document.getElementById("input-username");
-    let name = input.value.trim();
-    if (!name) {
-      name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
-    }
-    onPassengerJoin(name);
-    input.value = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
-  });
+  // 2. Nút thử đọc từng câu
+  const btnTestJoin = document.getElementById("btn-test-join-voice");
+  if (btnTestJoin) {
+    btnTestJoin.addEventListener("click", () => {
+      const sample = (appSettings.joinTemplate || "").replace(/{username}/g, "Bác Ba Phi");
+      speakStationAnnouncement(sample);
+    });
+  }
 
-  document.getElementById("btn-simulate-gift").addEventListener("click", () => {
-    const select = document.getElementById("select-gift");
-    const gift = select.value;
-    
-    let name = "";
-    if (state.farPassengers.length > 0) {
-      name = state.farPassengers[0];
-    } else {
-      name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
-    }
-    onPassengerGift(name, gift);
-  });
+  const btnTestGift = document.getElementById("btn-test-gift-voice");
+  if (btnTestGift) {
+    btnTestGift.addEventListener("click", () => {
+      const sample = (appSettings.giftTemplate || "")
+        .replace(/{username}/g, "Chị Út Miền Tây")
+        .replace(/{gift}/g, "Hoa Hồng");
+      speakStationAnnouncement(sample);
+    });
+  }
 
-  document.getElementById("btn-quick-fill").addEventListener("click", () => {
-    const needed = CONFIG.TOTAL_SEATS - state.seatedPassengers.length;
-    for (let i = 0; i < needed; i++) {
-      setTimeout(() => {
-        const dummyName = `Khách VIP ${state.seatedPassengers.length + 1}`;
-        onPassengerGift(dummyName, "🌸 Hoa Hồng");
-      }, i * 250);
-    }
-  });
+  const btnTestDepart = document.getElementById("btn-test-depart-voice");
+  if (btnTestDepart) {
+    btnTestDepart.addEventListener("click", () => {
+      speakStationAnnouncement(appSettings.departTemplate);
+    });
+  }
 
-  document.getElementById("btn-depart").addEventListener("click", () => {
-    triggerBusDeparture();
-  });
+  // 3. Nút sao chép link OBS
+  const btnCopyObs = document.getElementById("btn-copy-obs");
+  if (btnCopyObs) {
+    btnCopyObs.addEventListener("click", () => {
+      const obsUrl = new URL(window.location.href);
+      obsUrl.searchParams.set("mode", "obs");
+      navigator.clipboard.writeText(obsUrl.toString()).then(() => {
+        showToast("🎥 LINK OBS (9:16)", "Đã sao chép link! Dán vào OBS Browser Source (1080x1920)!", "📋");
+      }).catch(() => {
+        prompt("Sao chép liên kết này dán vào OBS Browser Source:", obsUrl.toString());
+      });
+    });
+  }
 
-  document.getElementById("btn-reset").addEventListener("click", () => {
-    resetTripForNextBatch();
-  });
+  // 4. Các nút điều khiển mô phỏng
+  const btnSimJoin = document.getElementById("btn-simulate-join");
+  if (btnSimJoin) {
+    btnSimJoin.addEventListener("click", () => {
+      const input = document.getElementById("input-username");
+      let name = input ? input.value.trim() : "";
+      if (!name) {
+        name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+      }
+      onPassengerJoin(name);
+      if (input) input.value = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+    });
+  }
+
+  const btnSimGift = document.getElementById("btn-simulate-gift");
+  if (btnSimGift) {
+    btnSimGift.addEventListener("click", () => {
+      const select = document.getElementById("select-gift");
+      const gift = select ? select.value : "🌸 Hoa Hồng";
+      let name = "";
+      if (state.farPassengers.length > 0) {
+        name = state.farPassengers[0];
+      } else {
+        name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+      }
+      onPassengerGift(name, gift);
+    });
+  }
+
+  const btnQuickFill = document.getElementById("btn-quick-fill");
+  if (btnQuickFill) {
+    btnQuickFill.addEventListener("click", () => {
+      const needed = CONFIG.TOTAL_SEATS - state.seatedPassengers.length;
+      for (let i = 0; i < needed; i++) {
+        setTimeout(() => {
+          const dummyName = `Khách VIP ${state.seatedPassengers.length + 1}`;
+          onPassengerGift(dummyName, "🌸 Hoa Hồng");
+        }, i * 220);
+      }
+    });
+  }
+
+  const btnDepart = document.getElementById("btn-depart");
+  if (btnDepart) {
+    btnDepart.addEventListener("click", () => {
+      triggerBusDeparture();
+    });
+  }
+
+  const btnReset = document.getElementById("btn-reset");
+  if (btnReset) {
+    btnReset.addEventListener("click", () => {
+      resetTripForNextBatch();
+    });
+  }
 
   const chkAuto = document.getElementById("chk-auto-demo");
-  chkAuto.addEventListener("change", (e) => {
-    if (e.target.checked) {
-      startAutoDemo();
-    } else {
-      stopAutoDemo();
-    }
-  });
+  if (chkAuto) {
+    chkAuto.addEventListener("change", e => {
+      if (e.target.checked) {
+        startAutoDemo();
+      } else {
+        stopAutoDemo();
+      }
+    });
+  }
 }
 
 function startAutoDemo() {
