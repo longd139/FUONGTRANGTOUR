@@ -97,12 +97,12 @@
       </div>
 
       <div class="admin-scrollable">
-        <!-- PHẦN 1: CÀI ĐẶT BOT CHÀO KHI VÀO LIVE -->
+        <!-- PHẦN 1: CÀI ĐẶT BOT CHÀO KHI VÀO LIVE (RANDOM NHIỀU CÂU) -->
         <section class="admin-card">
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">👋</span>
-              <h3>1. Cài đặt BOT chào người xem mới</h3>
+              <h3>1. Cài đặt BOT chào người xem mới (Tự động Random)</h3>
             </div>
             <label class="switch" title="Bật/Tắt phát âm thanh chào mừng">
               <input type="checkbox" id="setting-enable-join-voice">
@@ -110,12 +110,17 @@
             </label>
           </div>
           <div class="card-body">
-            <label class="field-label">Câu loa phát thanh chào mừng khi có người vào xem:</label>
-            <div class="input-with-btn">
-              <input type="text" id="setting-join-template" class="form-input" value="Chào mừng {username} đến với Bến Xe FUONG TRANG!">
-              <button id="btn-test-join-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            <div class="card-subtitle-row">
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu chào (BOT tự động random khi có người vào live):</label>
+              <button id="btn-add-join-msg" class="btn btn-add" type="button">➕ Thêm câu chào mới</button>
             </div>
-            <p class="field-hint">💡 Dùng <code>{username}</code> để tự động chèn tên người xem.</p>
+            
+            <!-- Danh sách các câu chào động -->
+            <div id="join-messages-list" class="messages-list">
+              <!-- Render động bởi JavaScript -->
+            </div>
+
+            <p class="field-hint">💡 Dùng <code>{username}</code> để tự động chèn tên người xem. BOT sẽ <b>ngẫu nhiên chọn 1 câu</b> mỗi khi có khách vào phòng live!</p>
           </div>
         </section>
 

@@ -27,7 +27,13 @@ const state = {
 /* ================== QUẢN TRỊ CÀI ĐẶT BOT LIVESTREAM ================== */
 const defaultSettings = {
   enableJoinVoice: false, // Mặc định tắt để tránh ồn khi live đông, streamer có thể bật bất cứ lúc nào
-  joinTemplate: "Chào mừng {username} đến với Bến Xe FUONG TRANG!",
+  joinMessages: [
+    "Chào mừng {username} đến với Bến Xe FUONG TRANG!",
+    "Bến xe FUONG TRANG xin chào quý khách {username} nha!",
+    "Chúc {username} xem live vui vẻ, xe chuẩn bị xuất bến rồi nhé!",
+    "Hello {username}, tặng hoa hoặc quà để nhận vé giường nằm VIP nha!",
+    "Loa loa loa, nhiệt liệt hoan nghênh quý khách {username} đã ghé bến xe!"
+  ],
   enableGiftVoice: true,
   giftTemplate: "Mời quý khách {username} vào giường nằm VIP!",
   enableDepartVoice: true,
@@ -41,7 +47,12 @@ function loadSettings() {
   try {
     const saved = localStorage.getItem("fuong_trang_admin_settings");
     if (saved) {
-      appSettings = { ...defaultSettings, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved);
+      appSettings = { ...defaultSettings, ...parsed };
+      // Tương thích ngược nếu trước đó lưu joinTemplate dạng chuỗi đơn
+      if (parsed.joinTemplate && (!parsed.joinMessages || parsed.joinMessages.length === 0)) {
+        appSettings.joinMessages = [parsed.joinTemplate];
+      }
     }
   } catch (e) {
     console.warn("Không thể tải cài đặt:", e);
@@ -307,9 +318,10 @@ function onPassengerJoin(username) {
     charEl.style.left = `${targetX}px`;
     setTimeout(() => {
       charEl.classList.remove("walking");
-      // Nếu bật BOT chào người xem mới
-      if (appSettings.enableJoinVoice) {
-        const welcome = appSettings.joinTemplate.replace("{username}", username);
+      // Nếu bật BOT chào người xem mới: tự động Random 1 câu trong danh sách
+      if (appSettings.enableJoinVoice && appSettings.joinMessages && appSettings.joinMessages.length > 0) {
+        const randomTpl = appSettings.joinMessages[Math.floor(Math.random() * appSettings.joinMessages.length)];
+        const welcome = randomTpl.replace(/{username}/g, username);
         speakStationAnnouncement(welcome);
       }
     }, 850);
@@ -452,6 +464,60 @@ function showToast(title, desc, icon = "🌸") {
   }, 3200);
 }
 
+/* ================== RENDER VÀ QUẢN LÝ DANH SÁCH CÂU CHÀO RANDOM ================== */
+function renderJoinMessages() {
+  const listContainer = document.getElementById("join-messages-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+
+  if (!appSettings.joinMessages || appSettings.joinMessages.length === 0) {
+    appSettings.joinMessages = [...defaultSettings.joinMessages];
+  }
+
+  appSettings.joinMessages.forEach((msg, idx) => {
+    const row = document.createElement("div");
+    row.className = "message-item-row";
+    row.innerHTML = `
+      <input type="text" class="form-input join-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu chào...">
+      <button class="btn btn-test btn-test-single-join" data-index="${idx}" title="Nghe thử câu này" type="button">🔊</button>
+      <button class="btn btn-icon-danger btn-delete-join" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  // Gắn sự kiện khi sửa nội dung câu chào
+  listContainer.querySelectorAll(".join-msg-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      appSettings.joinMessages[i] = e.target.value;
+      saveSettings();
+    });
+  });
+
+  // Gắn sự kiện nghe thử từng câu
+  listContainer.querySelectorAll(".btn-test-single-join").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const text = (appSettings.joinMessages[i] || "").replace(/{username}/g, "Bác Ba Phi");
+      speakStationAnnouncement(text);
+    });
+  });
+
+  // Gắn sự kiện xóa câu
+  listContainer.querySelectorAll(".btn-delete-join").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      if (appSettings.joinMessages.length <= 1) {
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu chào!", "⚠️");
+        return;
+      }
+      appSettings.joinMessages.splice(i, 1);
+      saveSettings();
+      renderJoinMessages();
+    });
+  });
+}
+
 /* ================== GẮN SỰ KIỆN BẢNG QUẢN TRỊ & MÔ PHỎNG ================== */
 function initTestControls() {
   loadSettings();
@@ -466,7 +532,6 @@ function initTestControls() {
 
   // 1. Đồng bộ các input cài đặt từ appSettings
   const chkJoinVoice = document.getElementById("setting-enable-join-voice");
-  const inputJoinTpl = document.getElementById("setting-join-template");
   const chkGiftVoice = document.getElementById("setting-enable-gift-voice");
   const inputGiftTpl = document.getElementById("setting-gift-template");
   const chkDepartVoice = document.getElementById("setting-enable-depart-voice");
@@ -474,7 +539,6 @@ function initTestControls() {
   const chkHorn = document.getElementById("setting-enable-horn");
 
   if (chkJoinVoice) chkJoinVoice.checked = appSettings.enableJoinVoice;
-  if (inputJoinTpl) inputJoinTpl.value = appSettings.joinTemplate;
   if (chkGiftVoice) chkGiftVoice.checked = appSettings.enableGiftVoice;
   if (inputGiftTpl) inputGiftTpl.value = appSettings.giftTemplate;
   if (chkDepartVoice) chkDepartVoice.checked = appSettings.enableDepartVoice;
@@ -486,10 +550,24 @@ function initTestControls() {
     appSettings.enableJoinVoice = e.target.checked;
     saveSettings();
   });
-  if (inputJoinTpl) inputJoinTpl.addEventListener("input", e => {
-    appSettings.joinTemplate = e.target.value;
-    saveSettings();
-  });
+
+  // Render danh sách câu chào nhiều câu
+  renderJoinMessages();
+
+  // Nút thêm câu chào mới
+  const btnAddJoin = document.getElementById("btn-add-join-msg");
+  if (btnAddJoin) {
+    btnAddJoin.addEventListener("click", () => {
+      appSettings.joinMessages.push("Chào mừng {username} đã ghé thăm bến xe!");
+      saveSettings();
+      renderJoinMessages();
+      const inputs = document.querySelectorAll(".join-msg-input");
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
+      }
+    });
+  }
+
   if (chkGiftVoice) chkGiftVoice.addEventListener("change", e => {
     appSettings.enableGiftVoice = e.target.checked;
     saveSettings();
@@ -512,14 +590,6 @@ function initTestControls() {
   });
 
   // 2. Nút thử đọc từng câu
-  const btnTestJoin = document.getElementById("btn-test-join-voice");
-  if (btnTestJoin) {
-    btnTestJoin.addEventListener("click", () => {
-      const sample = (appSettings.joinTemplate || "").replace(/{username}/g, "Bác Ba Phi");
-      speakStationAnnouncement(sample);
-    });
-  }
-
   const btnTestGift = document.getElementById("btn-test-gift-voice");
   if (btnTestGift) {
     btnTestGift.addEventListener("click", () => {

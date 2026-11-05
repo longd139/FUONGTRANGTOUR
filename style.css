@@ -731,6 +731,59 @@ body {
   font-weight: bold;
 }
 
+.card-subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.btn-add {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  background: #1d4ed8;
+  filter: brightness(1.15);
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.message-item-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-icon-danger {
+  background: #3f1d24;
+  border: 1px solid #7f1d1d;
+  color: #f87171;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11.5px;
+  transition: all 0.2s;
+}
+
+.btn-icon-danger:hover {
+  background: #7f1d1d;
+  color: #fff;
+}
+
 .input-with-btn {
   display: flex;
   gap: 8px;
