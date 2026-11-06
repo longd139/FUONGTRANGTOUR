@@ -34,12 +34,26 @@ const defaultSettings = {
     "Hello {username}, tặng hoa hoặc quà để nhận vé giường nằm VIP nha!",
     "Loa loa loa, nhiệt liệt hoan nghênh quý khách {username} đã ghé bến xe!"
   ],
-  enableGiftVoice: true,
-  giftTemplate: "Mời quý khách {username} vào giường nằm VIP!",
   enableFuelVoice: true,
-  fuelTemplate: "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!",
+  fuelMessages: [
+    "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!",
+    "Cảm ơn quý khách {username} đã đổ xăng, xe sắp nổ máy rồi!",
+    "{username} vừa tiếp xăng cho xe, cảm ơn bạn nhiều nha!",
+    "Bác tài gửi lời cảm ơn {username} đã thêm nhiên liệu cho chuyến đi Đà Lạt!"
+  ],
+  enableGiftVoice: true,
+  giftMessages: [
+    "Mời quý khách {username} vào giường nằm VIP!",
+    "Cảm ơn {username} đã tặng {gift}, chúc quý khách một chuyến đi êm ái!",
+    "Vé VIP giường nằm đã thuộc về {username}, mời bạn lên xe nghỉ ngơi!",
+    "Hoan nghênh {username} lên xe FUONG TRANG đi Đà Lạt ngắm hoa!"
+  ],
   enableDepartVoice: true,
-  departTemplate: "Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!",
+  departMessages: [
+    "Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!",
+    "Đã đủ 20 khách, xe FUONG TRANG xuất bến ngay đây! Bà con thắt dây an toàn nhé!",
+    "Xe chuẩn bị lăn bánh rời bến, tạm biệt mọi người và hẹn gặp lại ở Đà Lạt!"
+  ],
   enableHorn: true
 };
 
@@ -51,9 +65,18 @@ function loadSettings() {
     if (saved) {
       const parsed = JSON.parse(saved);
       appSettings = { ...defaultSettings, ...parsed };
-      // Tương thích ngược nếu trước đó lưu joinTemplate dạng chuỗi đơn
+      // Tương thích ngược nếu trước đó lưu dạng chuỗi đơn
       if (parsed.joinTemplate && (!parsed.joinMessages || parsed.joinMessages.length === 0)) {
         appSettings.joinMessages = [parsed.joinTemplate];
+      }
+      if (parsed.fuelTemplate && (!parsed.fuelMessages || parsed.fuelMessages.length === 0)) {
+        appSettings.fuelMessages = [parsed.fuelTemplate];
+      }
+      if (parsed.giftTemplate && (!parsed.giftMessages || parsed.giftMessages.length === 0)) {
+        appSettings.giftMessages = [parsed.giftTemplate];
+      }
+      if (parsed.departTemplate && (!parsed.departMessages || parsed.departMessages.length === 0)) {
+        appSettings.departMessages = [parsed.departTemplate];
       }
     }
   } catch (e) {
@@ -302,7 +325,10 @@ function addFuel(username = "Hành khách", amount = 1) {
 
   // Phát loa thông báo cảm ơn khi tiếp xăng
   if (appSettings.enableFuelVoice) {
-    const rawTpl = appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!";
+    const msgs = (appSettings.fuelMessages && appSettings.fuelMessages.length > 0)
+      ? appSettings.fuelMessages
+      : defaultSettings.fuelMessages;
+    const rawTpl = msgs[Math.floor(Math.random() * msgs.length)];
     const fuelSpeech = rawTpl
       .replace(/{username}/g, username)
       .replace(/{liters}/g, amount);
@@ -570,7 +596,11 @@ function onPassengerGift(username, giftName) {
 
   showToast("🎟️ ĐÃ ĐẶT GIƯỜNG!", `${username} tặng ${giftName} và nhận vé giường nằm!`, "🌸");
   if (appSettings.enableGiftVoice) {
-    const giftSpeech = appSettings.giftTemplate
+    const msgs = (appSettings.giftMessages && appSettings.giftMessages.length > 0)
+      ? appSettings.giftMessages
+      : defaultSettings.giftMessages;
+    const rawTpl = msgs[Math.floor(Math.random() * msgs.length)];
+    const giftSpeech = rawTpl
       .replace(/{username}/g, username)
       .replace(/{gift}/g, giftName);
     speakStationAnnouncement(giftSpeech);
@@ -607,7 +637,11 @@ function triggerBusDeparture() {
     playBusHorn();
   }
   if (appSettings.enableDepartVoice) {
-    speakStationAnnouncement(appSettings.departTemplate);
+    const msgs = (appSettings.departMessages && appSettings.departMessages.length > 0)
+      ? appSettings.departMessages
+      : defaultSettings.departMessages;
+    const rawTpl = msgs[Math.floor(Math.random() * msgs.length)];
+    speakStationAnnouncement(rawTpl);
   }
   showToast("🚌 XUẤT BẾN!", "Chuyến xe FUONG TRANG đủ 20 khách khởi hành đi Đà Lạt!", "🚀");
 
@@ -668,7 +702,9 @@ function showToast(title, desc, icon = "🌸") {
   }, 3200);
 }
 
-/* ================== RENDER VÀ QUẢN LÝ DANH SÁCH CÂU CHÀO RANDOM ================== */
+/* ================== RENDER VÀ QUẢN LÝ CÁC DANH SÁCH CÂU NÓI RANDOM (TẠO/THÊM/XÓA/SỬA) ================== */
+
+// 1. Quản lý danh sách câu chào
 function renderJoinMessages() {
   const listContainer = document.getElementById("join-messages-list");
   if (!listContainer) return;
@@ -689,7 +725,6 @@ function renderJoinMessages() {
     listContainer.appendChild(row);
   });
 
-  // Gắn sự kiện khi sửa nội dung câu chào
   listContainer.querySelectorAll(".join-msg-input").forEach(input => {
     input.addEventListener("input", e => {
       const i = parseInt(e.target.dataset.index);
@@ -698,7 +733,6 @@ function renderJoinMessages() {
     });
   });
 
-  // Gắn sự kiện nghe thử từng câu
   listContainer.querySelectorAll(".btn-test-single-join").forEach(btn => {
     btn.addEventListener("click", e => {
       const i = parseInt(e.currentTarget.dataset.index);
@@ -707,7 +741,6 @@ function renderJoinMessages() {
     });
   });
 
-  // Gắn sự kiện xóa câu
   listContainer.querySelectorAll(".btn-delete-join").forEach(btn => {
     btn.addEventListener("click", e => {
       const i = parseInt(e.currentTarget.dataset.index);
@@ -718,6 +751,163 @@ function renderJoinMessages() {
       appSettings.joinMessages.splice(i, 1);
       saveSettings();
       renderJoinMessages();
+    });
+  });
+}
+
+// 2. Quản lý danh sách câu cảm ơn khi tiếp xăng
+function renderFuelMessages() {
+  const listContainer = document.getElementById("fuel-messages-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+
+  if (!appSettings.fuelMessages || appSettings.fuelMessages.length === 0) {
+    appSettings.fuelMessages = [...defaultSettings.fuelMessages];
+  }
+
+  appSettings.fuelMessages.forEach((msg, idx) => {
+    const row = document.createElement("div");
+    row.className = "message-item-row";
+    row.innerHTML = `
+      <input type="text" class="form-input fuel-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu cảm ơn đổ xăng...">
+      <button class="btn btn-test btn-test-single-fuel" data-index="${idx}" title="Nghe thử câu này" type="button">🔊</button>
+      <button class="btn btn-icon-danger btn-delete-fuel" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  listContainer.querySelectorAll(".fuel-msg-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      appSettings.fuelMessages[i] = e.target.value;
+      saveSettings();
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-test-single-fuel").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const text = (appSettings.fuelMessages[i] || "")
+        .replace(/{username}/g, "Bác Ba Phi")
+        .replace(/{liters}/g, "1");
+      speakStationAnnouncement(text);
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-delete-fuel").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      if (appSettings.fuelMessages.length <= 1) {
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu tiếp xăng!", "⚠️");
+        return;
+      }
+      appSettings.fuelMessages.splice(i, 1);
+      saveSettings();
+      renderFuelMessages();
+    });
+  });
+}
+
+// 3. Quản lý danh sách câu mời lên giường nằm VIP
+function renderGiftMessages() {
+  const listContainer = document.getElementById("gift-messages-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+
+  if (!appSettings.giftMessages || appSettings.giftMessages.length === 0) {
+    appSettings.giftMessages = [...defaultSettings.giftMessages];
+  }
+
+  appSettings.giftMessages.forEach((msg, idx) => {
+    const row = document.createElement("div");
+    row.className = "message-item-row";
+    row.innerHTML = `
+      <input type="text" class="form-input gift-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu mời vào giường VIP...">
+      <button class="btn btn-test btn-test-single-gift" data-index="${idx}" title="Nghe thử câu này" type="button">🔊</button>
+      <button class="btn btn-icon-danger btn-delete-gift" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  listContainer.querySelectorAll(".gift-msg-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      appSettings.giftMessages[i] = e.target.value;
+      saveSettings();
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-test-single-gift").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const text = (appSettings.giftMessages[i] || "")
+        .replace(/{username}/g, "Chị Út Miền Tây")
+        .replace(/{gift}/g, "Hoa Hồng");
+      speakStationAnnouncement(text);
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-delete-gift").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      if (appSettings.giftMessages.length <= 1) {
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu tặng quà!", "⚠️");
+        return;
+      }
+      appSettings.giftMessages.splice(i, 1);
+      saveSettings();
+      renderGiftMessages();
+    });
+  });
+}
+
+// 4. Quản lý danh sách câu thông báo xuất bến
+function renderDepartMessages() {
+  const listContainer = document.getElementById("depart-messages-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+
+  if (!appSettings.departMessages || appSettings.departMessages.length === 0) {
+    appSettings.departMessages = [...defaultSettings.departMessages];
+  }
+
+  appSettings.departMessages.forEach((msg, idx) => {
+    const row = document.createElement("div");
+    row.className = "message-item-row";
+    row.innerHTML = `
+      <input type="text" class="form-input depart-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu xuất bến...">
+      <button class="btn btn-test btn-test-single-depart" data-index="${idx}" title="Nghe thử câu này" type="button">🔊</button>
+      <button class="btn btn-icon-danger btn-delete-depart" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  listContainer.querySelectorAll(".depart-msg-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      appSettings.departMessages[i] = e.target.value;
+      saveSettings();
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-test-single-depart").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const text = appSettings.departMessages[i] || "";
+      speakStationAnnouncement(text);
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-delete-depart").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      if (appSettings.departMessages.length <= 1) {
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu xuất bến!", "⚠️");
+        return;
+      }
+      appSettings.departMessages.splice(i, 1);
+      saveSettings();
+      renderDepartMessages();
     });
   });
 }
@@ -734,35 +924,61 @@ function initTestControls() {
     if (workspace) workspace.classList.add("obs-mode");
   }
 
-  // 1. Đồng bộ các input cài đặt từ appSettings
+  // 1. Đồng bộ các công tắc bật/tắt (Switch)
   const chkJoinVoice = document.getElementById("setting-enable-join-voice");
   const chkFuelVoice = document.getElementById("setting-enable-fuel-voice");
-  const inputFuelTpl = document.getElementById("setting-fuel-template");
   const chkGiftVoice = document.getElementById("setting-enable-gift-voice");
-  const inputGiftTpl = document.getElementById("setting-gift-template");
   const chkDepartVoice = document.getElementById("setting-enable-depart-voice");
-  const inputDepartTpl = document.getElementById("setting-depart-template");
   const chkHorn = document.getElementById("setting-enable-horn");
 
-  if (chkJoinVoice) chkJoinVoice.checked = appSettings.enableJoinVoice;
-  if (chkFuelVoice) chkFuelVoice.checked = appSettings.enableFuelVoice !== false;
-  if (inputFuelTpl) inputFuelTpl.value = appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!";
-  if (chkGiftVoice) chkGiftVoice.checked = appSettings.enableGiftVoice;
-  if (inputGiftTpl) inputGiftTpl.value = appSettings.giftTemplate;
-  if (chkDepartVoice) chkDepartVoice.checked = appSettings.enableDepartVoice;
-  if (inputDepartTpl) inputDepartTpl.value = appSettings.departTemplate;
-  if (chkHorn) chkHorn.checked = appSettings.enableHorn;
+  if (chkJoinVoice) {
+    chkJoinVoice.checked = appSettings.enableJoinVoice;
+    chkJoinVoice.addEventListener("change", e => {
+      appSettings.enableJoinVoice = e.target.checked;
+      saveSettings();
+    });
+  }
 
-  // Lắng nghe thay đổi cài đặt
-  if (chkJoinVoice) chkJoinVoice.addEventListener("change", e => {
-    appSettings.enableJoinVoice = e.target.checked;
-    saveSettings();
-  });
+  if (chkFuelVoice) {
+    chkFuelVoice.checked = appSettings.enableFuelVoice !== false;
+    chkFuelVoice.addEventListener("change", e => {
+      appSettings.enableFuelVoice = e.target.checked;
+      saveSettings();
+    });
+  }
 
-  // Render danh sách câu chào nhiều câu
+  if (chkGiftVoice) {
+    chkGiftVoice.checked = appSettings.enableGiftVoice;
+    chkGiftVoice.addEventListener("change", e => {
+      appSettings.enableGiftVoice = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  if (chkDepartVoice) {
+    chkDepartVoice.checked = appSettings.enableDepartVoice;
+    chkDepartVoice.addEventListener("change", e => {
+      appSettings.enableDepartVoice = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  if (chkHorn) {
+    chkHorn.checked = appSettings.enableHorn;
+    chkHorn.addEventListener("change", e => {
+      appSettings.enableHorn = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  // 2. Render toàn bộ 4 danh sách câu nói
   renderJoinMessages();
+  renderFuelMessages();
+  renderGiftMessages();
+  renderDepartMessages();
 
-  // Nút thêm câu chào mới
+  // 3. Gắn sự kiện cho các nút Thêm câu mới & Đọc Random của 4 mục
+  // Mục 1: Chào người xem
   const btnAddJoin = document.getElementById("btn-add-join-msg");
   if (btnAddJoin) {
     btnAddJoin.addEventListener("click", () => {
@@ -770,66 +986,75 @@ function initTestControls() {
       saveSettings();
       renderJoinMessages();
       const inputs = document.querySelectorAll(".join-msg-input");
-      if (inputs.length > 0) {
-        inputs[inputs.length - 1].focus();
-      }
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+  }
+  const btnRandomJoin = document.getElementById("btn-random-join-msg");
+  if (btnRandomJoin) {
+    btnRandomJoin.addEventListener("click", () => {
+      const msgs = appSettings.joinMessages || defaultSettings.joinMessages;
+      const tpl = msgs[Math.floor(Math.random() * msgs.length)];
+      speakStationAnnouncement(tpl.replace(/{username}/g, "Bác Ba Phi"));
     });
   }
 
-  if (chkFuelVoice) chkFuelVoice.addEventListener("change", e => {
-    appSettings.enableFuelVoice = e.target.checked;
-    saveSettings();
-  });
-  if (inputFuelTpl) inputFuelTpl.addEventListener("input", e => {
-    appSettings.fuelTemplate = e.target.value;
-    saveSettings();
-  });
-  if (chkGiftVoice) chkGiftVoice.addEventListener("change", e => {
-    appSettings.enableGiftVoice = e.target.checked;
-    saveSettings();
-  });
-  if (inputGiftTpl) inputGiftTpl.addEventListener("input", e => {
-    appSettings.giftTemplate = e.target.value;
-    saveSettings();
-  });
-  if (chkDepartVoice) chkDepartVoice.addEventListener("change", e => {
-    appSettings.enableDepartVoice = e.target.checked;
-    saveSettings();
-  });
-  if (inputDepartTpl) inputDepartTpl.addEventListener("input", e => {
-    appSettings.departTemplate = e.target.value;
-    saveSettings();
-  });
-  if (chkHorn) chkHorn.addEventListener("change", e => {
-    appSettings.enableHorn = e.target.checked;
-    saveSettings();
-  });
-
-  // 2. Nút thử đọc từng câu
-  const btnTestFuel = document.getElementById("btn-test-fuel-voice");
-  if (btnTestFuel) {
-    btnTestFuel.addEventListener("click", () => {
-      const sample = (appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!")
-        .replace(/{username}/g, "Bác Ba Phi")
-        .replace(/{liters}/g, "1");
-      speakStationAnnouncement(sample);
+  // Mục 2: Cảm ơn tiếp xăng
+  const btnAddFuel = document.getElementById("btn-add-fuel-msg");
+  if (btnAddFuel) {
+    btnAddFuel.addEventListener("click", () => {
+      appSettings.fuelMessages.push("Cảm ơn {username} đã tiếp thêm xăng cho xe!");
+      saveSettings();
+      renderFuelMessages();
+      const inputs = document.querySelectorAll(".fuel-msg-input");
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+  }
+  const btnRandomFuel = document.getElementById("btn-random-fuel-msg");
+  if (btnRandomFuel) {
+    btnRandomFuel.addEventListener("click", () => {
+      const msgs = appSettings.fuelMessages || defaultSettings.fuelMessages;
+      const tpl = msgs[Math.floor(Math.random() * msgs.length)];
+      speakStationAnnouncement(tpl.replace(/{username}/g, "Bác Ba Phi").replace(/{liters}/g, "1"));
     });
   }
 
-  const btnTestGift = document.getElementById("btn-test-gift-voice");
-  if (btnTestGift) {
-    btnTestGift.addEventListener("click", () => {
-      const sample = (appSettings.giftTemplate || "")
-        .replace(/{username}/g, "Chị Út Miền Tây")
-        .replace(/{gift}/g, "Hoa Hồng");
-      speakStationAnnouncement(sample);
+  // Mục 3: Tặng quà vào giường nằm
+  const btnAddGift = document.getElementById("btn-add-gift-msg");
+  if (btnAddGift) {
+    btnAddGift.addEventListener("click", () => {
+      appSettings.giftMessages.push("Mời quý khách {username} lên xe giường nằm nghỉ ngơi!");
+      saveSettings();
+      renderGiftMessages();
+      const inputs = document.querySelectorAll(".gift-msg-input");
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+  }
+  const btnRandomGift = document.getElementById("btn-random-gift-msg");
+  if (btnRandomGift) {
+    btnRandomGift.addEventListener("click", () => {
+      const msgs = appSettings.giftMessages || defaultSettings.giftMessages;
+      const tpl = msgs[Math.floor(Math.random() * msgs.length)];
+      speakStationAnnouncement(tpl.replace(/{username}/g, "Chị Út Miền Tây").replace(/{gift}/g, "Hoa Hồng"));
     });
   }
 
-  const btnTestDepart = document.getElementById("btn-test-depart-voice");
-  if (btnTestDepart) {
-    btnTestDepart.addEventListener("click", () => {
-      speakStationAnnouncement(appSettings.departTemplate);
+  // Mục 4: Thông báo xuất bến
+  const btnAddDepart = document.getElementById("btn-add-depart-msg");
+  if (btnAddDepart) {
+    btnAddDepart.addEventListener("click", () => {
+      appSettings.departMessages.push("Xe FUONG TRANG đã đủ khách, chuẩn bị khởi hành đi Đà Lạt!");
+      saveSettings();
+      renderDepartMessages();
+      const inputs = document.querySelectorAll(".depart-msg-input");
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+  }
+  const btnRandomDepart = document.getElementById("btn-random-depart-msg");
+  if (btnRandomDepart) {
+    btnRandomDepart.addEventListener("click", () => {
+      const msgs = appSettings.departMessages || defaultSettings.departMessages;
+      const tpl = msgs[Math.floor(Math.random() * msgs.length)];
+      speakStationAnnouncement(tpl);
     });
   }
 

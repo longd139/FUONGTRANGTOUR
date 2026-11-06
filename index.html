@@ -134,8 +134,11 @@
           </div>
           <div class="card-body">
             <div class="card-subtitle-row">
-              <label class="field-label" style="margin-bottom: 0;">Danh sách câu chào (BOT tự động random khi có người vào live):</label>
-              <button id="btn-add-join-msg" class="btn btn-add" type="button">➕ Thêm câu chào mới</button>
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu chào (BOT tự động random):</label>
+              <div class="btn-group-row">
+                <button id="btn-random-join-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-add-join-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
+              </div>
             </div>
             
             <!-- Danh sách các câu chào động -->
@@ -143,7 +146,7 @@
               <!-- Render động bởi JavaScript -->
             </div>
 
-            <p class="field-hint">💡 Dùng <code>{username}</code> để tự động chèn tên người xem. BOT sẽ <b>ngẫu nhiên chọn 1 câu</b> mỗi khi có khách vào phòng live!</p>
+            <p class="field-hint">💡 Dùng <code>{username}</code> để tự động chèn tên người xem.</p>
           </div>
         </section>
 
@@ -152,7 +155,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">⛽</span>
-              <h3>2. Lời cảm ơn khi tiếp xăng (Gõ 1)</h3>
+              <h3>2. Lời cảm ơn khi tiếp xăng (Gõ 1) (Tự động Random)</h3>
             </div>
             <label class="switch" title="Bật/Tắt loa cảm ơn khi tiếp xăng">
               <input type="checkbox" id="setting-enable-fuel-voice" checked>
@@ -160,11 +163,19 @@
             </label>
           </div>
           <div class="card-body">
-            <label class="field-label">Câu loa phát thanh cảm ơn người xem đổ xăng:</label>
-            <div class="input-with-btn">
-              <input type="text" id="setting-fuel-template" class="form-input" value="Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!">
-              <button id="btn-test-fuel-voice" class="btn btn-test" type="button" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            <div class="card-subtitle-row">
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu cảm ơn đổ xăng (BOT tự động random):</label>
+              <div class="btn-group-row">
+                <button id="btn-random-fuel-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-add-fuel-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
+              </div>
             </div>
+
+            <!-- Danh sách các câu tiếp xăng động -->
+            <div id="fuel-messages-list" class="messages-list">
+              <!-- Render động bởi JavaScript -->
+            </div>
+
             <p class="field-hint">💡 Dùng <code>{username}</code> (tên người thêm xăng) và <code>{liters}</code> (số lít xăng).</p>
           </div>
         </section>
@@ -174,7 +185,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎟️</span>
-              <h3>3. Lời cảm ơn khi tặng quà & xếp giường</h3>
+              <h3>3. Lời cảm ơn khi tặng quà & xếp giường (Tự động Random)</h3>
             </div>
             <label class="switch" title="Bật/Tắt loa gọi tên vào giường">
               <input type="checkbox" id="setting-enable-gift-voice" checked>
@@ -182,11 +193,19 @@
             </label>
           </div>
           <div class="card-body">
-            <label class="field-label">Câu loa phát thanh mời khách lên giường nằm VIP:</label>
-            <div class="input-with-btn">
-              <input type="text" id="setting-gift-template" class="form-input" value="Mời quý khách {username} vào giường nằm VIP!">
-              <button id="btn-test-gift-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            <div class="card-subtitle-row">
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu mời lên giường nằm VIP (BOT tự động random):</label>
+              <div class="btn-group-row">
+                <button id="btn-random-gift-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-add-gift-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
+              </div>
             </div>
+
+            <!-- Danh sách các câu tặng quà động -->
+            <div id="gift-messages-list" class="messages-list">
+              <!-- Render động bởi JavaScript -->
+            </div>
+
             <p class="field-hint">💡 Dùng <code>{username}</code> (tên khách) và <code>{gift}</code> (tên quà).</p>
           </div>
         </section>
@@ -196,7 +215,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🚌</span>
-              <h3>4. Thông báo xuất bến (đủ 20 khách)</h3>
+              <h3>4. Thông báo xuất bến (đủ 20 khách) (Tự động Random)</h3>
             </div>
             <label class="switch" title="Bật/Tắt loa xuất bến">
               <input type="checkbox" id="setting-enable-depart-voice" checked>
@@ -204,12 +223,20 @@
             </label>
           </div>
           <div class="card-body">
-            <label class="field-label">Lời phát thanh khởi hành đi Đà Lạt:</label>
-            <div class="input-with-btn">
-              <textarea id="setting-depart-template" class="form-input form-textarea" rows="2">Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!</textarea>
-              <button id="btn-test-depart-voice" class="btn btn-test" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            <div class="card-subtitle-row">
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu khởi hành (BOT tự động random):</label>
+              <div class="btn-group-row">
+                <button id="btn-random-depart-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-add-depart-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
+              </div>
             </div>
-            <div class="checkbox-row">
+
+            <!-- Danh sách các câu xuất bến động -->
+            <div id="depart-messages-list" class="messages-list">
+              <!-- Render động bởi JavaScript -->
+            </div>
+
+            <div class="checkbox-row" style="margin-top: 10px;">
               <label><input type="checkbox" id="setting-enable-horn" checked> Kèm tiếng còi xe khách bíp bíp</label>
             </div>
           </div>
