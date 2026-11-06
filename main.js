@@ -102,6 +102,27 @@ function playBusHorn() {
   }
 }
 
+function playDoubleBusHorn() {
+  playBusHorn();
+  setTimeout(() => playBusHorn(), 200);
+}
+
+function playFuelSound() {
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.22);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.22);
+  } catch (e) { }
+}
+
 /* ================== LOA PHÁT THANH BẾN XE TIẾNG VIỆT CHUẨN ================== */
 let currentStationAudio = null;
 
@@ -202,6 +223,115 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
   };
+}
+
+/* ================== HỆ THỐNG TƯƠNG TÁC BÌNH LUẬN TIKTOK (GÕ 1 & GÕ 2) ================== */
+const INTERACT_CONFIG = {
+  MAX_FUEL: 100,
+  HORN_TARGET: 5
+};
+
+let currentFuel = 0;
+let currentHornCount = 0;
+
+function updateFuelUI() {
+  const valEl = document.getElementById("hud-fuel-val");
+  const fillEl = document.getElementById("hud-fuel-fill");
+  if (!valEl || !fillEl) return;
+
+  const pct = Math.min(100, Math.round((currentFuel / INTERACT_CONFIG.MAX_FUEL) * 100));
+  fillEl.style.width = pct + "%";
+
+  if (currentFuel >= INTERACT_CONFIG.MAX_FUEL) {
+    valEl.innerText = "100/100L (ĐẦY)";
+    fillEl.classList.add("full");
+  } else {
+    valEl.innerText = `${currentFuel}/${INTERACT_CONFIG.MAX_FUEL}L`;
+    fillEl.classList.remove("full");
+  }
+}
+
+function updateHornUI() {
+  const valEl = document.getElementById("hud-horn-val");
+  const fillEl = document.getElementById("hud-horn-fill");
+  if (!valEl || !fillEl) return;
+
+  const pct = Math.min(100, Math.round((currentHornCount / INTERACT_CONFIG.HORN_TARGET) * 100));
+  fillEl.style.width = pct + "%";
+  valEl.innerText = `${currentHornCount}/${INTERACT_CONFIG.HORN_TARGET} người`;
+}
+
+function showInteractBubble(text) {
+  const stage = document.getElementById("game-stage");
+  if (!stage) return;
+  const bubble = document.createElement("div");
+  bubble.className = "floating-interact-bubble";
+  bubble.innerText = text;
+  stage.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 1600);
+}
+
+function addFuel(username = "Hành khách", amount = 1) {
+  if (currentFuel >= INTERACT_CONFIG.MAX_FUEL) {
+    showInteractBubble(`⛽ Bình xăng đã đầy 100L rồi!`);
+    return;
+  }
+
+  const prevFuel = currentFuel;
+  currentFuel = Math.min(INTERACT_CONFIG.MAX_FUEL, currentFuel + amount);
+  updateFuelUI();
+  playFuelSound();
+
+  if (currentFuel >= INTERACT_CONFIG.MAX_FUEL && prevFuel < INTERACT_CONFIG.MAX_FUEL) {
+    // Đạt đủ 100L: Xe rồ ga nổ máy, ống khói xả mù mịt
+    showInteractBubble(`⛽ BÌNH XĂNG ĐÃ ĐẦY 100L! XE ĐÃ NỔ MÁY!`);
+    showToast("⛽ ĐẦY BÌNH XĂNG!", `${username} cùng bà con đã tiếp đủ 100L xăng cho xe!`, "⛽");
+    
+    if (busContainer) {
+      busContainer.classList.add("engine-running");
+    }
+    const exhaust = document.getElementById("bus-exhaust");
+    if (exhaust) exhaust.classList.add("active");
+
+    setTimeout(() => {
+      if (exhaust) exhaust.classList.remove("active");
+    }, 4500);
+  } else {
+    showInteractBubble(`⛽ +${amount}L Xăng (${username})`);
+  }
+}
+
+function addHornVote(username = "Hành khách") {
+  currentHornCount++;
+  updateHornUI();
+
+  if (currentHornCount >= INTERACT_CONFIG.HORN_TARGET) {
+    // Đủ 5 người: Bấm còi xe khách vang dội và nháy đèn pha
+    currentHornCount = 0;
+    setTimeout(updateHornUI, 800);
+
+    if (busContainer) {
+      busContainer.classList.add("honking");
+      setTimeout(() => busContainer.classList.remove("honking"), 700);
+    }
+
+    playDoubleBusHorn();
+    showInteractBubble(`📢 BÍP BÍP! CẢ NHÀ BẤM CÒI THÀNH CÔNG!`);
+    showToast("📢 CÒI XE VANG RỘN!", `${username} & 4 hành khách vừa đồng thanh bấm còi xe!`, "📢");
+  } else {
+    showInteractBubble(`📢 Còi xe +1 (${currentHornCount}/${INTERACT_CONFIG.HORN_TARGET})`);
+  }
+}
+
+function handleComment(username = "Hành khách", commentText = "") {
+  const text = (commentText || "").trim();
+  if (!text) return;
+
+  if (text === "1" || text.startsWith("1")) {
+    addFuel(username, 1);
+  } else if (text === "2" || text.startsWith("2")) {
+    addHornVote(username);
+  }
 }
 
 /* ================== KHỞI TẠO 10 KHOANG x 2 GIƯỜNG TRÊN/DƯỚI ================== */
@@ -469,6 +599,17 @@ function resetTripForNextBatch() {
   state.seatedPassengers = [];
   initSeats();
 
+  // Đặt lại bình xăng và còi cho chuyến mới
+  currentFuel = 0;
+  currentHornCount = 0;
+  updateFuelUI();
+  updateHornUI();
+
+  if (busContainer) {
+    busContainer.classList.remove("engine-running");
+    busContainer.classList.remove("honking");
+  }
+
   busContainer.classList.remove("driving");
   busContainer.style.transition = "none";
   busContainer.style.transform = "translateX(-1600px)";
@@ -713,6 +854,55 @@ function initTestControls() {
     });
   }
 
+  // 5. Các nút mô phỏng bình luận tương tác (Gõ 1 & 2)
+  const getSimUserName = () => {
+    const input = document.getElementById("input-username");
+    return (input && input.value.trim()) || "Khách VIP";
+  };
+
+  const btnSimFuel1 = document.getElementById("btn-sim-fuel-1");
+  if (btnSimFuel1) {
+    btnSimFuel1.addEventListener("click", () => {
+      addFuel(getSimUserName(), 1);
+    });
+  }
+
+  const btnSimFuel10 = document.getElementById("btn-sim-fuel-10");
+  if (btnSimFuel10) {
+    btnSimFuel10.addEventListener("click", () => {
+      addFuel(getSimUserName(), 10);
+    });
+  }
+
+  const btnSimHorn = document.getElementById("btn-sim-horn");
+  if (btnSimHorn) {
+    btnSimHorn.addEventListener("click", () => {
+      addHornVote(getSimUserName());
+    });
+  }
+
+  const btnSimCmtSend = document.getElementById("btn-sim-comment-send");
+  const inputSimCmt = document.getElementById("input-sim-comment");
+  if (btnSimCmtSend && inputSimCmt) {
+    const sendCmt = () => {
+      const val = inputSimCmt.value.trim();
+      if (val) {
+        handleComment(getSimUserName(), val);
+      }
+    };
+    btnSimCmtSend.addEventListener("click", sendCmt);
+    inputSimCmt.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendCmt();
+      }
+    });
+  }
+
+  // Cập nhật giao diện ban đầu cho bảng tương tác
+  updateFuelUI();
+  updateHornUI();
+
   const chkAuto = document.getElementById("chk-auto-demo");
   if (chkAuto) {
     chkAuto.addEventListener("change", e => {
@@ -731,10 +921,19 @@ function startAutoDemo() {
     if (state.isDeparting) return;
 
     const rand = Math.random();
-    if (rand < 0.6) {
+    if (rand < 0.4) {
+      // 40% người vào xem
       const name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
       onPassengerJoin(name);
+    } else if (rand < 0.75) {
+      // 35% người cmt tương tác (gõ 1 tiếp xăng hoặc gõ 2 bấm còi)
+      const cmt = Math.random() < 0.65 ? "1" : "2";
+      const name = state.farPassengers.length > 0
+        ? state.farPassengers[Math.floor(Math.random() * state.farPassengers.length)]
+        : CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+      handleComment(name, cmt);
     } else {
+      // 25% người tặng quà để lên xe
       const gifts = ["🌸 Hoa Hồng", "🍦 Cây Kem", "🧢 Nón Lá", "💖 Trái Tim"];
       const gift = gifts[Math.floor(Math.random() * gifts.length)];
       const name = state.farPassengers.length > 0

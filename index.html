@@ -69,6 +69,37 @@
               <span>SÂN BẾN XE FUONG TRANG (CHƯA CÓ VÉ)</span>
               <small>Tặng hoa / quà để được lên xe!</small>
             </div>
+
+            <!-- BẢNG TƯƠNG TÁC TIKTOK LIVE HUD (GÕ 1: TIẾP XĂNG, GÕ 2: BẤM CÒI) -->
+            <div class="interactive-hud" id="interactive-hud">
+              <div class="hud-header">
+                <span class="hud-badge">💬 TƯƠNG TÁC LIVE</span>
+                <span class="hud-guide">Gõ <b>1</b>: Tiếp xăng • Gõ <b>2</b>: Bấm còi</span>
+              </div>
+              <div class="hud-meters">
+                <div class="hud-meter-card fuel-card">
+                  <div class="meter-header">
+                    <span class="meter-icon">⛽</span>
+                    <span class="meter-title">Bình xăng</span>
+                    <span class="meter-value" id="hud-fuel-val">0/100L</span>
+                  </div>
+                  <div class="meter-track">
+                    <div class="meter-fill fuel-fill" id="hud-fuel-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="hud-meter-card horn-card">
+                  <div class="meter-header">
+                    <span class="meter-icon">📢</span>
+                    <span class="meter-title">Còi xe</span>
+                    <span class="meter-value" id="hud-horn-val">0/5 người</span>
+                  </div>
+                  <div class="meter-track">
+                    <div class="meter-fill horn-fill" id="hud-horn-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           <!-- THÔNG BÁO NỔI TOAST -->
@@ -200,6 +231,20 @@
                   </select>
                   <button id="btn-simulate-gift" class="btn btn-gift">🎁 Tặng Quà</button>
                 </div>
+              </div>
+            </div>
+
+            <!-- MÔ PHỎNG BÌNH LUẬN TƯƠNG TÁC (GÕ 1 VÀ 2) -->
+            <div class="sim-comment-section">
+              <label class="field-label">💬 Thử bình luận tương tác (Gõ 1 tiếp xăng, Gõ 2 bấm còi):</label>
+              <div class="sim-comment-quick-btns">
+                <button id="btn-sim-fuel-1" class="btn btn-sim-fuel" type="button">⛽ Gõ 1 (+1L)</button>
+                <button id="btn-sim-fuel-10" class="btn btn-sim-fuel-bulk" type="button">⚡ Tiếp +10L Xăng</button>
+                <button id="btn-sim-horn" class="btn btn-sim-horn" type="button">📢 Gõ 2 (Bấm còi +1/5)</button>
+              </div>
+              <div class="input-group" style="margin-top: 8px;">
+                <input type="text" id="input-sim-comment" class="form-input" placeholder="Nhập '1' hoặc '2'..." value="1">
+                <button id="btn-sim-comment-send" class="btn btn-send-cmt" type="button">Gửi Cmt</button>
               </div>
             </div>
 
