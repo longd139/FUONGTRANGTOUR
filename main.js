@@ -36,6 +36,8 @@ const defaultSettings = {
   ],
   enableGiftVoice: true,
   giftTemplate: "Mời quý khách {username} vào giường nằm VIP!",
+  enableFuelVoice: true,
+  fuelTemplate: "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!",
   enableDepartVoice: true,
   departTemplate: "Chuyến xe FUONG TRANG đi Đà Lạt đã đủ 20 hành khách, chuẩn bị khởi hành! Chúc bà con thượng lộ bình an!",
   enableHorn: true
@@ -297,6 +299,15 @@ function addFuel(username = "Hành khách", amount = 1) {
   currentFuel = Math.min(INTERACT_CONFIG.MAX_FUEL, currentFuel + amount);
   updateFuelUI();
   playFuelSound();
+
+  // Phát loa thông báo cảm ơn khi tiếp xăng
+  if (appSettings.enableFuelVoice) {
+    const rawTpl = appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!";
+    const fuelSpeech = rawTpl
+      .replace(/{username}/g, username)
+      .replace(/{liters}/g, amount);
+    speakStationAnnouncement(fuelSpeech);
+  }
 
   if (currentFuel >= INTERACT_CONFIG.MAX_FUEL && prevFuel < INTERACT_CONFIG.MAX_FUEL) {
     // Đạt đủ 100L: Xe rồ ga nổ máy, ống khói xả mù mịt
@@ -725,6 +736,8 @@ function initTestControls() {
 
   // 1. Đồng bộ các input cài đặt từ appSettings
   const chkJoinVoice = document.getElementById("setting-enable-join-voice");
+  const chkFuelVoice = document.getElementById("setting-enable-fuel-voice");
+  const inputFuelTpl = document.getElementById("setting-fuel-template");
   const chkGiftVoice = document.getElementById("setting-enable-gift-voice");
   const inputGiftTpl = document.getElementById("setting-gift-template");
   const chkDepartVoice = document.getElementById("setting-enable-depart-voice");
@@ -732,6 +745,8 @@ function initTestControls() {
   const chkHorn = document.getElementById("setting-enable-horn");
 
   if (chkJoinVoice) chkJoinVoice.checked = appSettings.enableJoinVoice;
+  if (chkFuelVoice) chkFuelVoice.checked = appSettings.enableFuelVoice !== false;
+  if (inputFuelTpl) inputFuelTpl.value = appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!";
   if (chkGiftVoice) chkGiftVoice.checked = appSettings.enableGiftVoice;
   if (inputGiftTpl) inputGiftTpl.value = appSettings.giftTemplate;
   if (chkDepartVoice) chkDepartVoice.checked = appSettings.enableDepartVoice;
@@ -761,6 +776,14 @@ function initTestControls() {
     });
   }
 
+  if (chkFuelVoice) chkFuelVoice.addEventListener("change", e => {
+    appSettings.enableFuelVoice = e.target.checked;
+    saveSettings();
+  });
+  if (inputFuelTpl) inputFuelTpl.addEventListener("input", e => {
+    appSettings.fuelTemplate = e.target.value;
+    saveSettings();
+  });
   if (chkGiftVoice) chkGiftVoice.addEventListener("change", e => {
     appSettings.enableGiftVoice = e.target.checked;
     saveSettings();
@@ -783,6 +806,16 @@ function initTestControls() {
   });
 
   // 2. Nút thử đọc từng câu
+  const btnTestFuel = document.getElementById("btn-test-fuel-voice");
+  if (btnTestFuel) {
+    btnTestFuel.addEventListener("click", () => {
+      const sample = (appSettings.fuelTemplate || "Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!")
+        .replace(/{username}/g, "Bác Ba Phi")
+        .replace(/{liters}/g, "1");
+      speakStationAnnouncement(sample);
+    });
+  }
+
   const btnTestGift = document.getElementById("btn-test-gift-voice");
   if (btnTestGift) {
     btnTestGift.addEventListener("click", () => {

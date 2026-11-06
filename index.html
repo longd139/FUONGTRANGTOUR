@@ -147,12 +147,34 @@
           </div>
         </section>
 
-        <!-- PHẦN 2: CÀI ĐẶT LỜI CẢM ƠN KHI TẶNG QUÀ -->
+        <!-- PHẦN 2: CÀI ĐẶT LỜI CẢM ƠN KHI TIẾP XĂNG (GÕ 1) -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="card-icon">⛽</span>
+              <h3>2. Lời cảm ơn khi tiếp xăng (Gõ 1)</h3>
+            </div>
+            <label class="switch" title="Bật/Tắt loa cảm ơn khi tiếp xăng">
+              <input type="checkbox" id="setting-enable-fuel-voice" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="card-body">
+            <label class="field-label">Câu loa phát thanh cảm ơn người xem đổ xăng:</label>
+            <div class="input-with-btn">
+              <input type="text" id="setting-fuel-template" class="form-input" value="Cảm ơn {username} đã tiếp thêm xăng cho xe FUONG TRANG!">
+              <button id="btn-test-fuel-voice" class="btn btn-test" type="button" title="Bấm nghe thử giọng đọc">🔊 Thử đọc</button>
+            </div>
+            <p class="field-hint">💡 Dùng <code>{username}</code> (tên người thêm xăng) và <code>{liters}</code> (số lít xăng).</p>
+          </div>
+        </section>
+
+        <!-- PHẦN 3: CÀI ĐẶT LỜI CẢM ƠN KHI TẶNG QUÀ -->
         <section class="admin-card">
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎟️</span>
-              <h3>2. Lời cảm ơn khi tặng quà & xếp giường</h3>
+              <h3>3. Lời cảm ơn khi tặng quà & xếp giường</h3>
             </div>
             <label class="switch" title="Bật/Tắt loa gọi tên vào giường">
               <input type="checkbox" id="setting-enable-gift-voice" checked>
@@ -169,12 +191,12 @@
           </div>
         </section>
 
-        <!-- PHẦN 3: CÀI ĐẶT THÔNG BÁO XUẤT BẾN -->
+        <!-- PHẦN 4: CÀI ĐẶT THÔNG BÁO XUẤT BẾN -->
         <section class="admin-card">
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🚌</span>
-              <h3>3. Thông báo xuất bến (đủ 20 khách)</h3>
+              <h3>4. Thông báo xuất bến (đủ 20 khách)</h3>
             </div>
             <label class="switch" title="Bật/Tắt loa xuất bến">
               <input type="checkbox" id="setting-enable-depart-voice" checked>
@@ -193,12 +215,12 @@
           </div>
         </section>
 
-        <!-- PHẦN 4: ĐIỀU KHIỂN & MÔ PHỎNG SỰ KIỆN LIVE -->
+        <!-- PHẦN 5: ĐIỀU KHIỂN & MÔ PHỎNG SỰ KIỆN LIVE -->
         <section class="admin-card">
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎮</span>
-              <h3>4. Thử nghiệm sự kiện TikTok Live</h3>
+              <h3>5. Thử nghiệm sự kiện TikTok Live</h3>
             </div>
           </div>
           <div class="card-body">
