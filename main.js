@@ -105,7 +105,9 @@ function playBusHorn() {
 /* ================== LOA PHÁT THANH BẾN XE TIẾNG VIỆT CHUẨN ================== */
 let currentStationAudio = null;
 
-function speakStationAnnouncement(text) {
+async function speakStationAnnouncement(text) {
+  if (!text || !text.trim()) return;
+
   // Dừng âm thanh trước nếu đang phát dở
   if (currentStationAudio) {
     try {
@@ -120,47 +122,82 @@ function speakStationAnnouncement(text) {
     } catch (e) { }
   }
 
-  // 1. Ưu tiên phát bằng giọng đọc tiếng Việt chất lượng cao (Google TTS tiếng Việt chuẩn 100%)
+  const cleanText = text.replace(/[\{\}]/g, '').trim();
+
+  // 1. Ưu tiên phát trực tiếp qua Google Translate TTS (chuẩn giọng tiếng Việt, không bị 404 nhờ no-referrer)
   try {
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(text)}`;
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
     const audio = new Audio(ttsUrl);
     currentStationAudio = audio;
     audio.volume = 1.0;
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.warn("Chuyển sang Web Speech API:", err);
-        speakWithSpeechSynthesis(text);
-      });
+      await playPromise;
+      return;
+    }
+  } catch (err) {
+    console.warn("Google TTS trực tiếp chưa phát được, thử giải pháp tiếp theo:", err);
+  }
+
+  // 2. Dự phòng 1: Kiểm tra xem thiết bị có sẵn giọng đọc tiếng Việt (Google tiếng Việt / Microsoft An)
+  if (trySpeakWithLocalVietnameseVoice(cleanText)) {
+    return;
+  }
+
+  // 3. Dự phòng 2: Gọi dịch vụ âm thanh đám mây SoundOfText (100% tiếng Việt, hỗ trợ CORS đầy đủ)
+  try {
+    const res = await fetch('https://api.soundoftext.com/sounds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: { text: cleanText, voice: 'vi-VN' } })
+    });
+    const data = await res.json();
+    if (data && data.success && data.id) {
+      for (let i = 0; i < 6; i++) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+        const checkRes = await fetch(`https://api.soundoftext.com/sounds/${data.id}`);
+        const checkData = await checkRes.json();
+        if (checkData.status === 'Done' && checkData.location) {
+          const cloudAudio = new Audio(checkData.location);
+          currentStationAudio = cloudAudio;
+          cloudAudio.volume = 1.0;
+          await cloudAudio.play();
+          return;
+        }
+      }
     }
   } catch (e) {
-    speakWithSpeechSynthesis(text);
+    console.warn("SoundOfText TTS lỗi:", e);
   }
 }
 
-function speakWithSpeechSynthesis(text) {
-  if (!('speechSynthesis' in window)) return;
+function trySpeakWithLocalVietnameseVoice(text) {
+  if (!('speechSynthesis' in window)) return false;
 
   const voices = window.speechSynthesis.getVoices();
-  // Tìm kiếm giọng tiếng Việt trong hệ thống
+  // Tìm kiếm giọng tiếng Việt chuẩn trong hệ thống
   const viVoice = voices.find(v =>
     (v.lang && (v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vie'))) ||
-    (v.name && v.name.toLowerCase().includes('vietnam'))
+    (v.name && (v.name.toLowerCase().includes('vietnam') || v.name.toLowerCase().includes('tiếng việt')))
   );
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'vi-VN';
-  if (viVoice) {
-    utterance.voice = viVoice;
+  // NẾU KHÔNG CÓ GIỌNG TIẾNG VIỆT: Tuyệt đối không để giọng tiếng Anh đọc nhái
+  if (!viVoice) {
+    return false;
   }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.voice = viVoice;
+  utterance.lang = viVoice.lang || 'vi-VN';
   utterance.rate = 1.0;
-  utterance.pitch = 1.05;
+  utterance.pitch = 1.0;
 
   window.speechSynthesis.speak(utterance);
+  return true;
 }
 
-// Lắng nghe tải voices của trình duyệt
+// Lắng nghe tải voices của trình duyệt khi mở web
 if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
