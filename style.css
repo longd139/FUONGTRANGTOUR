@@ -979,90 +979,62 @@ body.obs-mode .phone-frame,
   position: absolute;
   bottom: 12px;
   right: 14px;
-  background: rgba(18, 20, 29, 0.92);
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
-  border-radius: 14px;
-  padding: 8px 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 0;
   z-index: 15;
   pointer-events: auto;
-  min-width: 195px;
-  max-width: 220px;
+  min-width: 170px;
+  max-width: 195px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.hud-header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.hud-badge {
-  font-size: 9.5px;
-  font-weight: 900;
-  color: var(--color-gold);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.hud-guide {
-  font-size: 8.5px;
-  font-weight: 800;
-  color: #cbd5e1;
-}
-
-.hud-guide b {
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.2);
-  padding: 1px 4px;
-  border-radius: 4px;
 }
 
 .hud-meters {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .hud-meter-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 4px 8px;
+  background: rgba(22, 26, 38, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
 }
 
 .meter-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .meter-header .meter-icon {
-  margin-right: 2px;
+  margin-right: 3px;
 }
 
 .meter-header .meter-title {
-  color: #e2e8f0;
+  color: #fff;
   flex: 1;
-  margin-left: 3px;
 }
 
 .meter-header .meter-value {
   color: #fbbf24;
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 10.5px;
 }
 
 .meter-track {
   width: 100%;
   height: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
