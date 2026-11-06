@@ -265,9 +265,8 @@ function getPerspectiveInfo(y, groundTop, groundBottom) {
   const depthRange = Math.max(groundBottom - groundTop, 1);
   const progress = Math.max(0, Math.min(1, (y - groundTop) / depthRange));
 
-  // Ở xa (sát bánh xe, progress = 0): scale = 0.52 (nhỏ gọn)
-  // Ở gần (sát đáy màn hình, progress = 1): scale = 1.18 (to rõ ràng)
-  const scale = 0.52 + progress * 0.66;
+  // Phối cảnh 3D to rõ hơn: ở xa (0.80) -> ở gần (1.45)
+  const scale = 0.80 + progress * 0.65;
 
   // z-index: người ở gần (Y lớn) sẽ đứng đè lên người ở xa (Y nhỏ)
   const zIndex = Math.floor(10 + progress * 80);

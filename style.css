@@ -373,7 +373,7 @@ body {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -46%) scale(0.65) !important;
+  transform: translate(-50%, -46%) scale(0.55) !important;
   transform-origin: center center !important;
   margin: 0 !important;
   filter: none !important;
@@ -390,7 +390,7 @@ body {
   transition: left 0.8s ease-in-out, top 0.8s ease-in-out, transform 0.4s ease;
   transform-origin: bottom center; /* Cực kỳ quan trọng: chân luôn chạm đất khi phóng to / thu nhỏ */
   z-index: 5;
-  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.35)); /* Bóng đổ trên sàn gạch */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.4)); /* Bóng đổ trên sàn gạch */
   pointer-events: auto;
 }
 
@@ -399,11 +399,11 @@ body {
   transition: none !important;
 }
 
-/* Khung hiển thị Sprite ảnh (CHARACTER_1) */
+/* Khung hiển thị Sprite ảnh (CHARACTER_1, CHARACTER_2) - Kích thước phóng to rõ nét */
 .char-sprite-wrapper {
   position: relative;
-  width: 58px;
-  height: 64px;
+  width: 72px;
+  height: 78px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,70 +421,70 @@ body {
 .char-tag {
   background: rgba(0, 0, 0, 0.88);
   color: #fff;
-  font-size: 9px;
+  font-size: 10.5px;
   font-weight: 800;
-  padding: 1px 6px;
-  border-radius: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
   white-space: nowrap;
-  border: 1px solid #fff;
+  border: 1.2px solid #fff;
   display: flex;
   align-items: center;
-  gap: 3px;
-  margin-bottom: 1px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  gap: 4px;
+  margin-bottom: 2px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
 }
 
 .char-badge {
-  font-size: 8px;
+  font-size: 9.5px;
 }
 
 .char-figure {
   position: relative;
-  width: 30px;
-  height: 42px;
+  width: 38px;
+  height: 52px;
 }
 
 .char-head {
-  width: 22px;
-  height: 22px;
+  width: 27px;
+  height: 27px;
   background: #ffd166;
   border-radius: 50%;
-  border: 1.5px solid #333;
+  border: 1.8px solid #333;
   margin: 0 auto;
   position: relative;
 }
 
 .char-eyes {
   position: absolute;
-  top: 8px;
-  left: 5px;
+  top: 10px;
+  left: 6px;
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 
 .eye {
-  width: 2.5px;
-  height: 3px;
+  width: 3px;
+  height: 3.5px;
   background: #222;
   border-radius: 50%;
 }
 
 .char-hat {
   position: absolute;
-  top: -5px;
+  top: -6px;
   left: 3px;
-  width: 16px;
-  height: 6px;
+  width: 21px;
+  height: 8px;
   background: #ef476f;
-  border-radius: 8px 8px 0 0;
-  border: 1.2px solid #222;
+  border-radius: 10px 10px 0 0;
+  border: 1.5px solid #222;
 }
 
 .char-body {
-  width: 22px;
-  height: 18px;
-  border-radius: 5px;
-  border: 1.5px solid #222;
+  width: 27px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.8px solid #222;
   margin: -1px auto 0 auto;
   position: relative;
   background: #118ab2;
@@ -492,36 +492,36 @@ body {
 
 .char-luggage {
   position: absolute;
-  right: -9px;
+  right: -11px;
   bottom: 0;
-  width: 11px;
-  height: 14px;
+  width: 13px;
+  height: 16px;
   background: #06d6a0;
-  border: 1.2px solid #222;
-  border-radius: 2px;
+  border: 1.5px solid #222;
+  border-radius: 3px;
 }
 
 .char-luggage::before {
   content: '';
   position: absolute;
-  top: -4px;
-  left: 2px;
-  width: 5px;
-  height: 3px;
-  border: 1.2px solid #222;
+  top: -5px;
+  left: 3px;
+  width: 6px;
+  height: 4px;
+  border: 1.5px solid #222;
   border-bottom: none;
 }
 
 .char-legs {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   margin-top: -1px;
 }
 
 .leg {
-  width: 4px;
-  height: 6px;
+  width: 5px;
+  height: 7px;
   background: #222;
   border-radius: 0 0 2px 2px;
 }
