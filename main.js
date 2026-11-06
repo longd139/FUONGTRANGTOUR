@@ -7,7 +7,7 @@ const CONFIG = {
   TOTAL_SEATS: 20,
   AUTO_DEPART_DELAY: 2200, // Đợi 2.2s khi đủ 20 người thì xuất bến
   RANDOM_NAMES: [
-    "Anh Hai Lúa", "Chị Út Miền Tây", "Bác Ba Phi", "Cô Tám Bến Tre", 
+    "Anh Hai Lúa", "Chị Út Miền Tây", "Bác Ba Phi", "Cô Tám Bến Tre",
     "Bé Bắp", "Hoàng Tử Gió", "Mèo Cam", "Sơn Ca", "Bé Bự", "Tuấn Khang",
     "Thanh Hằng", "Minh Trí", "Ngọc Trâm", "Quang Hải", "Hương Giang"
   ],
@@ -88,13 +88,13 @@ function playBusHorn() {
     osc.type = "sawtooth";
     osc.frequency.setValueAtTime(440, audioCtx.currentTime);
     osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.15);
-    
+
     gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
-    
+
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
+
     osc.start();
     osc.stop(audioCtx.currentTime + 0.45);
   } catch (e) {
@@ -111,13 +111,13 @@ function speakStationAnnouncement(text) {
     try {
       currentStationAudio.pause();
       currentStationAudio.currentTime = 0;
-    } catch (e) {}
+    } catch (e) { }
     currentStationAudio = null;
   }
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 1. Ưu tiên phát bằng giọng đọc tiếng Việt chất lượng cao (Google TTS tiếng Việt chuẩn 100%)
@@ -144,7 +144,7 @@ function speakWithSpeechSynthesis(text) {
 
   const voices = window.speechSynthesis.getVoices();
   // Tìm kiếm giọng tiếng Việt trong hệ thống
-  const viVoice = voices.find(v => 
+  const viVoice = voices.find(v =>
     (v.lang && (v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vie'))) ||
     (v.name && v.name.toLowerCase().includes('vietnam'))
   );
@@ -247,14 +247,14 @@ function getCourtyardBounds() {
   const stageEl = document.getElementById("game-stage");
   const busPhoto = document.getElementById("bus-photo");
   const stageRect = stageEl ? stageEl.getBoundingClientRect() : { width: window.innerWidth, height: window.innerHeight, top: 0, left: 0 };
-  
+
   let groundTop = stageRect.height * 0.48;
   if (busPhoto) {
     const photoRect = busPhoto.getBoundingClientRect();
     // Bánh xe tiếp đất cách mép dưới của ảnh xe khoảng 10px (do khoảng trống transparent đã trừ bớt)
     groundTop = Math.max(photoRect.bottom - stageRect.top - 12, 80);
   }
-  
+
   const groundBottom = stageRect.height - 45; // Sát đáy màn hình
   const width = stageRect.width;
 
@@ -264,14 +264,14 @@ function getCourtyardBounds() {
 function getPerspectiveInfo(y, groundTop, groundBottom) {
   const depthRange = Math.max(groundBottom - groundTop, 1);
   const progress = Math.max(0, Math.min(1, (y - groundTop) / depthRange));
-  
+
   // Ở xa (sát bánh xe, progress = 0): scale = 0.52 (nhỏ gọn)
   // Ở gần (sát đáy màn hình, progress = 1): scale = 1.18 (to rõ ràng)
   const scale = 0.52 + progress * 0.66;
-  
+
   // z-index: người ở gần (Y lớn) sẽ đứng đè lên người ở xa (Y nhỏ)
   const zIndex = Math.floor(10 + progress * 80);
-  
+
   return { progress, scale, zIndex };
 }
 
@@ -318,13 +318,13 @@ function onPassengerJoin(username) {
     charEl.style.left = `${targetX}px`;
     setTimeout(() => {
       charEl.classList.remove("walking");
-      // Nếu bật BOT chào người xem mới: tự động Random 1 câu trong danh sách
-      if (appSettings.enableJoinVoice && appSettings.joinMessages && appSettings.joinMessages.length > 0) {
-        const randomTpl = appSettings.joinMessages[Math.floor(Math.random() * appSettings.joinMessages.length)];
-        const welcome = randomTpl.replace(/{username}/g, username);
-        speakStationAnnouncement(welcome);
-      }
-    }, 850);
+        // Nếu bật BOT chào người xem mới: tự động Random 1 câu trong danh sách
+        if (appSettings.enableJoinVoice && appSettings.joinMessages && appSettings.joinMessages.length > 0) {
+          const randomTpl = appSettings.joinMessages[Math.floor(Math.random() * appSettings.joinMessages.length)];
+          const welcome = randomTpl.replace(/{username}/g, username);
+          speakStationAnnouncement(welcome);
+        }
+      }, 850);
   }, 40);
 }
 
@@ -332,7 +332,7 @@ function onPassengerJoin(username) {
 function wanderPassenger(charEl) {
   if (!charEl || charEl.classList.contains("walking")) return;
   const { groundTop, groundBottom, width } = getCourtyardBounds();
-  
+
   const currentLeft = parseFloat(charEl.style.left) || (width / 2);
   const currentTop = parseFloat(charEl.style.top) || (groundTop + 50);
 
@@ -693,7 +693,7 @@ function startAutoDemo() {
   if (state.autoDemoInterval) clearInterval(state.autoDemoInterval);
   state.autoDemoInterval = setInterval(() => {
     if (state.isDeparting) return;
-    
+
     const rand = Math.random();
     if (rand < 0.6) {
       const name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
@@ -701,7 +701,7 @@ function startAutoDemo() {
     } else {
       const gifts = ["🌸 Hoa Hồng", "🍦 Cây Kem", "🧢 Nón Lá", "💖 Trái Tim"];
       const gift = gifts[Math.floor(Math.random() * gifts.length)];
-      const name = state.farPassengers.length > 0 
+      const name = state.farPassengers.length > 0
         ? state.farPassengers[Math.floor(Math.random() * state.farPassengers.length)]
         : CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
       onPassengerGift(name, gift);
@@ -716,8 +716,8 @@ function stopAutoDemo() {
   }
 }
 
-/* ================== SPRITE FRAMES CHO CHARACTER_1 ================== */
-const SPRITE_FRAMES = [
+/* ================== SPRITE FRAMES CHO CHARACTER_1 & CHARACTER_2 ================== */
+const SPRITE_FRAMES_CHAR1 = [
   "public/CHARACTER_1/1.png",
   "public/CHARACTER_1/2.png",
   "public/CHARACTER_1/3.png",
@@ -725,57 +725,200 @@ const SPRITE_FRAMES = [
   "public/CHARACTER_1/5.png"
 ];
 
-// Preload tất cả các frame ảnh để chuyển động mượt mà không bị chớp giật
-SPRITE_FRAMES.forEach(src => {
+const SPRITE_FRAMES_CHAR2 = [
+  "public/CHARACTER_2/1.png",
+  "public/CHARACTER_2/2.png",
+  "public/CHARACTER_2/3.png",
+  "public/CHARACTER_2/4.png",
+  "public/CHARACTER_2/5.png"
+];
+
+// Preload tất cả các frame ảnh của cả 2 nhân vật để chuyển động mượt mà không chớp giật
+[...SPRITE_FRAMES_CHAR1, ...SPRITE_FRAMES_CHAR2].forEach(src => {
   const img = new Image();
   img.src = src;
 });
 
-/* Quản lý nhân vật Sprite (CHARACTER_1) */
-let spritePlayer = null;
+/* Lớp quản lý hoạt ảnh và chuyển động cho nhân vật Sprite */
+class SpriteActor {
+  constructor(config) {
+    this.id = config.id;
+    this.name = config.name;
+    this.badge = config.badge || "⭐";
+    this.frames = config.frames;
+    this.speed = config.speed || 135;
+    this.frameDuration = config.frameDuration || 100;
+    this.startXRatio = config.startXRatio || 0.5;
+    this.startYRatio = config.startYRatio || 0.5;
+    this.isControllable = config.isControllable || false; // Cho phép điều khiển bằng phím
 
-function initSpritePlayer() {
+    this.x = 100;
+    this.y = 100;
+    this.targetX = 100;
+    this.targetY = 100;
+    this.frame = 0;
+    this.frameTimer = 0;
+    this.direction = 1;
+    this.idleTimer = 1.0 + Math.random() * 2.0;
+
+    this.createDOM(config.container);
+  }
+
+  createDOM(container) {
+    this.el = document.createElement("div");
+    this.el.className = "char-2d char-sprite";
+    this.el.id = this.id;
+    this.el.innerHTML = `
+      <div class="char-tag">
+        <span class="char-badge">${this.badge}</span>
+        <span class="char-name">${this.name}</span>
+      </div>
+      <div class="char-sprite-wrapper">
+        <img src="${this.frames[0]}" class="char-sprite-img" alt="${this.name}">
+      </div>
+    `;
+    container.appendChild(this.el);
+
+    this.wrapperEl = this.el.querySelector(".char-sprite-wrapper");
+    this.imgEl = this.el.querySelector(".char-sprite-img");
+
+    const bounds = getCourtyardBounds();
+    this.x = bounds.width * this.startXRatio - 29;
+    this.y = bounds.groundTop + (bounds.groundBottom - bounds.groundTop) * this.startYRatio;
+    this.targetX = this.x;
+    this.targetY = this.y;
+  }
+
+  update(dt, bounds, keys) {
+    const minX = 25;
+    const maxX = Math.max(bounds.width - 75, minX + 50);
+    const minY = bounds.groundTop;
+    const maxY = bounds.groundBottom;
+
+    let isMoving = false;
+
+    // 1. Nếu có hỗ trợ phím và người dùng đang nhấn phím điều khiển
+    if (this.isControllable && keys) {
+      let dx = 0;
+      let dy = 0;
+      if (keys.has("ArrowLeft") || keys.has("a") || keys.has("A")) dx--;
+      if (keys.has("ArrowRight") || keys.has("d") || keys.has("D")) dx++;
+      if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) dy--;
+      if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) dy++;
+
+      if (dx !== 0 || dy !== 0) {
+        const len = Math.hypot(dx, dy);
+        dx /= len;
+        dy /= len;
+
+        this.x += dx * this.speed * dt;
+        this.y += dy * this.speed * dt;
+        this.targetX = this.x;
+        this.targetY = this.y;
+
+        if (dx !== 0) this.direction = dx > 0 ? 1 : -1;
+        isMoving = true;
+        this.idleTimer = 2.0;
+      }
+    }
+
+    // 2. Chế độ tự động thong thả đi dạo khắp khoảng sân được phép di chuyển
+    if (!isMoving) {
+      const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+      if (dist > 5) {
+        const autoDx = (this.targetX - this.x) / dist;
+        const autoDy = (this.targetY - this.y) / dist;
+
+        this.x += autoDx * (this.speed * 0.72) * dt;
+        this.y += autoDy * (this.speed * 0.72) * dt;
+
+        if (Math.abs(autoDx) > 0.08) {
+          this.direction = autoDx > 0 ? 1 : -1;
+        }
+        isMoving = true;
+      } else {
+        // Đã đến điểm đích, đứng yên tại chỗ ngắm cảnh rồi chọn điểm mới
+        this.idleTimer -= dt;
+        if (this.idleTimer <= 0) {
+          this.targetX = minX + Math.random() * (maxX - minX);
+          this.targetY = minY + Math.random() * (maxY - minY);
+          this.idleTimer = 2.0 + Math.random() * 4.0; // Đứng nghỉ 2 - 6 giây
+        }
+      }
+    }
+
+    // Giữ nhân vật luôn nằm trong ranh giới sân được phép di chuyển (từ dưới bánh xe đến đáy màn hình)
+    this.x = Math.max(minX, Math.min(this.x, maxX));
+    this.y = Math.max(minY, Math.min(this.y, maxY));
+
+    // 3. Hoạt ảnh bước chân:
+    // Khi di chuyển: chạy chuỗi ảnh từ 1 đến 5
+    // Khi đứng yên: hiển thị đúng ảnh 1
+    if (isMoving) {
+      this.frameTimer += dt * 1000;
+      if (this.frameTimer >= this.frameDuration) {
+        this.frame = (this.frame + 1) % this.frames.length;
+        this.frameTimer %= this.frameDuration;
+      }
+    } else {
+      this.frame = 0; // Đứng yên là ảnh 1.png
+      this.frameTimer = 0;
+    }
+
+    // Cập nhật nguồn ảnh
+    const currentSrc = this.frames[this.frame];
+    if (this.imgEl.getAttribute("src") !== currentSrc) {
+      this.imgEl.src = currentSrc;
+    }
+
+    // 4. Hiệu ứng phối cảnh 3D: ở xa thì nhỏ, ở gần thì to
+    const depth = getPerspectiveInfo(this.y, minY, maxY);
+    this.el.style.left = `${this.x}px`;
+    this.el.style.top = `${this.y}px`;
+    this.el.style.transform = `scale(${depth.scale.toFixed(3)})`;
+    this.el.style.zIndex = depth.zIndex;
+
+    // Hướng nhìn nhân vật (lật ảnh qua scaleX mà không làm ngược chữ bảng tên)
+    this.wrapperEl.style.transform = `scaleX(${this.direction})`;
+  }
+}
+
+/* Danh sách các nhân vật Sprite đang hoạt động trên sân */
+const spriteActors = [];
+
+function initSpritePlayers() {
   const container = document.getElementById("far-passengers-container");
   if (!container) return;
 
-  const playerEl = document.createElement("div");
-  playerEl.className = "char-2d char-sprite";
-  playerEl.id = "sprite-player-char1";
-  playerEl.innerHTML = `
-    <div class="char-tag">
-      <span class="char-badge">⭐</span>
-      <span class="char-name">Hành Khách VIP</span>
-    </div>
-    <div class="char-sprite-wrapper" id="sprite-char1-wrapper">
-      <img src="public/CHARACTER_1/1.png" class="char-sprite-img" id="sprite-char1-img" alt="character">
-    </div>
-  `;
-  container.appendChild(playerEl);
+  // 1. Tạo nhân vật CHARACTER_1 (Hành Khách VIP 1 - hỗ trợ điều khiển phím mũi tên)
+  const char1 = new SpriteActor({
+    id: "sprite-player-char1",
+    name: "Hành Khách VIP 1",
+    badge: "⭐",
+    frames: SPRITE_FRAMES_CHAR1,
+    container: container,
+    startXRatio: 0.38,
+    startYRatio: 0.52,
+    speed: 135,
+    isControllable: true
+  });
+  spriteActors.push(char1);
 
-  const wrapperEl = playerEl.querySelector("#sprite-char1-wrapper");
-  const imgEl = playerEl.querySelector("#sprite-char1-img");
+  // 2. Tạo nhân vật CHARACTER_2 (Hành Khách VIP 2 - hoạt ảnh giống CHARACTER_1)
+  const char2 = new SpriteActor({
+    id: "sprite-player-char2",
+    name: "Hành Khách VIP 2",
+    badge: "🌸",
+    frames: SPRITE_FRAMES_CHAR2,
+    container: container,
+    startXRatio: 0.65,
+    startYRatio: 0.68,
+    speed: 125,
+    isControllable: false
+  });
+  spriteActors.push(char2);
 
-  const bounds = getCourtyardBounds();
-  const startX = bounds.width / 2 - 29;
-  const startY = bounds.groundTop + (bounds.groundBottom - bounds.groundTop) * 0.55;
-
-  spritePlayer = {
-    el: playerEl,
-    wrapperEl: wrapperEl,
-    imgEl: imgEl,
-    x: startX,
-    y: startY,
-    targetX: startX,
-    targetY: startY,
-    speed: 135,          // px/giây khi di chuyển
-    frame: 0,            // Frame hiện tại (0 -> 4 ứng với 1.png -> 5.png)
-    frameTimer: 0,
-    frameDuration: 100,  // 100ms mỗi frame bước chân
-    direction: 1,        // 1: nhìn sang phải, -1: nhìn sang trái
-    idleTimer: 1.5       // Đếm ngược thời gian đứng yên trước khi tự đi tiếp
-  };
-
-  // Hỗ trợ phím mũi tên & WASD điều khiển trực tiếp (tham khảo code người dùng)
+  // Hỗ trợ phím mũi tên & WASD điều khiển trực tiếp
   const keys = new Set();
   window.addEventListener("keydown", e => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
@@ -789,118 +932,29 @@ function initSpritePlayer() {
 
   window.addEventListener("blur", () => keys.clear());
 
-  // Vòng lặp chuyển động mượt mà 60fps bằng requestAnimationFrame
+  // Vòng lặp chuyển động mượt mà 60fps bằng requestAnimationFrame cho tất cả nhân vật
   let lastTime = 0;
-  function updateSpriteLoop(time) {
+  function updateAllSpritesLoop(time) {
     if (!lastTime) lastTime = time;
     const dt = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
 
-    const currentBounds = getCourtyardBounds();
-    const minX = 25;
-    const maxX = Math.max(currentBounds.width - 75, minX + 50);
-    const minY = currentBounds.groundTop;
-    const maxY = currentBounds.groundBottom;
+    const bounds = getCourtyardBounds();
+    spriteActors.forEach(actor => {
+      actor.update(dt, bounds, keys);
+    });
 
-    // 1. Kiểm tra nếu người dùng nhấn phím điều khiển
-    let dx = 0;
-    let dy = 0;
-    if (keys.has("ArrowLeft") || keys.has("a") || keys.has("A")) dx--;
-    if (keys.has("ArrowRight") || keys.has("d") || keys.has("D")) dx++;
-    if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) dy--;
-    if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) dy++;
-
-    let isMoving = false;
-
-    if (dx !== 0 || dy !== 0) {
-      // Đang điều khiển bằng bàn phím
-      const len = Math.hypot(dx, dy);
-      dx /= len;
-      dy /= len;
-
-      spritePlayer.x += dx * spritePlayer.speed * dt;
-      spritePlayer.y += dy * spritePlayer.speed * dt;
-      spritePlayer.targetX = spritePlayer.x;
-      spritePlayer.targetY = spritePlayer.y;
-
-      if (dx !== 0) {
-        spritePlayer.direction = dx > 0 ? 1 : -1;
-      }
-      isMoving = true;
-      spritePlayer.idleTimer = 2.0; // Reset thời gian chờ tự động
-    } else {
-      // 2. Chế độ tự động thong thả đi dạo khắp khoảng sân được phép di chuyển
-      const dist = Math.hypot(spritePlayer.targetX - spritePlayer.x, spritePlayer.targetY - spritePlayer.y);
-      if (dist > 5) {
-        const autoDx = (spritePlayer.targetX - spritePlayer.x) / dist;
-        const autoDy = (spritePlayer.targetY - spritePlayer.y) / dist;
-
-        spritePlayer.x += autoDx * (spritePlayer.speed * 0.72) * dt;
-        spritePlayer.y += autoDy * (spritePlayer.speed * 0.72) * dt;
-
-        if (Math.abs(autoDx) > 0.08) {
-          spritePlayer.direction = autoDx > 0 ? 1 : -1;
-        }
-        isMoving = true;
-      } else {
-        // Đã đến điểm đích, đứng yên tại chỗ
-        spritePlayer.idleTimer -= dt;
-        if (spritePlayer.idleTimer <= 0) {
-          // Chọn điểm đích ngẫu nhiên mới bất kỳ đâu trên sân
-          spritePlayer.targetX = minX + Math.random() * (maxX - minX);
-          spritePlayer.targetY = minY + Math.random() * (maxY - minY);
-          spritePlayer.idleTimer = 2.2 + Math.random() * 3.5; // Đứng nghỉ ngắm cảnh 2 - 5 giây
-        }
-      }
-    }
-
-    // Giữ nhân vật luôn nằm trong ranh giới sân được phép di chuyển (từ dưới bánh xe đến đáy màn hình)
-    spritePlayer.x = Math.max(minX, Math.min(spritePlayer.x, maxX));
-    spritePlayer.y = Math.max(minY, Math.min(spritePlayer.y, maxY));
-
-    // 3. Hoạt hình bước chân:
-    // Khi di chuyển: chạy từ ảnh 1 đến ảnh 5
-    // Khi đứng yên: hiển thị đúng ảnh 1
-    if (isMoving) {
-      spritePlayer.frameTimer += dt * 1000;
-      if (spritePlayer.frameTimer >= spritePlayer.frameDuration) {
-        spritePlayer.frame = (spritePlayer.frame + 1) % SPRITE_FRAMES.length;
-        spritePlayer.frameTimer %= spritePlayer.frameDuration;
-      }
-    } else {
-      spritePlayer.frame = 0; // Đứng yên là ảnh 1.png
-      spritePlayer.frameTimer = 0;
-    }
-
-    // Cập nhật nguồn ảnh tương ứng
-    const currentFrameSrc = SPRITE_FRAMES[spritePlayer.frame];
-    if (spritePlayer.imgEl.getAttribute("src") !== currentFrameSrc) {
-      spritePlayer.imgEl.src = currentFrameSrc;
-    }
-
-    // 4. Hiệu ứng phối cảnh 3D: ở xa thì nhỏ, ở gần thì to
-    const depth = getPerspectiveInfo(spritePlayer.y, minY, maxY);
-
-    // Cập nhật vị trí, tỉ lệ thu phóng và lớp hiển thị
-    spritePlayer.el.style.left = `${spritePlayer.x}px`;
-    spritePlayer.el.style.top = `${spritePlayer.y}px`;
-    spritePlayer.el.style.transform = `scale(${depth.scale.toFixed(3)})`;
-    spritePlayer.el.style.zIndex = depth.zIndex;
-
-    // Hướng nhìn nhân vật (lật ảnh qua scaleX mà không làm ngược chữ bảng tên)
-    spritePlayer.wrapperEl.style.transform = `scaleX(${spritePlayer.direction})`;
-
-    requestAnimationFrame(updateSpriteLoop);
+    requestAnimationFrame(updateAllSpritesLoop);
   }
 
-  requestAnimationFrame(updateSpriteLoop);
+  requestAnimationFrame(updateAllSpritesLoop);
 }
 
 // Khởi động
 document.addEventListener("DOMContentLoaded", () => {
   initSeats();
   initTestControls();
-  initSpritePlayer(); // Khởi tạo nhân vật Sprite CHARACTER_1
+  initSpritePlayers(); // Khởi tạo cả CHARACTER_1 và CHARACTER_2
 
   setTimeout(() => onPassengerJoin("Bác Ba Phi"), 500);
   setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 900);
