@@ -686,6 +686,7 @@ body {
 
 /* Thẻ cài đặt từng mục */
 .admin-card {
+  flex-shrink: 0;
   background: #171a24;
   border: 1px solid #23283a;
   border-radius: 12px;
