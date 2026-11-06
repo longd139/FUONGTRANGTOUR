@@ -349,6 +349,9 @@ function addFuel(username = "Hành khách", amount = 1) {
     setTimeout(() => {
       if (exhaust) exhaust.classList.remove("active");
     }, 4500);
+
+    // Kiểm tra điều kiện xuất bến (khi vừa đổ đầy 100L xăng)
+    checkDepartureCondition();
   } else {
     showInteractBubble(`⛽ +${amount}L Xăng (${username})`);
   }
@@ -621,10 +624,30 @@ function onPassengerGift(username, giftName) {
     targetSlot.appendChild(seatedChar);
   }
 
-  if (state.seatedPassengers.length >= CONFIG.TOTAL_SEATS) {
+  // Kiểm tra điều kiện xuất bến: Bắt buộc cả ĐỦ 20 NGƯỜI VÀ ĐẦY 100L XĂNG
+  checkDepartureCondition();
+}
+
+/* ================== KIỂM TRA ĐIỀU KIỆN XUẤT BẾN: ĐỦ 20 NGƯỜI & ĐẦY 100L XĂNG ================== */
+function checkDepartureCondition() {
+  if (state.isDeparting) return;
+
+  const isFullSeats = state.seatedPassengers.length >= CONFIG.TOTAL_SEATS;
+  const isFullFuel = currentFuel >= INTERACT_CONFIG.MAX_FUEL;
+
+  if (isFullSeats && isFullFuel) {
+    // Thỏa mãn cả 2 điều kiện: Đủ 20 người VÀ Đầy 100L xăng
+    showToast("🚀 ĐỦ ĐIỀU KIỆN XUẤT BẾN!", "Đã đủ 20 khách và 100L xăng! Xe FUONG TRANG bắt đầu khởi hành!", "🚌");
     setTimeout(() => {
       triggerBusDeparture();
-    }, CONFIG.AUTO_DEPART_DELAY);
+    }, 1500);
+  } else if (isFullSeats && !isFullFuel) {
+    // Đã đủ 20 người nhưng CHƯA ĐẦY XĂNG
+    showToast("⚠️ CHƯA THỂ XUẤT BẾN!", `Đã đủ 20 khách nhưng chưa đủ xăng (${currentFuel}/100L)! Hãy bình luận '1' để tiếp xăng!`, "⛽");
+  } else if (!isFullSeats && isFullFuel) {
+    // Đã đầy 100L xăng nhưng CHƯA ĐỦ 20 NGƯỜI
+    const remaining = CONFIG.TOTAL_SEATS - state.seatedPassengers.length;
+    showToast("⛽ BÌNH XĂNG ĐÃ ĐẦY!", `Xe đã đầy 100L xăng! Đang chờ thêm ${remaining} khách nữa để xuất bến!`, "⏳");
   }
 }
 
@@ -1117,6 +1140,9 @@ function initTestControls() {
   const btnDepart = document.getElementById("btn-depart");
   if (btnDepart) {
     btnDepart.addEventListener("click", () => {
+      // Cưỡng chế nạp đầy xăng và xuất bến khi streamer bấm nút test
+      currentFuel = INTERACT_CONFIG.MAX_FUEL;
+      updateFuelUI();
       triggerBusDeparture();
     });
   }
