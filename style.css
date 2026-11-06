@@ -593,7 +593,10 @@ body {
 /* ================== CỘT BÊN PHẢI: BẢNG QUẢN TRỊ ADMIN STREAMER ================== */
 .admin-sidebar {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   background: #11131a;
@@ -601,6 +604,7 @@ body {
   overflow: hidden;
   border-left: 1px solid #1e2230;
   position: relative;
+  user-select: auto;
 }
 
 .admin-header {
@@ -611,6 +615,7 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .admin-title-wrap h2 {
@@ -650,20 +655,33 @@ body {
 }
 
 .admin-scrollable {
-  flex: 1;
+  flex: 1 1 0%;
+  min-height: 0;
   overflow-y: auto;
-  padding: 20px 24px;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 24px 80px 24px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #3b4259 rgba(255, 255, 255, 0.04);
 }
 
 .admin-scrollable::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+}
+.admin-scrollable::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
 }
 .admin-scrollable::-webkit-scrollbar-thumb {
-  background: #2b3147;
+  background: #3b4259;
   border-radius: 4px;
+}
+.admin-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #505a7a;
 }
 
 /* Thẻ cài đặt từng mục */
