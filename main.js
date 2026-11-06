@@ -242,12 +242,28 @@ function updateFuelUI() {
   const pct = Math.min(100, Math.round((currentFuel / INTERACT_CONFIG.MAX_FUEL) * 100));
   fillEl.style.width = pct + "%";
 
-  if (currentFuel >= INTERACT_CONFIG.MAX_FUEL) {
-    valEl.innerText = "100/100L (ĐẦY)";
-    fillEl.classList.add("full");
-  } else {
+  // Xóa class trạng thái màu cũ
+  fillEl.classList.remove("fuel-low", "fuel-mid", "fuel-high");
+
+  if (currentFuel < 35) {
+    // 1. Bình xăng đang ít (< 35L): Màu ĐỎ
+    fillEl.classList.add("fuel-low");
+    valEl.style.color = "#f87171";
     valEl.innerText = `${currentFuel}/${INTERACT_CONFIG.MAX_FUEL}L`;
-    fillEl.classList.remove("full");
+  } else if (currentFuel < 75) {
+    // 2. Nửa bình (35L - 74L): Màu VÀNG
+    fillEl.classList.add("fuel-mid");
+    valEl.style.color = "#fbbf24";
+    valEl.innerText = `${currentFuel}/${INTERACT_CONFIG.MAX_FUEL}L`;
+  } else {
+    // 3. Gần đầy & Đầy (75L - 100L): Màu XANH
+    fillEl.classList.add("fuel-high");
+    valEl.style.color = "#34d399";
+    if (currentFuel >= INTERACT_CONFIG.MAX_FUEL) {
+      valEl.innerText = "100/100L (ĐẦY)";
+    } else {
+      valEl.innerText = `${currentFuel}/${INTERACT_CONFIG.MAX_FUEL}L`;
+    }
   }
 }
 

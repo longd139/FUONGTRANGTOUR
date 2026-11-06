@@ -1043,15 +1043,27 @@ body.obs-mode .phone-frame,
 .meter-fill {
   height: 100%;
   border-radius: 6px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+}
+
+/* 3 Cấp độ màu bình xăng: Ít (Đỏ), Nửa bình (Vàng), Gần đầy/Đầy (Xanh) */
+.meter-fill.fuel-low {
+  background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.meter-fill.fuel-mid {
+  background: linear-gradient(90deg, #f59e0b, #eab308) !important;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.meter-fill.fuel-high {
+  background: linear-gradient(90deg, #10b981, #06d6a0) !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 .meter-fill.fuel-fill {
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
-}
-
-.meter-fill.fuel-fill.full {
-  background: linear-gradient(90deg, #10b981, #06d6a0);
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
 .meter-fill.horn-fill {
