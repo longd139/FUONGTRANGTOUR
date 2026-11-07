@@ -2344,6 +2344,16 @@ function initTestControls() {
     });
   }
 
+  // Tương tác trực tiếp: Bấm vào quà tặng trên bảng HUD Phase 1 để tặng quà ngay
+  const hudGiftPills = document.querySelectorAll(".hud-gift-pill");
+  hudGiftPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      const giftName = pill.dataset.gift;
+      const simName = getSimUserName();
+      onPassengerGift(simName, giftName);
+    });
+  });
+
   const btnSimCmtSend = document.getElementById("btn-sim-comment-send");
   const inputSimCmt = document.getElementById("input-sim-comment");
   if (btnSimCmtSend && inputSimCmt) {
