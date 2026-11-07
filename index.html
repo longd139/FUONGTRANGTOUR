@@ -134,7 +134,15 @@
           <!-- HUD THÔNG TIN CHUYẾN XE KHI ĐANG TRÊN ĐƯỜNG ĐI ĐÀ LẠT -->
           <div class="cabin-trip-hud">
             <span class="cabin-route-badge">🚌 SÀI GÒN ➔ ĐÀ LẠT</span>
+            <div class="cabin-timer-badge" id="cabin-timer-badge" title="Thời gian hành trình: 15 phút">
+              <span class="cabin-timer-icon">⏱️</span>
+              <span class="cabin-timer-countdown" id="cabin-timer-countdown">15:00</span>
+            </div>
             <span class="cabin-passenger-count" id="cabin-passenger-count">👥 0/20 HÀNH KHÁCH</span>
+            <!-- Thanh tiến trình timeline 15 phút sát mép dưới của HUD -->
+            <div class="cabin-timeline-track">
+              <div class="cabin-timeline-fill" id="cabin-timeline-fill" style="width: 0%;"></div>
+            </div>
           </div>
         </section>
       </div>
@@ -360,6 +368,7 @@
             <div class="action-buttons-group">
               <button id="btn-quick-fill" class="btn btn-fill">⚡ Lên đủ 20 người ngay</button>
               <button id="btn-depart" class="btn btn-depart">🚌 Xuất bến ngay</button>
+              <button id="btn-fast-forward-timer" class="btn" style="background: #e11d48; color: #fff; font-weight: 800;" type="button" title="Tua thời gian xuống còn 30 giây để kiểm tra sự kiện đến Đà Lạt">⏩ Tua 30s (Test 15p)</button>
               <button id="btn-reset" class="btn btn-reset">🔄 Đặt lại bến</button>
             </div>
 

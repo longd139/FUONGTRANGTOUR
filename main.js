@@ -763,6 +763,100 @@ function triggerGuideActivity(customText = null) {
   }, 6500);
 }
 
+/* ================== QUẢN LÝ TIMELINE CHUYẾN XE 15 PHÚT (PHASE 2) ================== */
+const TRIP_CONFIG = {
+  TOTAL_SECONDS: 15 * 60 // 15 phút = 900 giây
+};
+
+let tripRemainingSeconds = TRIP_CONFIG.TOTAL_SECONDS;
+let tripCountdownInterval = null;
+
+function formatTripTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateTripTimerUI() {
+  const countdownEl = document.getElementById("cabin-timer-countdown");
+  const fillEl = document.getElementById("cabin-timeline-fill");
+  const badgeEl = document.getElementById("cabin-timer-badge");
+
+  if (countdownEl) {
+    countdownEl.innerText = formatTripTime(tripRemainingSeconds);
+  }
+
+  const elapsed = TRIP_CONFIG.TOTAL_SECONDS - tripRemainingSeconds;
+  const pct = Math.min(100, Math.max(0, (elapsed / TRIP_CONFIG.TOTAL_SECONDS) * 100));
+
+  if (fillEl) {
+    fillEl.style.width = `${pct.toFixed(1)}%`;
+  }
+
+  if (badgeEl) {
+    if (tripRemainingSeconds <= 120) {
+      badgeEl.style.background = "rgba(239, 68, 68, 0.4)";
+      badgeEl.style.borderColor = "#ef4444";
+      badgeEl.style.color = "#fee2e2";
+    } else {
+      badgeEl.style.background = "rgba(239, 68, 68, 0.22)";
+      badgeEl.style.borderColor = "rgba(239, 68, 68, 0.65)";
+      badgeEl.style.color = "#fca5a5";
+    }
+  }
+}
+
+function startTripCountdown() {
+  if (tripCountdownInterval) clearInterval(tripCountdownInterval);
+  updateTripTimerUI();
+
+  tripCountdownInterval = setInterval(() => {
+    if (state.currentPhase !== 2) return;
+
+    if (tripRemainingSeconds > 0) {
+      tripRemainingSeconds--;
+      updateTripTimerUI();
+
+      if (tripRemainingSeconds === 0) {
+        onTripCompleted();
+      }
+    }
+  }, 1000);
+}
+
+function stopTripCountdown() {
+  if (tripCountdownInterval) {
+    clearInterval(tripCountdownInterval);
+    tripCountdownInterval = null;
+  }
+}
+
+function resetCabinTripTimer() {
+  stopTripCountdown();
+  tripRemainingSeconds = TRIP_CONFIG.TOTAL_SECONDS;
+  updateTripTimerUI();
+}
+
+function onTripCompleted() {
+  stopTripCountdown();
+  updateTripTimerUI();
+
+  showToast("🎉 ĐÃ ĐẾN ĐÀ LẠT!", "Chuyến xe FUONG TRANG đã cập bến Đà Lạt an toàn! Cảm ơn 20 hành khách!", "🏔️");
+
+  // Hướng Dẫn Viên thông báo đến bến
+  triggerGuideActivity("Chuyến xe FUONG TRANG đã đến Đà Lạt an toàn! Cảm ơn 20 hành khách đã đồng hành cùng chuyến đi!");
+
+  // Phát thanh thông báo loa
+  speakStationAnnouncement("Chuyến xe FUONG TRANG đã hoàn thành hành trình đến Đà Lạt. Cảm ơn quý khách đã đồng hành!");
+
+  // Sau 8 giây, reset về bến xe để đón chuyến mới
+  setTimeout(() => {
+    if (state.currentPhase === 2) {
+      resetTripForNextBatch();
+    }
+  }, 8000);
+}
+
 /* ================== QUẢN LÝ CHUYỂN ĐỔI GIAO DIỆN PHASE 1 (BẾN XE) & PHASE 2 (TRONG XE) ================== */
 function switchToPhase(phaseNum) {
   state.currentPhase = phaseNum;
@@ -783,6 +877,9 @@ function switchToPhase(phaseNum) {
       badgeStatusEl.style.borderColor = "rgba(56, 189, 248, 0.4)";
       badgeStatusEl.style.background = "rgba(56, 189, 248, 0.12)";
     }
+
+    // Bắt đầu timeline đếm ngược 15 phút
+    startTripCountdown();
 
     // Kích hoạt lời chào đầu tiên của HDV sau 1.2s
     setTimeout(() => {
@@ -809,6 +906,9 @@ function switchToPhase(phaseNum) {
     }
     const bubbleEl = document.getElementById("guide-bubble");
     if (bubbleEl) bubbleEl.classList.add("hidden");
+
+    // Dừng đếm ngược timeline
+    stopTripCountdown();
 
     if (badgeStatusEl) {
       badgeStatusEl.innerText = "🟢 Bến Xe Sẵn Sàng";
@@ -854,6 +954,7 @@ function resetTripForNextBatch() {
   state.seatedPassengers = [];
   initSeats();
   renderCabinPassengers();
+  resetCabinTripTimer();
 
   // Đặt lại bình xăng và còi cho chuyến mới
   currentFuel = 0;
@@ -1429,6 +1530,18 @@ function initTestControls() {
   if (btnReset) {
     btnReset.addEventListener("click", () => {
       resetTripForNextBatch();
+    });
+  }
+
+  const btnFastForwardTimer = document.getElementById("btn-fast-forward-timer");
+  if (btnFastForwardTimer) {
+    btnFastForwardTimer.addEventListener("click", () => {
+      if (state.currentPhase !== 2) {
+        switchToPhase(2);
+      }
+      tripRemainingSeconds = 30; // Tua còn 30 giây để test
+      updateTripTimerUI();
+      showToast("⏩ ĐÃ TUA TIMELINE!", "Timeline 15 phút đã được tua xuống còn 30 giây để thử nghiệm đến bến!", "⏱️");
     });
   }
 
