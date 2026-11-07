@@ -1022,21 +1022,22 @@ body.obs-mode .phone-frame,
   height: 100vh !important;
 }
 
-/* ================== BẢNG HIỂN THỊ CÁC QUÀ TẶNG BÊN CẠNH Ở PHASE 1 ================== */
+/* ================== BẢNG HIỂN THỊ CÁC QUÀ TẶNG DẠNG DỌC BÊN CẠNH TRÁI Ở PHASE 1 ================== */
 .hud-gift-board {
   position: absolute;
-  bottom: 12px;
-  left: 14px;
-  background: rgba(22, 26, 38, 0.92);
+  bottom: 18px;
+  left: 10px;
+  background: rgba(18, 22, 34, 0.94);
   border: 1.5px solid rgba(255, 255, 255, 0.22);
   border-radius: 12px;
-  padding: 6px 8px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+  padding: 6px 7px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
   z-index: 15;
   pointer-events: auto;
-  min-width: 150px;
-  max-width: 175px;
+  width: auto;
+  min-width: 106px;
+  max-width: 120px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1044,13 +1045,14 @@ body.obs-mode .phone-frame,
 }
 
 .hud-gift-board:hover {
-  border-color: rgba(244, 63, 94, 0.6);
+  border-color: rgba(244, 63, 94, 0.75);
 }
 
 .hud-gift-header {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 4px;
 }
@@ -1068,20 +1070,20 @@ body.obs-mode .phone-frame,
   text-transform: uppercase;
 }
 
-.hud-gift-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.hud-gift-list {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
 }
 
 .hud-gift-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(10, 13, 20, 0.85);
+  gap: 6px;
+  background: rgba(10, 13, 20, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 6px;
-  padding: 3px 5px;
+  border-radius: 7px;
+  padding: 4px 6px;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
@@ -1090,7 +1092,7 @@ body.obs-mode .phone-frame,
 .hud-gift-pill:hover {
   border-color: #f43f5e;
   background: rgba(244, 63, 94, 0.25);
-  transform: translateY(-1px);
+  transform: translateX(2px);
 }
 
 .hud-gift-pill:active {
@@ -1098,11 +1100,11 @@ body.obs-mode .phone-frame,
 }
 
 .hud-gift-pill .gift-icon {
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .hud-gift-pill .gift-text {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
   color: #f1f5f9;
   white-space: nowrap;
@@ -1113,8 +1115,9 @@ body.obs-mode .phone-frame,
   font-weight: 800;
   color: #34d399;
   text-align: center;
-  letter-spacing: 0.3px;
-  padding-top: 2px;
+  letter-spacing: 0.2px;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ================== BẢNG TƯƠNG TÁC TIKTOK LIVE HUD (GÕ 1 & GÕ 2) ================== */
