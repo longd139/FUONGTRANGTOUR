@@ -1251,7 +1251,7 @@ function stopAutoDemo() {
   }
 }
 
-/* ================== SPRITE FRAMES CHO CHARACTER_1 & CHARACTER_2 ================== */
+/* ================== SPRITE FRAMES CHO CHARACTER_1, 2, 3, 4, 5 ================== */
 const SPRITE_FRAMES_CHAR1 = [
   "public/CHARACTER_1/1.png",
   "public/CHARACTER_1/2.png",
@@ -1268,8 +1268,38 @@ const SPRITE_FRAMES_CHAR2 = [
   "public/CHARACTER_2/5.png"
 ];
 
-// Preload tất cả các frame ảnh của cả 2 nhân vật để chuyển động mượt mà không chớp giật
-[...SPRITE_FRAMES_CHAR1, ...SPRITE_FRAMES_CHAR2].forEach(src => {
+const SPRITE_FRAMES_CHAR3 = [
+  "public/CHARACTER_3/1.png",
+  "public/CHARACTER_3/2.png",
+  "public/CHARACTER_3/3.png",
+  "public/CHARACTER_3/4.png",
+  "public/CHARACTER_3/5.png"
+];
+
+const SPRITE_FRAMES_CHAR4 = [
+  "public/CHARACTER_4/1.png",
+  "public/CHARACTER_4/2.png",
+  "public/CHARACTER_4/3.png",
+  "public/CHARACTER_4/4.png",
+  "public/CHARACTER_4/5.png"
+];
+
+const SPRITE_FRAMES_CHAR5 = [
+  "public/CHARACTER_5/1.png",
+  "public/CHARACTER_5/2.png",
+  "public/CHARACTER_5/3.png",
+  "public/CHARACTER_5/4.png",
+  "public/CHARACTER_5/5.png"
+];
+
+// Preload tất cả các frame ảnh của cả 5 nhân vật để chuyển động mượt mà không chớp giật
+[
+  ...SPRITE_FRAMES_CHAR1,
+  ...SPRITE_FRAMES_CHAR2,
+  ...SPRITE_FRAMES_CHAR3,
+  ...SPRITE_FRAMES_CHAR4,
+  ...SPRITE_FRAMES_CHAR5
+].forEach(src => {
   const img = new Image();
   img.src = src;
 });
@@ -1452,6 +1482,48 @@ function initSpritePlayers() {
     isControllable: false
   });
   spriteActors.push(char2);
+
+  // 3. Tạo nhân vật CHARACTER_3 (Hành Khách VIP 3)
+  const char3 = new SpriteActor({
+    id: "sprite-player-char3",
+    name: "Hành Khách VIP 3",
+    badge: "🍦",
+    frames: SPRITE_FRAMES_CHAR3,
+    container: container,
+    startXRatio: 0.22,
+    startYRatio: 0.72,
+    speed: 130,
+    isControllable: false
+  });
+  spriteActors.push(char3);
+
+  // 4. Tạo nhân vật CHARACTER_4 (Hành Khách VIP 4)
+  const char4 = new SpriteActor({
+    id: "sprite-player-char4",
+    name: "Hành Khách VIP 4",
+    badge: "🧢",
+    frames: SPRITE_FRAMES_CHAR4,
+    container: container,
+    startXRatio: 0.78,
+    startYRatio: 0.45,
+    speed: 120,
+    isControllable: false
+  });
+  spriteActors.push(char4);
+
+  // 5. Tạo nhân vật CHARACTER_5 (Hành Khách VIP 5)
+  const char5 = new SpriteActor({
+    id: "sprite-player-char5",
+    name: "Hành Khách VIP 5",
+    badge: "💖",
+    frames: SPRITE_FRAMES_CHAR5,
+    container: container,
+    startXRatio: 0.50,
+    startYRatio: 0.88,
+    speed: 128,
+    isControllable: false
+  });
+  spriteActors.push(char5);
 
   // Hỗ trợ phím mũi tên & WASD điều khiển trực tiếp
   const keys = new Set();
