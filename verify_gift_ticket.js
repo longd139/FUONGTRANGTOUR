@@ -22,8 +22,8 @@ const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('style.css', 'utf8');
 const js = fs.readFileSync('main.js', 'utf8');
 
-// Test 1: Kiểm tra index.html chỉ hiển thị duy nhất 1 món quà là Bông hoa Vé xe
-it("Bảng hud-gift-board trong index.html chỉ chứa 1 món quà là Vé xe", () => {
+// Test 1: Kiểm tra index.html chỉ hiển thị duy nhất 1 món quà là Bông hoa Vé xe và đã bỏ "Lên xe VIP"
+it("Bảng hud-gift-board trong index.html chỉ chứa 1 món quà là Vé xe và đã bỏ footer Lên xe VIP", () => {
   const matchBoard = html.match(/<div class="hud-gift-board"[\s\S]*?id="hud-gift-board"[\s\S]*?<\/div>\s*<\/div>/);
   assert.ok(matchBoard, "Không tìm thấy #hud-gift-board");
   const boardHtml = matchBoard[0];
@@ -37,6 +37,8 @@ it("Bảng hud-gift-board trong index.html chỉ chứa 1 món quà là Vé xe",
   assert.ok(!boardHtml.includes('Cây Kem'), 'Không được còn Cây Kem trong bảng quà Phase 1');
   assert.ok(!boardHtml.includes('Nón Lá'), 'Không được còn Nón Lá trong bảng quà Phase 1');
   assert.ok(!boardHtml.includes('Trái Tim'), 'Không được còn Trái Tim trong bảng quà Phase 1');
+  assert.ok(!boardHtml.includes('Lên xe VIP'), 'Đã bỏ dòng chữ Lên xe VIP');
+  assert.ok(!boardHtml.includes('hud-gift-footer'), 'Đã bỏ class hud-gift-footer');
 });
 
 // Test 2: Kiểm tra select-gift trong Admin test panel mặc định là 🌸 Vé xe
@@ -44,12 +46,14 @@ it("Select gift trong Admin Panel mặc định là 🌸 Vé xe", () => {
   assert.ok(html.includes('<option value="🌸 Vé xe" selected>🌸 Tặng Hoa (Vé xe)</option>'), "Admin select-gift cần option 🌸 Vé xe selected");
 });
 
-// Test 3: Kiểm tra CSS cho bảng quà tặng gọn gàng, căn giữa mép trái
-it("CSS của hud-gift-board và hud-gift-pill được định dạng chuẩn", () => {
+// Test 3: Kiểm tra CSS cho bảng quà tặng nhỏ gọn, căn giữa mép trái
+it("CSS của hud-gift-board được thu nhỏ xíu gọn gàng và bỏ footer", () => {
   assert.ok(css.includes('.hud-gift-board {'), "Phải có CSS cho .hud-gift-board");
   assert.ok(css.includes('top: 50%'), "Bảng phải canh top: 50%");
   assert.ok(css.includes('transform: translateY(-50%)'), "Bảng phải có translateY(-50%)");
   assert.ok(css.includes('left: 10px'), "Bảng phải nằm mép trái");
+  assert.ok(css.includes('min-width: 82px'), "Bảng được thu nhỏ min-width: 82px");
+  assert.ok(css.includes('max-width: 95px'), "Bảng được thu nhỏ max-width: 95px");
   assert.ok(css.includes('.hud-gift-pill {'), "Phải có CSS cho .hud-gift-pill");
 });
 
@@ -67,3 +71,4 @@ console.log(`========================================`);
 if (passed !== total) {
   process.exit(1);
 }
+

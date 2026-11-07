@@ -1030,18 +1030,18 @@ body.obs-mode .phone-frame,
   transform: translateY(-50%);
   background: rgba(18, 22, 34, 0.94);
   border: 1.5px solid rgba(255, 255, 255, 0.22);
-  border-radius: 12px;
-  padding: 6px 8px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
+  border-radius: 10px;
+  padding: 5px 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
   z-index: 20;
   pointer-events: auto;
   width: auto;
-  min-width: 96px;
-  max-width: 110px;
+  min-width: 82px;
+  max-width: 95px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
@@ -1054,39 +1054,39 @@ body.obs-mode .phone-frame,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding-bottom: 4px;
+  padding-bottom: 3px;
 }
 
 .hud-gift-icon {
-  font-size: 13px;
+  font-size: 11px;
   animation: pulseWinner 0.8s infinite alternate;
 }
 
 .hud-gift-title {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   color: #fbbf24;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
 .hud-gift-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .hud-gift-pill {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(10, 13, 20, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 7px;
-  padding: 5px 8px;
+  border-radius: 6px;
+  padding: 4px 6px;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
@@ -1095,7 +1095,7 @@ body.obs-mode .phone-frame,
 .hud-gift-pill:hover {
   border-color: #f43f5e;
   background: rgba(244, 63, 94, 0.25);
-  transform: translateX(2px);
+  transform: translateX(1px);
 }
 
 .hud-gift-pill:active {
@@ -1103,24 +1103,14 @@ body.obs-mode .phone-frame,
 }
 
 .hud-gift-pill .gift-icon {
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .hud-gift-pill .gift-text {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   color: #f1f5f9;
   white-space: nowrap;
-}
-
-.hud-gift-footer {
-  font-size: 8.5px;
-  font-weight: 800;
-  color: #34d399;
-  text-align: center;
-  letter-spacing: 0.2px;
-  padding-top: 3px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ================== BẢNG TƯƠNG TÁC TIKTOK LIVE HUD (GÕ 1 & GÕ 2) ================== */
