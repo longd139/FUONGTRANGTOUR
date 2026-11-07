@@ -55,7 +55,15 @@ const defaultSettings = {
     "Đã đủ 20 khách, xe FUONG TRANG xuất bến ngay đây! Bà con thắt dây an toàn nhé!",
     "Xe chuẩn bị lăn bánh rời bến, tạm biệt mọi người và hẹn gặp lại ở Đà Lạt!"
   ],
-  enableHorn: true
+  enableHorn: true,
+  enableGuideVoice: true,
+  guideMessages: [
+    "Xin chào 20 hành khách! Tôi là HDV chuyến xe FUONG TRANG đi Đà Lạt!",
+    "Bà con mình ai có bài hát nào hay góp vui giao lưu cùng chuyến xe không ạ?",
+    "Đố vui có thưởng trên xe: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì không?",
+    "Chúc toàn thể bà con trên xe một chuyến đi tràn đầy niềm vui và may mắn!",
+    "Bà con thắt dây an toàn, cùng ngắm nhìn cảnh đẹp qua cửa sổ xe nhé!"
+  ]
 };
 
 let appSettings = { ...defaultSettings };
@@ -66,6 +74,12 @@ function loadSettings() {
     if (saved) {
       const parsed = JSON.parse(saved);
       appSettings = { ...defaultSettings, ...parsed };
+      if (parsed.guideMessages && parsed.guideMessages.length > 0) {
+        appSettings.guideMessages = parsed.guideMessages;
+      }
+      if (parsed.enableGuideVoice !== undefined) {
+        appSettings.enableGuideVoice = parsed.enableGuideVoice;
+      }
       // Tương thích ngược nếu trước đó lưu dạng chuỗi đơn
       if (parsed.joinTemplate && (!parsed.joinMessages || parsed.joinMessages.length === 0)) {
         appSettings.joinMessages = [parsed.joinTemplate];
@@ -719,6 +733,36 @@ function renderCabinPassengers() {
   });
 }
 
+/* ================== HOẠT ĐỘNG CỦA HƯỚNG DẪN VIÊN TRÊN XE (PHASE 2) ================== */
+let guideBubbleTimeout = null;
+let guideAutoTimer = null;
+
+function triggerGuideActivity(customText = null) {
+  const guideEl = document.getElementById("cabin-tour-guide");
+  const bubbleEl = document.getElementById("guide-bubble");
+  const textEl = document.getElementById("guide-speech-text");
+  if (!guideEl || !bubbleEl || !textEl) return;
+
+  const msgs = (appSettings.guideMessages && appSettings.guideMessages.length > 0)
+    ? appSettings.guideMessages
+    : defaultSettings.guideMessages;
+
+  const speech = customText || msgs[Math.floor(Math.random() * msgs.length)];
+  textEl.innerText = speech;
+  bubbleEl.classList.remove("hidden");
+  guideEl.classList.add("speaking");
+
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement(speech);
+  }
+
+  if (guideBubbleTimeout) clearTimeout(guideBubbleTimeout);
+  guideBubbleTimeout = setTimeout(() => {
+    bubbleEl.classList.add("hidden");
+    guideEl.classList.remove("speaking");
+  }, 6500);
+}
+
 /* ================== QUẢN LÝ CHUYỂN ĐỔI GIAO DIỆN PHASE 1 (BẾN XE) & PHASE 2 (TRONG XE) ================== */
 function switchToPhase(phaseNum) {
   state.currentPhase = phaseNum;
@@ -739,6 +783,19 @@ function switchToPhase(phaseNum) {
       badgeStatusEl.style.borderColor = "rgba(56, 189, 248, 0.4)";
       badgeStatusEl.style.background = "rgba(56, 189, 248, 0.12)";
     }
+
+    // Kích hoạt lời chào đầu tiên của HDV sau 1.2s
+    setTimeout(() => {
+      triggerGuideActivity();
+    }, 1200);
+
+    // Chu kỳ hoạt náo tự động mỗi 18s
+    if (guideAutoTimer) clearInterval(guideAutoTimer);
+    guideAutoTimer = setInterval(() => {
+      if (state.currentPhase === 2) {
+        triggerGuideActivity();
+      }
+    }, 18000);
   } else {
     // Quay lại Phase 1: Bến xe khách
     if (interiorEl) interiorEl.classList.add("hidden");
@@ -746,6 +803,13 @@ function switchToPhase(phaseNum) {
     if (cabinVideo) {
       cabinVideo.pause();
     }
+    if (guideAutoTimer) {
+      clearInterval(guideAutoTimer);
+      guideAutoTimer = null;
+    }
+    const bubbleEl = document.getElementById("guide-bubble");
+    if (bubbleEl) bubbleEl.classList.add("hidden");
+
     if (badgeStatusEl) {
       badgeStatusEl.innerText = "🟢 Bến Xe Sẵn Sàng";
       badgeStatusEl.style.color = "#10b981";
@@ -1046,6 +1110,56 @@ function renderDepartMessages() {
   });
 }
 
+function renderGuideMessages() {
+  const listContainer = document.getElementById("guide-messages-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+
+  if (!appSettings.guideMessages || appSettings.guideMessages.length === 0) {
+    appSettings.guideMessages = [...defaultSettings.guideMessages];
+  }
+
+  appSettings.guideMessages.forEach((msg, idx) => {
+    const row = document.createElement("div");
+    row.className = "message-item-row";
+    row.innerHTML = `
+      <input type="text" class="form-input guide-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu hoạt náo / giao lưu...">
+      <button class="btn btn-test btn-test-single-guide" data-index="${idx}" title="Nghe thử & hiện trên xe" type="button">🔊</button>
+      <button class="btn btn-icon-danger btn-delete-guide" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+    `;
+    listContainer.appendChild(row);
+  });
+
+  listContainer.querySelectorAll(".guide-msg-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      appSettings.guideMessages[i] = e.target.value;
+      saveSettings();
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-test-single-guide").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const text = appSettings.guideMessages[i] || "";
+      triggerGuideActivity(text);
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-delete-guide").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      if (appSettings.guideMessages.length <= 1) {
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu hoạt náo!", "⚠️");
+        return;
+      }
+      appSettings.guideMessages.splice(i, 1);
+      saveSettings();
+      renderGuideMessages();
+    });
+  });
+}
+
 /* ================== GẮN SỰ KIỆN BẢNG QUẢN TRỊ & MÔ PHỎNG ================== */
 function initTestControls() {
   loadSettings();
@@ -1064,6 +1178,7 @@ function initTestControls() {
   const chkGiftVoice = document.getElementById("setting-enable-gift-voice");
   const chkDepartVoice = document.getElementById("setting-enable-depart-voice");
   const chkHorn = document.getElementById("setting-enable-horn");
+  const chkGuideVoice = document.getElementById("setting-enable-guide-voice");
 
   if (chkJoinVoice) {
     chkJoinVoice.checked = appSettings.enableJoinVoice;
@@ -1105,11 +1220,20 @@ function initTestControls() {
     });
   }
 
-  // 2. Render toàn bộ 4 danh sách câu nói
+  if (chkGuideVoice) {
+    chkGuideVoice.checked = appSettings.enableGuideVoice !== false;
+    chkGuideVoice.addEventListener("change", e => {
+      appSettings.enableGuideVoice = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  // 2. Render toàn bộ 5 danh sách câu nói
   renderJoinMessages();
   renderFuelMessages();
   renderGiftMessages();
   renderDepartMessages();
+  renderGuideMessages();
 
   // 3. Gắn sự kiện cho các nút Thêm câu mới & Đọc Random của 4 mục
   // Mục 1: Chào người xem
@@ -1189,6 +1313,34 @@ function initTestControls() {
       const msgs = appSettings.departMessages || defaultSettings.departMessages;
       const tpl = msgs[Math.floor(Math.random() * msgs.length)];
       speakStationAnnouncement(tpl);
+    });
+  }
+
+  // Mục 5: Hoạt động Hướng Dẫn Viên
+  const btnAddGuide = document.getElementById("btn-add-guide-msg");
+  if (btnAddGuide) {
+    btnAddGuide.addEventListener("click", () => {
+      appSettings.guideMessages.push("Bà con chuẩn bị đến trạm dừng chân tiếp theo nhé!");
+      saveSettings();
+      renderGuideMessages();
+      const inputs = document.querySelectorAll(".guide-msg-input");
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+  }
+  const btnTriggerGuide = document.getElementById("btn-trigger-guide-speak");
+  if (btnTriggerGuide) {
+    btnTriggerGuide.addEventListener("click", () => {
+      triggerGuideActivity();
+      showToast("🎤 HƯỚNG DẪN VIÊN", "Đã phát hoạt náo trên xe!", "🚌");
+    });
+  }
+
+  // Tương tác trực tiếp: Bấm vào Hướng Dẫn Viên trên xe
+  const cabinTourGuide = document.getElementById("cabin-tour-guide");
+  if (cabinTourGuide) {
+    cabinTourGuide.addEventListener("click", () => {
+      triggerGuideActivity();
+      showToast("🎤 HOẠT NÁO VIÊN", "Hướng dẫn viên đang giao lưu cùng hành khách!", "🚌");
     });
   }
 
