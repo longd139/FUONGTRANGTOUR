@@ -418,6 +418,12 @@ function handleComment(username = "Hành khách", commentText = "") {
   const text = (commentText || "").trim();
   if (!text) return;
 
+  // 1. Kiểm tra nếu có câu đố vui của HDV đang chờ người trả lời đúng
+  if (checkGuideQuizAnswer(username, text)) {
+    return;
+  }
+
+  // 2. Tương tác gõ 1 (tiếp xăng) và gõ 2 (bình chọn bấm còi)
   if (text === "1" || text.startsWith("1")) {
     addFuel(username, 1);
   } else if (text === "2" || text.startsWith("2")) {
@@ -757,6 +763,185 @@ function renderCabinPassengers() {
 let guideBubbleTimeout = null;
 let guideAutoTimer = null;
 let guideAnswerAutoTimeout = null;
+let currentActiveQA = null; // Lưu câu hỏi & đáp án đang kích hoạt để người dùng trả lời
+
+// Hàm loại bỏ tiền tố đáp án ("Đáp án là:", "Đáp án chính xác:",...)
+function stripAnswerPrefixSuffix(str) {
+  let s = (str || "").trim();
+  s = s.replace(/^(đáp án\s*(chính xác|chính)?\s*(là)?\s*:\s*)/i, "");
+  s = s.replace(/^(câu trả lời\s*(chính xác)?\s*(là)?\s*:\s*)/i, "");
+  s = s.replace(/^(kết quả\s*(là)?\s*:\s*)/i, "");
+  return s.trim();
+}
+
+// Bỏ dấu tiếng Việt để so khớp linh hoạt có dấu hoặc không dấu
+function removeVietnameseTones(str) {
+  return (str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
+
+// Làm sạch văn bản để so khớp
+function cleanTextForMatching(str) {
+  return (str || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Thuật toán kiểm tra bình luận của người xem có đúng đáp án không
+function isAnswerMatching(userComment, rawAnswer) {
+  if (!userComment || !rawAnswer) return false;
+
+  const coreAnswer = stripAnswerPrefixSuffix(rawAnswer);
+  const cleanAnsWithTone = cleanTextForMatching(coreAnswer);
+  const cleanAnsNoTone = removeVietnameseTones(cleanAnsWithTone);
+
+  const cleanCmtWithTone = cleanTextForMatching(userComment);
+  const cleanCmtNoTone = removeVietnameseTones(cleanCmtWithTone);
+
+  // Nếu comment quá ngắn (< 2 ký tự) hoặc chỉ là gõ 1, 2 thì không tính
+  if (cleanCmtNoTone.length < 2 || cleanCmtNoTone === "1" || cleanCmtNoTone === "2") {
+    return false;
+  }
+
+  // 1. Khớp chính xác hoàn toàn (có dấu hoặc không dấu)
+  if (cleanAnsWithTone === cleanCmtWithTone || cleanAnsNoTone === cleanCmtNoTone) {
+    return true;
+  }
+
+  // 2. Nếu đáp án có chứa số (như biển số xe, ngày tháng) và comment chứa số đó
+  const numbersInAns = cleanAnsNoTone.match(/\d+/g);
+  if (numbersInAns && numbersInAns.some(num => cleanCmtNoTone.includes(num))) {
+    return true;
+  }
+
+  // 3. Từ khóa bỏ qua (từ nối, cảm thán phổ biến)
+  const stopWords = new Set([
+    "nha", "nhe", "ba", "con", "oi", "la", "cua", "cac", "nhung", "mot", 
+    "chinh", "xac", "rat", "thom", "ngon", "tho", "mong", "hoac", "thanh", "pho"
+  ]);
+
+  // Tạo các cụm 2 từ (bigrams) từ đáp án không dấu
+  const wordsNoTone = cleanAnsNoTone.split(" ").filter(w => w.length > 0);
+  const ansBigrams = [];
+  for (let i = 0; i < wordsNoTone.length - 1; i++) {
+    const w1 = wordsNoTone[i];
+    const w2 = wordsNoTone[i + 1];
+    if (!stopWords.has(w1) || !stopWords.has(w2)) {
+      ansBigrams.push(`${w1} ${w2}`);
+    }
+  }
+
+  // Kiểm tra nếu comment chứa cụm 2 từ chính của đáp án (ví dụ "dau tay", "banh trang", "xuan huong")
+  for (const bg of ansBigrams) {
+    if (cleanCmtNoTone.includes(bg)) {
+      return true;
+    }
+  }
+
+  // 4. Nếu người dùng gõ ngắn gọn và chuỗi đó nằm trọn trong đáp án (từ 3 ký tự trở lên)
+  if (cleanCmtNoTone.length >= 3 && cleanAnsNoTone.includes(cleanCmtNoTone)) {
+    return true;
+  }
+
+  // 5. Nếu đáp án có các từ khóa đặc trưng (dài >= 4 ký tự) nằm trong comment (ví dụ "atiso")
+  const keyWords = wordsNoTone.filter(w => w.length >= 4 && !stopWords.has(w));
+  for (const kw of keyWords) {
+    if (cleanCmtNoTone.includes(kw)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Âm thanh chúc mừng người trả lời đúng (Web Audio API)
+function playSuccessChime() {
+  try {
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    const now = audioCtx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // Hợp âm C5, E5, G5, C6 tươi vui
+    notes.forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 0.4);
+    });
+  } catch (e) {}
+}
+
+// Hiển thị bong bóng vinh danh người trả lời đúng
+function showGuideWinnerBubble(winnerName, rawAnswer) {
+  const guideEl = document.getElementById("cabin-tour-guide");
+  const bubbleEl = document.getElementById("guide-bubble");
+  const typeEl = document.getElementById("guide-bubble-type");
+  const textEl = document.getElementById("guide-speech-text");
+  if (!guideEl || !bubbleEl || !textEl) return;
+
+  if (typeEl) {
+    typeEl.innerText = "🏆 CHÍNH XÁC - CHÚC MỪNG!";
+    typeEl.className = "guide-bubble-header type-winner";
+  }
+
+  const cleanAns = stripAnswerPrefixSuffix(rawAnswer);
+  textEl.innerHTML = `🎉 Chúc mừng <b style="color:#fbbf24;">@${winnerName}</b>!<br>Đáp án: <b style="color:#34d399;">${cleanAns}</b>`;
+  bubbleEl.classList.remove("hidden");
+  guideEl.classList.add("speaking");
+
+  if (guideBubbleTimeout) clearTimeout(guideBubbleTimeout);
+  guideBubbleTimeout = setTimeout(() => {
+    bubbleEl.classList.add("hidden");
+    guideEl.classList.remove("speaking");
+  }, 8500);
+}
+
+// Hàm kiểm tra bình luận của người xem khi có câu hỏi HDV đang hoạt động
+function checkGuideQuizAnswer(username, commentText) {
+  if (!currentActiveQA || currentActiveQA.answered || !currentActiveQA.a) {
+    return false;
+  }
+
+  if (isAnswerMatching(commentText, currentActiveQA.a)) {
+    currentActiveQA.answered = true;
+    if (guideAnswerAutoTimeout) {
+      clearTimeout(guideAnswerAutoTimeout);
+      guideAnswerAutoTimeout = null;
+    }
+
+    const winnerName = (username || "Bạn khán giả").trim();
+    const cleanAns = stripAnswerPrefixSuffix(currentActiveQA.a);
+
+    // 1. Phát nhạc chúc mừng
+    playSuccessChime();
+
+    // 2. Hiển thị bong bóng vinh danh người trả lời đúng
+    showGuideWinnerBubble(winnerName, currentActiveQA.a);
+
+    // 3. Hướng dẫn viên đọc to tên người dùng trả lời đúng
+    const praiseSpeech = `Chúc mừng bạn ${winnerName} đã trả lời rất chính xác! Đáp án là ${cleanAns}!`;
+    if (appSettings.enableGuideVoice) {
+      speakStationAnnouncement(praiseSpeech);
+    }
+
+    // 4. Thông báo Toast nổi bật
+    showToast("🏆 TRẢ LỜI CHÍNH XÁC!", `${winnerName} vừa trả lời đúng: ${cleanAns}`, "🎉");
+    return true;
+  }
+
+  return false;
+}
 
 function showGuideBubble(typeTitle, text, isAnswer = false) {
   const guideEl = document.getElementById("cabin-tour-guide");
@@ -767,10 +952,9 @@ function showGuideBubble(typeTitle, text, isAnswer = false) {
 
   if (typeEl) {
     typeEl.innerText = typeTitle;
+    typeEl.className = "guide-bubble-header";
     if (isAnswer) {
       typeEl.classList.add("type-answer");
-    } else {
-      typeEl.classList.remove("type-answer");
     }
   }
 
@@ -806,14 +990,25 @@ function triggerGuideActivity(question = null, answer = null) {
   const qText = typeof selected === "string" ? selected : selected.q;
   const aText = typeof selected === "string" ? "" : selected.a;
 
+  // Lưu câu hỏi & đáp án đang kích hoạt để người xem có thể bình luận trả lời
+  currentActiveQA = {
+    q: qText,
+    a: aText,
+    answered: false,
+    askedAt: Date.now()
+  };
+
   // Bước 1: HDV đưa ra câu hỏi đố vui
   showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG", qText, false);
 
-  // Bước 2: Tự động công bố đáp án có sẵn sau 6.5s
+  // Bước 2: Tự động công bố đáp án sau 20s nếu không ai trả lời đúng
   if (aText) {
     guideAnswerAutoTimeout = setTimeout(() => {
-      showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", aText, true);
-    }, 6500);
+      if (currentActiveQA && !currentActiveQA.answered) {
+        currentActiveQA.answered = true;
+        showGuideBubble("💡 HẾT GIỜ - ĐÁP ÁN", aText, true);
+      }
+    }, 20000); // 20 giây cho người xem livestream gõ bình luận
   }
 }
 
@@ -1337,8 +1532,9 @@ function renderGuideMessages() {
       const i = parseInt(e.currentTarget.dataset.index);
       const item = appSettings.guideMessages[i];
       const q = typeof item === "string" ? item : item.q;
-      showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG", q, false);
-      showToast("🎤 ĐÃ ĐẶT CÂU HỎI", "HDV đang hỏi đố vui hành khách trên xe!", "❓");
+      const a = typeof item === "string" ? "" : item.a;
+      triggerGuideActivity(q, a);
+      showToast("🎤 ĐÃ ĐẶT CÂU HỎI", "HDV đang hỏi đố vui! Người xem bình luận đúng sẽ được xướng tên!", "❓");
     });
   });
 
@@ -1350,6 +1546,13 @@ function renderGuideMessages() {
       if (!a) {
         showToast("⚠️ CHƯA CÓ ĐÁP ÁN", "Vui lòng nhập đáp án cho câu hỏi này!", "⚠️");
         return;
+      }
+      if (guideAnswerAutoTimeout) {
+        clearTimeout(guideAnswerAutoTimeout);
+        guideAnswerAutoTimeout = null;
+      }
+      if (currentActiveQA) {
+        currentActiveQA.answered = true;
       }
       showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", a, true);
       showToast("💡 ĐÃ CÔNG BỐ ĐÁP ÁN", "HDV đã công bố câu trả lời trên xe!", "🎉");
@@ -1681,6 +1884,24 @@ function initTestControls() {
   if (btnSimHorn) {
     btnSimHorn.addEventListener("click", () => {
       addHornVote(getSimUserName());
+    });
+  }
+
+  // Nút thử trả lời đúng câu hỏi hiện tại của HDV
+  const btnSimCorrectAnswer = document.getElementById("btn-sim-correct-answer");
+  if (btnSimCorrectAnswer) {
+    btnSimCorrectAnswer.addEventListener("click", () => {
+      if (!currentActiveQA || !currentActiveQA.a) {
+        showToast("ℹ️ CHƯA ĐẶT CÂU HỎI", "Hãy bấm '🎲 Đố vui ngẫu nhiên' hoặc '❓ Hỏi' trước!", "❓");
+        return;
+      }
+      const rawAns = currentActiveQA.a;
+      const answerVal = stripAnswerPrefixSuffix(rawAns);
+      const inputEl = document.getElementById("input-sim-comment");
+      if (inputEl) {
+        inputEl.value = answerVal;
+      }
+      handleComment(getSimUserName(), answerVal);
     });
   }
 
@@ -2069,3 +2290,11 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => onPassengerJoin("Bác Ba Phi"), 500);
   setTimeout(() => onPassengerJoin("Chị Út Miền Tây"), 900);
 });
+
+// Expose ra window để các tool kết nối TikTok Live / OBS overlay gọi trực tiếp
+if (typeof window !== "undefined") {
+  window.handleComment = handleComment;
+  window.triggerGuideActivity = triggerGuideActivity;
+  window.checkGuideQuizAnswer = checkGuideQuizAnswer;
+  window.isAnswerMatching = isAnswerMatching;
+}

@@ -1649,3 +1649,27 @@ body.obs-mode .phone-frame,
   background: #059669;
   color: #fff;
 }
+
+.guide-bubble-header.type-winner {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.85);
+  animation: pulseWinner 0.7s infinite alternate ease-in-out;
+}
+
+@keyframes pulseWinner {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+.btn-sim-answer {
+  background: #047857;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-sim-answer:hover {
+  background: #059669;
+  color: #fff;
+}
