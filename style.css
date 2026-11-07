@@ -1025,8 +1025,9 @@ body.obs-mode .phone-frame,
 /* ================== BẢNG HIỂN THỊ CÁC QUÀ TẶNG DẠNG DỌC BÊN CẠNH TRÁI Ở PHASE 1 ================== */
 .hud-gift-board {
   position: absolute;
-  bottom: 18px;
+  top: 50%;
   left: 10px;
+  transform: translateY(-50%);
   background: rgba(18, 22, 34, 0.94);
   border: 1.5px solid rgba(255, 255, 255, 0.22);
   border-radius: 12px;
@@ -1045,6 +1046,7 @@ body.obs-mode .phone-frame,
 }
 
 .hud-gift-board:hover {
+  transform: translateY(-50%) translateX(2px);
   border-color: rgba(244, 63, 94, 0.75);
 }
 
