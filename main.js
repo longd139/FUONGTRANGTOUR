@@ -2231,7 +2231,7 @@ function initTestControls() {
   if (btnSimGift) {
     btnSimGift.addEventListener("click", () => {
       const select = document.getElementById("select-gift");
-      const gift = select ? select.value : "🌸 Hoa Hồng";
+      const gift = select ? select.value : "🌸 Vé xe";
       let name = "";
       if (state.farPassengers.length > 0) {
         name = state.farPassengers[0];
@@ -2249,7 +2249,7 @@ function initTestControls() {
       for (let i = 0; i < needed; i++) {
         setTimeout(() => {
           const dummyName = `Khách VIP ${state.seatedPassengers.length + 1}`;
-          onPassengerGift(dummyName, "🌸 Hoa Hồng");
+          onPassengerGift(dummyName, "🌸 Vé xe");
         }, i * 220);
       }
     });
@@ -2407,7 +2407,7 @@ function startAutoDemo() {
       handleComment(name, cmt);
     } else {
       // 25% người tặng quà để lên xe
-      const gifts = ["🌸 Hoa Hồng", "🍦 Cây Kem", "🧢 Nón Lá", "💖 Trái Tim"];
+      const gifts = ["🌸 Vé xe"];
       const gift = gifts[Math.floor(Math.random() * gifts.length)];
       const name = state.farPassengers.length > 0
         ? state.farPassengers[Math.floor(Math.random() * state.farPassengers.length)]
