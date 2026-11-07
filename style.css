@@ -1244,3 +1244,86 @@ body.obs-mode .phone-frame,
   pointer-events: none;
   user-select: none;
 }
+
+/* Lớp 20 hành khách ngồi ghế xanh */
+.cabin-passengers-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cabin-passenger-seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: bottom center;
+  animation: passengerBusRide 0.45s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes passengerBusRide {
+  0% { transform: translate(-50%, -82%) scale(var(--seat-scale, 1)) translateY(0); }
+  100% { transform: translate(-50%, -82%) scale(var(--seat-scale, 1)) translateY(-2.5px); }
+}
+
+.cabin-passenger-seat .char-tag {
+  font-size: 9px;
+  padding: 1px 6px;
+  margin-bottom: 1px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.cabin-passenger-seat .char-sprite-wrapper {
+  width: 68px;
+  height: 72px;
+}
+
+.cabin-passenger-seat .char-sprite-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.6));
+}
+
+/* HUD chuyến xe trên cabin */
+.cabin-trip-hud {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 18, 28, 0.88);
+  border: 1.5px solid var(--color-brand-orange);
+  border-radius: 20px;
+  padding: 5px 14px;
+  z-index: 25;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+.cabin-route-badge {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 11px;
+  color: var(--color-gold);
+  letter-spacing: 0.5px;
+}
+
+.cabin-passenger-count {
+  font-weight: 800;
+  font-size: 10.5px;
+  color: #fff;
+  background: var(--color-brand-green);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
