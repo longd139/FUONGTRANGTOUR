@@ -791,6 +791,14 @@ function updateTripTimerUI() {
 
   if (fillEl) {
     fillEl.style.width = `${pct.toFixed(1)}%`;
+    fillEl.classList.remove("fuel-low", "fuel-mid", "fuel-high");
+    if (pct < 35) {
+      fillEl.classList.add("fuel-low");
+    } else if (pct < 75) {
+      fillEl.classList.add("fuel-mid");
+    } else {
+      fillEl.classList.add("fuel-high");
+    }
   }
 
   if (badgeEl) {

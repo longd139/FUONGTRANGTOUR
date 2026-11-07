@@ -132,16 +132,24 @@
           </div>
 
           <!-- HUD THÔNG TIN CHUYẾN XE KHI ĐANG TRÊN ĐƯỜNG ĐI ĐÀ LẠT -->
-          <div class="cabin-trip-hud">
-            <span class="cabin-route-badge">🚌 SÀI GÒN ➔ ĐÀ LẠT</span>
-            <div class="cabin-timer-badge" id="cabin-timer-badge" title="Thời gian hành trình: 15 phút">
-              <span class="cabin-timer-icon">⏱️</span>
-              <span class="cabin-timer-countdown" id="cabin-timer-countdown">15:00</span>
+          <div class="cabin-trip-hud" id="cabin-trip-hud">
+            <div class="cabin-route-header">
+              <div class="route-point route-start">
+                <span class="route-city">🚌 SÀI GÒN</span>
+              </div>
+              <div class="cabin-timer-badge" id="cabin-timer-badge" title="Thời gian hành trình: 15 phút">
+                <span class="cabin-timer-icon">⏱️</span>
+                <span class="cabin-timer-countdown" id="cabin-timer-countdown">15:00</span>
+              </div>
+              <div class="route-point route-dest">
+                <span class="route-city">ĐÀ LẠT 🏔️</span>
+              </div>
             </div>
-            <span class="cabin-passenger-count" id="cabin-passenger-count">👥 0/20 HÀNH KHÁCH</span>
-            <!-- Thanh tiến trình timeline 15 phút sát mép dưới của HUD -->
-            <div class="cabin-timeline-track">
-              <div class="cabin-timeline-fill" id="cabin-timeline-fill" style="width: 0%;"></div>
+            <!-- ĐƯỜNG LINE CHẠY GIỐNG BÌNH XĂNG (SÀI GÒN -------- ĐÀ LẠT) -->
+            <div class="cabin-route-track">
+              <div class="cabin-route-fill fuel-low" id="cabin-timeline-fill" style="width: 0%;">
+                <span class="cabin-route-bus-marker">🚌</span>
+              </div>
             </div>
           </div>
         </section>
