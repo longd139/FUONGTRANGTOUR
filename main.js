@@ -763,7 +763,19 @@ function renderCabinPassengers() {
 let guideBubbleTimeout = null;
 let guideAutoTimer = null;
 let guideAnswerAutoTimeout = null;
+let guideQuizCountdownInterval = null;
 let currentActiveQA = null; // Lưu câu hỏi & đáp án đang kích hoạt để người dùng trả lời
+
+function clearGuideQuizTimers() {
+  if (guideAnswerAutoTimeout) {
+    clearTimeout(guideAnswerAutoTimeout);
+    guideAnswerAutoTimeout = null;
+  }
+  if (guideQuizCountdownInterval) {
+    clearInterval(guideQuizCountdownInterval);
+    guideQuizCountdownInterval = null;
+  }
+}
 
 // Hàm loại bỏ tiền tố đáp án ("Đáp án là:", "Đáp án chính xác:",...)
 function stripAnswerPrefixSuffix(str) {
@@ -915,10 +927,7 @@ function checkGuideQuizAnswer(username, commentText) {
 
   if (isAnswerMatching(commentText, currentActiveQA.a)) {
     currentActiveQA.answered = true;
-    if (guideAnswerAutoTimeout) {
-      clearTimeout(guideAnswerAutoTimeout);
-      guideAnswerAutoTimeout = null;
-    }
+    clearGuideQuizTimers(); // Lập tức dừng bộ đếm 2 phút
 
     const winnerName = (username || "Bạn khán giả").trim();
     const cleanAns = stripAnswerPrefixSuffix(currentActiveQA.a);
@@ -943,7 +952,7 @@ function checkGuideQuizAnswer(username, commentText) {
   return false;
 }
 
-function showGuideBubble(typeTitle, text, isAnswer = false) {
+function showGuideBubble(typeTitle, text, isAnswer = false, autoHideDelay = 6500) {
   const guideEl = document.getElementById("cabin-tour-guide");
   const bubbleEl = document.getElementById("guide-bubble");
   const typeEl = document.getElementById("guide-bubble-type");
@@ -958,23 +967,31 @@ function showGuideBubble(typeTitle, text, isAnswer = false) {
     }
   }
 
-  textEl.innerText = text;
+  textEl.innerHTML = text;
   bubbleEl.classList.remove("hidden");
   guideEl.classList.add("speaking");
 
-  if (appSettings.enableGuideVoice) {
-    speakStationAnnouncement(text);
+  if (guideBubbleTimeout) {
+    clearTimeout(guideBubbleTimeout);
+    guideBubbleTimeout = null;
   }
 
-  if (guideBubbleTimeout) clearTimeout(guideBubbleTimeout);
-  guideBubbleTimeout = setTimeout(() => {
-    bubbleEl.classList.add("hidden");
-    guideEl.classList.remove("speaking");
-  }, 6500);
+  // Tự động tắt cử động miệng nói của HDV sau 4.5s
+  setTimeout(() => {
+    if (guideEl) guideEl.classList.remove("speaking");
+  }, 4500);
+
+  // Nếu autoHideDelay là số > 0 thì tự ẩn sau ngần ấy ms. Nếu là false/null thì GIỮ NGUYÊN BONG BÓNG trên màn hình.
+  if (typeof autoHideDelay === "number" && autoHideDelay > 0) {
+    guideBubbleTimeout = setTimeout(() => {
+      bubbleEl.classList.add("hidden");
+      guideEl.classList.remove("speaking");
+    }, autoHideDelay);
+  }
 }
 
 function triggerGuideActivity(question = null, answer = null) {
-  if (guideAnswerAutoTimeout) clearTimeout(guideAnswerAutoTimeout);
+  clearGuideQuizTimers();
 
   const msgs = (appSettings.guideMessages && appSettings.guideMessages.length > 0)
     ? appSettings.guideMessages
@@ -998,18 +1015,60 @@ function triggerGuideActivity(question = null, answer = null) {
     askedAt: Date.now()
   };
 
-  // Bước 1: HDV đưa ra câu hỏi đố vui
-  showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG", qText, false);
+  // HDV phát thanh đọc câu hỏi lên xe
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement(qText);
+  }
 
-  // Bước 2: Tự động công bố đáp án sau 20s nếu không ai trả lời đúng
-  if (aText) {
-    guideAnswerAutoTimeout = setTimeout(() => {
+  // Nếu không có đáp án (chỉ là câu chào/giao lưu) thì hiện 8 giây rồi ẩn
+  if (!aText) {
+    showGuideBubble("📢 HƯỚNG DẪN VIÊN", qText, false, 8000);
+    return;
+  }
+
+  // Đếm ngược 2 phút = 120 giây
+  let remainingSec = 120;
+
+  function updateQuizCountdownHeader() {
+    const m = Math.floor(remainingSec / 60);
+    const s = remainingSec % 60;
+    const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const typeEl = document.getElementById("guide-bubble-type");
+    if (typeEl) {
+      typeEl.innerText = `❓ ĐỐ VUI CÓ THƯỞNG (${timeStr})`;
+    }
+  }
+
+  // Bước 1: Hiển thị câu hỏi đố vui lên màn hình và GIỮ NGUYÊN (autoHideDelay = false) trong suốt 2 phút
+  showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG (02:00)", qText, false, false);
+
+  // Bước 2: Đếm ngược từng giây trong 2 phút; nếu hết giờ mà chưa ai trả lời -> Tự động đọc và hiện đáp án
+  guideQuizCountdownInterval = setInterval(() => {
+    remainingSec--;
+    if (remainingSec > 0) {
+      updateQuizCountdownHeader();
+    } else {
+      clearGuideQuizTimers();
       if (currentActiveQA && !currentActiveQA.answered) {
         currentActiveQA.answered = true;
-        showGuideBubble("💡 HẾT GIỜ - ĐÁP ÁN", aText, true);
+        const cleanAns = stripAnswerPrefixSuffix(currentActiveQA.a);
+        const timeoutSpeech = `Hết giờ đố vui rồi bà con ơi! Đáp án chính xác là: ${cleanAns}!`;
+
+        showGuideBubble(
+          "💡 HẾT GIỜ - ĐÁP ÁN CHÍNH XÁC",
+          `Hết 2 phút đố vui!<br>Đáp án: <b style="color:#34d399;">${cleanAns}</b>`,
+          true,
+          12000
+        );
+
+        if (appSettings.enableGuideVoice) {
+          speakStationAnnouncement(timeoutSpeech);
+        }
+
+        showToast("⏰ HẾT THỜI GIAN ĐỐ VUI", `Đáp án chính xác: ${cleanAns}`, "💡");
       }
-    }, 20000); // 20 giây cho người xem livestream gõ bình luận
-  }
+    }
+  }, 1000);
 }
 
 /* ================== QUẢN LÝ TIMELINE CHUYẾN XE 15 PHÚT (PHASE 2) ================== */
@@ -1547,14 +1606,15 @@ function renderGuideMessages() {
         showToast("⚠️ CHƯA CÓ ĐÁP ÁN", "Vui lòng nhập đáp án cho câu hỏi này!", "⚠️");
         return;
       }
-      if (guideAnswerAutoTimeout) {
-        clearTimeout(guideAnswerAutoTimeout);
-        guideAnswerAutoTimeout = null;
-      }
+      clearGuideQuizTimers();
       if (currentActiveQA) {
         currentActiveQA.answered = true;
       }
-      showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", a, true);
+      const cleanAns = stripAnswerPrefixSuffix(a);
+      showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", `Đáp án: <b style="color:#34d399;">${cleanAns}</b>`, true, 12000);
+      if (appSettings.enableGuideVoice) {
+        speakStationAnnouncement(`Đáp án chính xác là: ${cleanAns}!`);
+      }
       showToast("💡 ĐÃ CÔNG BỐ ĐÁP ÁN", "HDV đã công bố câu trả lời trên xe!", "🎉");
     });
   });
