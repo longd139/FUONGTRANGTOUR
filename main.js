@@ -429,36 +429,38 @@ function updateTripBoard() {
   if (tripProgressEl) tripProgressEl.style.width = `${percent}%`;
 }
 
-/* ================== TẠO HÌNH NHÂN VẬT 2D HOẠT HÌNH ================== */
+/* ================== QUẢN LÝ VÀ TẠO HÌNH CHARACTER 1, 2, 3, 4, 5 CHO HÀNH KHÁCH ================== */
+const userCharMap = new Map();
+
+function getCharacterTypeForUser(username) {
+  if (userCharMap.has(username)) {
+    return userCharMap.get(username);
+  }
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = (hash << 5) - hash + username.charCodeAt(i);
+    hash |= 0;
+  }
+  const charNum = (Math.abs(hash) % 5) + 1; // Luôn ra từ 1 đến 5
+  userCharMap.set(username, charNum);
+  return charNum;
+}
+
 function createCharacterElement(username, gift = null) {
   const charDiv = document.createElement("div");
-  charDiv.className = "char-2d";
+  charDiv.className = "char-2d char-sprite";
   charDiv.id = `char-${username.replace(/\s+/g, '_')}`;
 
-  const shirtColor = CONFIG.SHIRT_COLORS[Math.floor(Math.random() * CONFIG.SHIRT_COLORS.length)];
-  const hatColor = CONFIG.HAT_COLORS[Math.floor(Math.random() * CONFIG.HAT_COLORS.length)];
-  const luggageColor = CONFIG.LUGGAGE_COLORS[Math.floor(Math.random() * CONFIG.LUGGAGE_COLORS.length)];
+  const charNum = getCharacterTypeForUser(username);
+  const imgSrc = `public/CHARACTER_${charNum}/1.png`;
 
   charDiv.innerHTML = `
     <div class="char-tag">
       <span class="char-badge">${gift ? '🎟️' : '🚶'}</span>
       <span class="char-name">${username}</span>
     </div>
-    <div class="char-figure">
-      <div class="char-hat" style="background: ${hatColor}"></div>
-      <div class="char-head">
-        <div class="char-eyes">
-          <div class="eye"></div>
-          <div class="eye"></div>
-        </div>
-      </div>
-      <div class="char-body" style="background: ${shirtColor}">
-        <div class="char-luggage" style="background: ${luggageColor}"></div>
-      </div>
-      <div class="char-legs">
-        <div class="leg"></div>
-        <div class="leg"></div>
-      </div>
+    <div class="char-sprite-wrapper">
+      <img src="${imgSrc}" class="char-sprite-img" alt="${username}">
     </div>
   `;
 

@@ -373,12 +373,33 @@ body {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -46%) scale(0.55) !important;
+  transform: translate(-50%, -46%) scale(0.48) !important;
   transform-origin: center center !important;
   margin: 0 !important;
   filter: none !important;
   pointer-events: none;
   width: auto;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bunk-slot .char-sprite-wrapper {
+  width: 68px !important;
+  height: 68px !important;
+}
+
+.bunk-slot .char-sprite-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.bunk-slot .char-tag {
+  font-size: 10px !important;
+  padding: 1px 7px !important;
+  margin-bottom: 2px !important;
 }
 
 /* ================== NHÂN VẬT 2D HOẠT HÌNH TRÊN SÂN BẾN XE ================== */
@@ -526,7 +547,8 @@ body {
   border-radius: 0 0 2px 2px;
 }
 
-.char-2d.walking .char-figure {
+.char-2d.walking .char-figure,
+.char-2d.walking .char-sprite-wrapper {
   animation: walkBob 0.3s infinite alternate ease-in-out;
 }
 
