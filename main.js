@@ -57,6 +57,7 @@ const defaultSettings = {
   ],
   enableHorn: true,
   enableGuideVoice: true,
+  enableGiftChangeMusic: true,
   guideMessages: [
     {
       q: "Đố vui có thưởng trên xe: Ai biết đặc sản trái cây nổi tiếng nhất Đà Lạt là gì không?",
@@ -630,18 +631,23 @@ setInterval(() => {
 function onPassengerGift(username, giftName) {
   if (state.isDeparting) return;
 
+  // 1. Tự động đổi nhạc khi khán giả tặng quà
+  if (appSettings.enableGiftChangeMusic !== false) {
+    triggerMusicChangeByGift(username, giftName);
+  }
+
   if (state.seatedPassengers.some(p => p.username === username)) {
-    showToast("🎉 CẢM ƠN DONATE!", `${username} tặng thêm ${giftName}! Chúc bạn vui vẻ!`, "💖");
+    showToast("🎉 CẢM ƠN DONATE!", `${username} tặng thêm ${giftName}! Bác tài đã đổi bài hát!`, "💖");
     return;
   }
 
   if (state.seatedPassengers.length >= CONFIG.TOTAL_SEATS) {
-    showToast("⚠️ XE ĐÃ KÍN CHỖ!", `${username} vui lòng chờ chuyến sau nhé!`, "⏳");
+    showToast("⚠️ XE ĐÃ KÍN CHỖ!", `${username} tặng ${giftName} đổi bài hát thành công!`, "🎶");
     return;
   }
 
   showToast("🎟️ ĐÃ ĐẶT GIƯỜNG!", `${username} tặng ${giftName} và nhận vé giường nằm!`, "🌸");
-  if (appSettings.enableGiftVoice) {
+  if (appSettings.enableGiftVoice && state.currentPhase !== 2) {
     const msgs = (appSettings.giftMessages && appSettings.giftMessages.length > 0)
       ? appSettings.giftMessages
       : defaultSettings.giftMessages;
@@ -1244,6 +1250,32 @@ function renderCabinMusicList() {
 
 function updateCabinMusicUI() {
   renderCabinMusicList();
+}
+
+function triggerMusicChangeByGift(username, giftName) {
+  let nextIndex = 0;
+  if (CABIN_MUSIC_TRACKS.length > 1) {
+    do {
+      nextIndex = Math.floor(Math.random() * CABIN_MUSIC_TRACKS.length);
+    } while (nextIndex === currentPlayingTrackIndex);
+  }
+
+  playCabinMusic(nextIndex, false);
+  const track = CABIN_MUSIC_TRACKS[nextIndex];
+
+  // HDV phát thanh và bong bóng cảm ơn người tặng quà và thông báo đổi bài nhạc
+  showGuideBubble(
+    "🎁 TẶNG QUÀ ĐỔI NHẠC",
+    `Cảm ơn <b style="color:#fbbf24;">@${username}</b> đã tặng <b style="color:#f43f5e;">${giftName}</b>!<br>Bác tài đổi sang: <b style="color:#34d399;">${track.name}</b>!`,
+    false,
+    8000
+  );
+
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement(`Cảm ơn bạn ${username} đã tặng ${giftName}! Bác tài lên bài ${track.name} theo yêu cầu nhé bà con!`);
+  }
+
+  showToast("🎁 TẶNG QUÀ ĐỔI NHẠC", `${username} tặng ${giftName} • Đổi sang: ${track.name}`, "🎶");
 }
 
 /* ================== HOẠT ĐỘNG 3: CHO NHÂN VẬT LÊN NHẢY (CABIN DANCE) ================== */
@@ -2134,6 +2166,16 @@ function initTestControls() {
     });
   }
 
+  // Tùy chọn Bật/Tắt tự động đổi nhạc khi khán giả tặng quà
+  const chkGiftMusic = document.getElementById("setting-gift-change-music");
+  if (chkGiftMusic) {
+    chkGiftMusic.checked = appSettings.enableGiftChangeMusic !== false;
+    chkGiftMusic.addEventListener("change", e => {
+      appSettings.enableGiftChangeMusic = e.target.checked;
+      saveSettings();
+    });
+  }
+
   // Khởi tạo các nút điều khiển Nhảy (cho nhân vật lên nhảy)
   const btnStartDance = document.getElementById("btn-start-dance");
   if (btnStartDance) {
@@ -2698,4 +2740,5 @@ if (typeof window !== "undefined") {
   window.stopCabinMusic = stopCabinMusic;
   window.startCabinDance = startCabinDance;
   window.stopCabinDance = stopCabinDance;
+  window.triggerMusicChangeByGift = triggerMusicChangeByGift;
 }
