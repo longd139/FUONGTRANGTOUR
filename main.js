@@ -729,6 +729,10 @@ function switchToPhase(phaseNum) {
     // Chuyển sang Phase 2: Trong xe (public/TRONG_XE.png hiển thị full màn hình)
     renderCabinPassengers();
     if (interiorEl) interiorEl.classList.remove("hidden");
+    const cabinVideo = document.getElementById("cabin-road-video");
+    if (cabinVideo) {
+      cabinVideo.play().catch(e => console.log("Video auto-play:", e));
+    }
     if (badgeStatusEl) {
       badgeStatusEl.innerText = "🚌 Đang Trong Xe (Phase 2)";
       badgeStatusEl.style.color = "#38bdf8";
@@ -738,6 +742,10 @@ function switchToPhase(phaseNum) {
   } else {
     // Quay lại Phase 1: Bến xe khách
     if (interiorEl) interiorEl.classList.add("hidden");
+    const cabinVideo = document.getElementById("cabin-road-video");
+    if (cabinVideo) {
+      cabinVideo.pause();
+    }
     if (badgeStatusEl) {
       badgeStatusEl.innerText = "🟢 Bến Xe Sẵn Sàng";
       badgeStatusEl.style.color = "#10b981";
