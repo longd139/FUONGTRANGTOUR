@@ -1212,3 +1212,35 @@ body.obs-mode .phone-frame,
   font-size: 12px;
   font-weight: 800;
 }
+
+/* ================== GIAO DIỆN PHASE 2: TRONG XE (FULL MÀN HÌNH 9:16) ================== */
+.bus-interior-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 45;
+  background: #000;
+  overflow: hidden;
+  transition: opacity 0.8s ease, transform 0.8s ease, visibility 0.8s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bus-interior-stage.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: scale(1.04);
+}
+
+.interior-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}

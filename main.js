@@ -21,6 +21,7 @@ const state = {
   farPassengers: [],    // Danh sách người ở sân ngoài
   seatedPassengers: [], // Danh sách người đã vào ghế
   isDeparting: false,   // Đang trong hiệu ứng xe chạy
+  currentPhase: 1,      // 1: Bến xe (Phase 1), 2: Trong xe (Phase 2)
   autoDemoInterval: null
 };
 
@@ -653,6 +654,33 @@ function checkDepartureCondition() {
   }
 }
 
+/* ================== QUẢN LÝ CHUYỂN ĐỔI GIAO DIỆN PHASE 1 (BẾN XE) & PHASE 2 (TRONG XE) ================== */
+function switchToPhase(phaseNum) {
+  state.currentPhase = phaseNum;
+  const interiorEl = document.getElementById("bus-interior-stage");
+  const badgeStatusEl = document.querySelector(".badge-status");
+
+  if (phaseNum === 2) {
+    // Chuyển sang Phase 2: Trong xe (public/TRONG_XE.png hiển thị full màn hình)
+    if (interiorEl) interiorEl.classList.remove("hidden");
+    if (badgeStatusEl) {
+      badgeStatusEl.innerText = "🚌 Đang Trong Xe (Phase 2)";
+      badgeStatusEl.style.color = "#38bdf8";
+      badgeStatusEl.style.borderColor = "rgba(56, 189, 248, 0.4)";
+      badgeStatusEl.style.background = "rgba(56, 189, 248, 0.12)";
+    }
+  } else {
+    // Quay lại Phase 1: Bến xe khách
+    if (interiorEl) interiorEl.classList.add("hidden");
+    if (badgeStatusEl) {
+      badgeStatusEl.innerText = "🟢 Bến Xe Sẵn Sàng";
+      badgeStatusEl.style.color = "#10b981";
+      badgeStatusEl.style.borderColor = "rgba(16, 185, 129, 0.3)";
+      badgeStatusEl.style.background = "rgba(16, 185, 129, 0.12)";
+    }
+  }
+}
+
 /* ================== SỰ KIỆN 3: XE KHỞI HÀNH & XUẤT BẾN ================== */
 function triggerBusDeparture() {
   if (state.isDeparting) return;
@@ -674,9 +702,12 @@ function triggerBusDeparture() {
     busContainer.classList.add("driving");
     busContainer.style.transform = "translateX(calc(100vw + 600px))";
 
+    // Xe chạy xong -> Chuyển sang Phase 2: Giao diện Trong xe (public/TRONG_XE.png)
     setTimeout(() => {
-      resetTripForNextBatch();
-    }, 2000);
+      state.isDeparting = false;
+      switchToPhase(2);
+      showToast("✨ ĐÃ LÊN XE!", "Chào mừng hành khách vào trong xe FUONG TRANG đi Đà Lạt!", "🚌");
+    }, 1800);
   }, 900);
 }
 
@@ -690,6 +721,9 @@ function resetTripForNextBatch() {
   currentHornCount = 0;
   updateFuelUI();
   updateHornUI();
+
+  // Đảm bảo đưa về giao diện Phase 1 (Bến xe)
+  switchToPhase(1);
 
   if (busContainer) {
     busContainer.classList.remove("engine-running");
@@ -1136,6 +1170,21 @@ function initTestControls() {
           onPassengerGift(dummyName, "🌸 Hoa Hồng");
         }, i * 220);
       }
+    });
+  }
+
+  // Nút chuyển Phase 1 (Bến Xe) và Phase 2 (Trong Xe)
+  const btnPhaseTerminal = document.getElementById("btn-phase-terminal");
+  if (btnPhaseTerminal) {
+    btnPhaseTerminal.addEventListener("click", () => {
+      switchToPhase(1);
+    });
+  }
+
+  const btnPhaseInterior = document.getElementById("btn-phase-interior");
+  if (btnPhaseInterior) {
+    btnPhaseInterior.addEventListener("click", () => {
+      switchToPhase(2);
     });
   }
 
