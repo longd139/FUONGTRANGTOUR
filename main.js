@@ -58,11 +58,26 @@ const defaultSettings = {
   enableHorn: true,
   enableGuideVoice: true,
   guideMessages: [
-    "Xin chào 20 hành khách! Tôi là HDV chuyến xe FUONG TRANG đi Đà Lạt!",
-    "Bà con mình ai có bài hát nào hay góp vui giao lưu cùng chuyến xe không ạ?",
-    "Đố vui có thưởng trên xe: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì không?",
-    "Chúc toàn thể bà con trên xe một chuyến đi tràn đầy niềm vui và may mắn!",
-    "Bà con thắt dây an toàn, cùng ngắm nhìn cảnh đẹp qua cửa sổ xe nhé!"
+    {
+      q: "Đố vui có thưởng trên xe: Ai biết đặc sản trái cây nổi tiếng nhất Đà Lạt là gì không?",
+      a: "Đáp án chính xác: Dâu tây Đà Lạt nha bà con!"
+    },
+    {
+      q: "Đố vui: Món ăn vặt đường phố nào được mệnh danh là 'Pizza Đà Lạt'?",
+      a: "Đáp án là: Bánh tráng nướng Đà Lạt giòn rụm thơm ngon!"
+    },
+    {
+      q: "Đố vui: Hồ nước ngọt thơ mộng nằm ngay trung tâm thành phố Đà Lạt tên là gì?",
+      a: "Đáp án chính là: Hồ Xuân Hương thơ mộng!"
+    },
+    {
+      q: "Đố vui: Đà Lạt còn được người ta gọi bằng mỹ danh là thành phố ngàn gì?",
+      a: "Đáp án là: Thành phố ngàn hoa (hoặc Thành phố ngàn thông)!"
+    },
+    {
+      q: "Giao lưu: Chào mừng 20 hành khách! Bà con mình ai có bài hát nào hay góp vui cùng chuyến xe không ạ?",
+      a: "Cảm ơn bà con đã nhiệt tình tham gia giao lưu cùng chuyến xe FUONG TRANG!"
+    }
   ]
 };
 
@@ -75,7 +90,12 @@ function loadSettings() {
       const parsed = JSON.parse(saved);
       appSettings = { ...defaultSettings, ...parsed };
       if (parsed.guideMessages && parsed.guideMessages.length > 0) {
-        appSettings.guideMessages = parsed.guideMessages;
+        appSettings.guideMessages = parsed.guideMessages.map(item => {
+          if (typeof item === "string") {
+            return { q: item, a: "Đáp án đã có sẵn tại Đà Lạt nha bà con!" };
+          }
+          return { q: item.q || "", a: item.a || "" };
+        });
       }
       if (parsed.enableGuideVoice !== undefined) {
         appSettings.enableGuideVoice = parsed.enableGuideVoice;
@@ -736,24 +756,30 @@ function renderCabinPassengers() {
 /* ================== HOẠT ĐỘNG CỦA HƯỚNG DẪN VIÊN TRÊN XE (PHASE 2) ================== */
 let guideBubbleTimeout = null;
 let guideAutoTimer = null;
+let guideAnswerAutoTimeout = null;
 
-function triggerGuideActivity(customText = null) {
+function showGuideBubble(typeTitle, text, isAnswer = false) {
   const guideEl = document.getElementById("cabin-tour-guide");
   const bubbleEl = document.getElementById("guide-bubble");
+  const typeEl = document.getElementById("guide-bubble-type");
   const textEl = document.getElementById("guide-speech-text");
   if (!guideEl || !bubbleEl || !textEl) return;
 
-  const msgs = (appSettings.guideMessages && appSettings.guideMessages.length > 0)
-    ? appSettings.guideMessages
-    : defaultSettings.guideMessages;
+  if (typeEl) {
+    typeEl.innerText = typeTitle;
+    if (isAnswer) {
+      typeEl.classList.add("type-answer");
+    } else {
+      typeEl.classList.remove("type-answer");
+    }
+  }
 
-  const speech = customText || msgs[Math.floor(Math.random() * msgs.length)];
-  textEl.innerText = speech;
+  textEl.innerText = text;
   bubbleEl.classList.remove("hidden");
   guideEl.classList.add("speaking");
 
   if (appSettings.enableGuideVoice) {
-    speakStationAnnouncement(speech);
+    speakStationAnnouncement(text);
   }
 
   if (guideBubbleTimeout) clearTimeout(guideBubbleTimeout);
@@ -761,6 +787,34 @@ function triggerGuideActivity(customText = null) {
     bubbleEl.classList.add("hidden");
     guideEl.classList.remove("speaking");
   }, 6500);
+}
+
+function triggerGuideActivity(question = null, answer = null) {
+  if (guideAnswerAutoTimeout) clearTimeout(guideAnswerAutoTimeout);
+
+  const msgs = (appSettings.guideMessages && appSettings.guideMessages.length > 0)
+    ? appSettings.guideMessages
+    : defaultSettings.guideMessages;
+
+  let selected = null;
+  if (question) {
+    selected = { q: question, a: answer || "" };
+  } else {
+    selected = msgs[Math.floor(Math.random() * msgs.length)];
+  }
+
+  const qText = typeof selected === "string" ? selected : selected.q;
+  const aText = typeof selected === "string" ? "" : selected.a;
+
+  // Bước 1: HDV đưa ra câu hỏi đố vui
+  showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG", qText, false);
+
+  // Bước 2: Tự động công bố đáp án có sẵn sau 6.5s
+  if (aText) {
+    guideAnswerAutoTimeout = setTimeout(() => {
+      showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", aText, true);
+    }, 6500);
+  }
 }
 
 /* ================== QUẢN LÝ TIMELINE CHUYẾN XE 15 PHÚT (PHASE 2) ================== */
@@ -1225,33 +1279,80 @@ function renderGuideMessages() {
   listContainer.innerHTML = "";
 
   if (!appSettings.guideMessages || appSettings.guideMessages.length === 0) {
-    appSettings.guideMessages = [...defaultSettings.guideMessages];
+    appSettings.guideMessages = JSON.parse(JSON.stringify(defaultSettings.guideMessages));
   }
 
-  appSettings.guideMessages.forEach((msg, idx) => {
-    const row = document.createElement("div");
-    row.className = "message-item-row";
-    row.innerHTML = `
-      <input type="text" class="form-input guide-msg-input" data-index="${idx}" value="${msg.replace(/"/g, '&quot;')}" placeholder="Nhập câu hoạt náo / giao lưu...">
-      <button class="btn btn-test btn-test-single-guide" data-index="${idx}" title="Nghe thử & hiện trên xe" type="button">🔊</button>
-      <button class="btn btn-icon-danger btn-delete-guide" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+  appSettings.guideMessages.forEach((item, idx) => {
+    const qVal = typeof item === "string" ? item : (item.q || "");
+    const aVal = typeof item === "string" ? "" : (item.a || "");
+
+    const card = document.createElement("div");
+    card.className = "guide-qa-item";
+    card.innerHTML = `
+      <div class="guide-qa-inputs">
+        <div class="guide-qa-row">
+          <span class="guide-label-prefix q-tag">❓ Đố vui:</span>
+          <input type="text" class="form-input guide-q-input" data-index="${idx}" value="${String(qVal).replace(/"/g, '&quot;')}" placeholder="Nhập câu hỏi đố vui...">
+        </div>
+        <div class="guide-qa-row">
+          <span class="guide-label-prefix a-tag">💡 Đáp án:</span>
+          <input type="text" class="form-input guide-a-input" data-index="${idx}" value="${String(aVal).replace(/"/g, '&quot;')}" placeholder="Nhập câu trả lời / đáp án có sẵn...">
+        </div>
+      </div>
+      <div class="guide-qa-actions">
+        <button class="btn btn-qa-action btn-ask-guide" data-index="${idx}" title="Cho HDV hỏi câu này trên xe" type="button">❓ Hỏi</button>
+        <button class="btn btn-qa-action btn-answer-guide" data-index="${idx}" title="Cho HDV đọc đáp án câu này trên xe" type="button">💡 Đáp án</button>
+        <button class="btn btn-icon-danger btn-delete-guide" data-index="${idx}" title="Xóa câu này" type="button">🗑️</button>
+      </div>
     `;
-    listContainer.appendChild(row);
+    listContainer.appendChild(card);
   });
 
-  listContainer.querySelectorAll(".guide-msg-input").forEach(input => {
+  listContainer.querySelectorAll(".guide-q-input").forEach(input => {
     input.addEventListener("input", e => {
       const i = parseInt(e.target.dataset.index);
-      appSettings.guideMessages[i] = e.target.value;
+      if (typeof appSettings.guideMessages[i] === "string") {
+        appSettings.guideMessages[i] = { q: e.target.value, a: "" };
+      } else {
+        appSettings.guideMessages[i].q = e.target.value;
+      }
       saveSettings();
     });
   });
 
-  listContainer.querySelectorAll(".btn-test-single-guide").forEach(btn => {
+  listContainer.querySelectorAll(".guide-a-input").forEach(input => {
+    input.addEventListener("input", e => {
+      const i = parseInt(e.target.dataset.index);
+      if (typeof appSettings.guideMessages[i] === "string") {
+        appSettings.guideMessages[i] = { q: appSettings.guideMessages[i], a: e.target.value };
+      } else {
+        appSettings.guideMessages[i].a = e.target.value;
+      }
+      saveSettings();
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-ask-guide").forEach(btn => {
     btn.addEventListener("click", e => {
       const i = parseInt(e.currentTarget.dataset.index);
-      const text = appSettings.guideMessages[i] || "";
-      triggerGuideActivity(text);
+      const item = appSettings.guideMessages[i];
+      const q = typeof item === "string" ? item : item.q;
+      showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG", q, false);
+      showToast("🎤 ĐÃ ĐẶT CÂU HỎI", "HDV đang hỏi đố vui hành khách trên xe!", "❓");
+    });
+  });
+
+  listContainer.querySelectorAll(".btn-answer-guide").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.currentTarget.dataset.index);
+      const item = appSettings.guideMessages[i];
+      const a = typeof item === "string" ? "" : item.a;
+      if (!a) {
+        showToast("⚠️ CHƯA CÓ ĐÁP ÁN", "Vui lòng nhập đáp án cho câu hỏi này!", "⚠️");
+        return;
+      }
+      showGuideBubble("💡 ĐÁP ÁN CHÍNH XÁC", a, true);
+      showToast("💡 ĐÃ CÔNG BỐ ĐÁP ÁN", "HDV đã công bố câu trả lời trên xe!", "🎉");
     });
   });
 
@@ -1259,7 +1360,7 @@ function renderGuideMessages() {
     btn.addEventListener("click", e => {
       const i = parseInt(e.currentTarget.dataset.index);
       if (appSettings.guideMessages.length <= 1) {
-        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu hoạt náo!", "⚠️");
+        showToast("⚠️ KHÔNG THỂ XÓA", "Phải giữ lại ít nhất 1 câu hỏi & đáp án!", "⚠️");
         return;
       }
       appSettings.guideMessages.splice(i, 1);
@@ -1429,10 +1530,13 @@ function initTestControls() {
   const btnAddGuide = document.getElementById("btn-add-guide-msg");
   if (btnAddGuide) {
     btnAddGuide.addEventListener("click", () => {
-      appSettings.guideMessages.push("Bà con chuẩn bị đến trạm dừng chân tiếp theo nhé!");
+      appSettings.guideMessages.push({
+        q: "Đố vui: Đặc sản nổi tiếng tiếp theo của Đà Lạt là gì?",
+        a: "Đáp án chính xác là: Atisô và Trà Atisô Đà Lạt!"
+      });
       saveSettings();
       renderGuideMessages();
-      const inputs = document.querySelectorAll(".guide-msg-input");
+      const inputs = document.querySelectorAll(".guide-q-input");
       if (inputs.length > 0) inputs[inputs.length - 1].focus();
     });
   }

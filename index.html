@@ -118,7 +118,8 @@
           <div id="cabin-tour-guide" class="cabin-tour-guide" title="Bấm vào Hướng Dẫn Viên để phát hoạt náo!">
             <!-- Bong bóng lời nói hoạt náo -->
             <div id="guide-bubble" class="guide-speech-bubble hidden">
-              <span id="guide-speech-text">Xin chào 20 hành khách! Tôi là HDV chuyến xe FUONG TRANG!</span>
+              <div class="guide-bubble-header" id="guide-bubble-type">❓ ĐỐ VUI CÓ THƯỞNG</div>
+              <div class="guide-bubble-text" id="guide-speech-text">Đố vui: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì không?</div>
             </div>
             <!-- Thẻ tên hướng dẫn viên -->
             <div class="guide-tag">
@@ -298,7 +299,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎤</span>
-              <h3>5. Hoạt động Hướng Dẫn Viên (Trên xe)</h3>
+              <h3>5. Hoạt động Hướng Dẫn Viên (Đố vui & Giao lưu)</h3>
             </div>
             <label class="switch" title="Bật/Tắt hướng dẫn viên phát thanh">
               <input type="checkbox" id="setting-enable-guide-voice" checked>
@@ -307,10 +308,10 @@
           </div>
           <div class="card-body">
             <div class="card-subtitle-row">
-              <label class="field-label" style="margin-bottom: 0;">Danh sách câu hoạt náo / trò chơi / giao lưu:</label>
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn:</label>
               <div class="btn-group-row">
-                <button id="btn-trigger-guide-speak" class="btn btn-random" type="button" title="Kích hoạt hướng dẫn viên nói và hiển thị ngay">📢 Hoạt náo ngay</button>
-                <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
+                <button id="btn-trigger-guide-speak" class="btn btn-random" type="button" title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
+                <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu hỏi mới</button>
               </div>
             </div>
 
