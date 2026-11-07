@@ -662,34 +662,34 @@ function checkDepartureCondition() {
 /* ================== TỌA ĐỘ 20 CHIẾC GHẾ XANH TRONG XE (PHASE 2 - 5 HÀNG x 4 GHẾ) ================== */
 const CABIN_SEATS = [
   // Hàng 5 (xa nhất, gần buồng lái tài xế)
-  { x: 28.5, y: 41.5, scale: 0.50, zIndex: 11 },
-  { x: 38.5, y: 41.5, scale: 0.50, zIndex: 11 },
-  { x: 65.5, y: 41.5, scale: 0.50, zIndex: 11 },
-  { x: 76.5, y: 41.5, scale: 0.50, zIndex: 11 },
+  { x: 27.0, y: 42.8, scale: 0.48, zIndex: 11 },
+  { x: 36.8, y: 42.8, scale: 0.48, zIndex: 11 },
+  { x: 63.2, y: 42.8, scale: 0.48, zIndex: 11 },
+  { x: 73.0, y: 42.8, scale: 0.48, zIndex: 11 },
 
   // Hàng 4
-  { x: 24.5, y: 47.8, scale: 0.60, zIndex: 12 },
-  { x: 36.5, y: 47.8, scale: 0.60, zIndex: 12 },
-  { x: 67.8, y: 47.8, scale: 0.60, zIndex: 12 },
-  { x: 80.5, y: 47.8, scale: 0.60, zIndex: 12 },
+  { x: 22.8, y: 47.0, scale: 0.58, zIndex: 12 },
+  { x: 34.8, y: 47.0, scale: 0.58, zIndex: 12 },
+  { x: 65.2, y: 47.0, scale: 0.58, zIndex: 12 },
+  { x: 77.2, y: 47.0, scale: 0.58, zIndex: 12 },
 
   // Hàng 3
-  { x: 19.5, y: 55.6, scale: 0.74, zIndex: 13 },
-  { x: 33.5, y: 55.6, scale: 0.74, zIndex: 13 },
-  { x: 70.8, y: 55.6, scale: 0.74, zIndex: 13 },
-  { x: 86.2, y: 55.6, scale: 0.74, zIndex: 13 },
+  { x: 17.0, y: 54.0, scale: 0.70, zIndex: 13 },
+  { x: 31.8, y: 54.0, scale: 0.70, zIndex: 13 },
+  { x: 68.2, y: 54.0, scale: 0.70, zIndex: 13 },
+  { x: 83.0, y: 54.0, scale: 0.70, zIndex: 13 },
 
   // Hàng 2
-  { x: 13.5, y: 67.5, scale: 0.92, zIndex: 14 },
-  { x: 30.2, y: 67.5, scale: 0.92, zIndex: 14 },
-  { x: 74.5, y: 67.5, scale: 0.92, zIndex: 14 },
-  { x: 92.0, y: 67.5, scale: 0.92, zIndex: 14 },
+  { x: 11.2, y: 63.8, scale: 0.86, zIndex: 14 },
+  { x: 28.5, y: 63.8, scale: 0.86, zIndex: 14 },
+  { x: 71.5, y: 63.8, scale: 0.86, zIndex: 14 },
+  { x: 88.8, y: 63.8, scale: 0.86, zIndex: 14 },
 
   // Hàng 1 (gần nhất dưới đáy màn hình)
-  { x: 9.8,  y: 83.2, scale: 1.15, zIndex: 15 },
-  { x: 28.2, y: 83.2, scale: 1.15, zIndex: 15 },
-  { x: 77.2, y: 83.2, scale: 1.15, zIndex: 15 },
-  { x: 94.5, y: 83.2, scale: 1.15, zIndex: 15 }
+  { x: 9.2,  y: 76.5, scale: 1.08, zIndex: 15 },
+  { x: 26.2, y: 76.5, scale: 1.08, zIndex: 15 },
+  { x: 73.8, y: 76.5, scale: 1.08, zIndex: 15 },
+  { x: 90.8, y: 76.5, scale: 1.08, zIndex: 15 }
 ];
 
 /* Hiển thị toàn bộ hành khách đã mua vé ngồi ngay ngắn lên 20 chiếc ghế xanh trong xe */
@@ -713,7 +713,7 @@ function renderCabinPassengers() {
     charEl.style.top = `${seat.y}%`;
     charEl.style.zIndex = seat.zIndex;
     charEl.style.setProperty("--seat-scale", seat.scale.toFixed(3));
-    charEl.style.transform = `translate(-50%, -82%) scale(${seat.scale.toFixed(3)})`;
+    charEl.style.transform = `translate(-50%, -88%) scale(${seat.scale.toFixed(3)})`;
     charEl.style.animationDelay = `${(idx % 5) * 0.12}s`;
     layer.appendChild(charEl);
   });
