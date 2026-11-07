@@ -132,6 +132,9 @@
             </div>
           </div>
 
+          <!-- HIỆU ỨNG ĐÈN DISCO KHI CẢ XE LÊN NHẢY / QUẨY -->
+          <div id="cabin-disco-overlay" class="cabin-disco-overlay hidden"></div>
+
           <!-- HUD THÔNG TIN CHUYẾN XE KHI ĐANG TRÊN ĐƯỜNG ĐI ĐÀ LẠT -->
           <div class="cabin-trip-hud" id="cabin-trip-hud">
             <div class="cabin-route-header">
@@ -299,7 +302,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎤</span>
-              <h3>5. Hoạt động Hướng Dẫn Viên (Đố vui & Giao lưu)</h3>
+              <h3>5. Hoạt động Hướng Dẫn Viên (3 Loại Hoạt Động)</h3>
             </div>
             <label class="switch" title="Bật/Tắt hướng dẫn viên phát thanh">
               <input type="checkbox" id="setting-enable-guide-voice" checked>
@@ -307,18 +310,90 @@
             </label>
           </div>
           <div class="card-body">
-            <div class="card-subtitle-row">
-              <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn:</label>
-              <div class="btn-group-row">
-                <button id="btn-trigger-guide-speak" class="btn btn-random" type="button" title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
-                <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu hỏi mới</button>
+            <!-- 3 TAB CHỌN LOẠI HOẠT ĐỘNG: ĐẶT CÂU HỎI | ĐỔI NHẠC | NHẢY -->
+            <div class="activity-tabs-nav">
+              <button class="activity-tab-btn active" data-tab="tab-activity-quiz" type="button">
+                <span>❓</span> 1. Đặt câu hỏi (Đố vui)
+              </button>
+              <button class="activity-tab-btn" data-tab="tab-activity-music" type="button">
+                <span>🎵</span> 2. Đổi nhạc xe
+              </button>
+              <button class="activity-tab-btn" data-tab="tab-activity-dance" type="button">
+                <span>💃</span> 3. Cho nhân vật Nhảy
+              </button>
+            </div>
+
+            <!-- TAB 1: ĐẶT CÂU HỎI (ĐỐ VUI) -->
+            <div id="tab-activity-quiz" class="activity-tab-content active">
+              <div class="card-subtitle-row">
+                <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn (Giữ 2 phút):</label>
+                <div class="btn-group-row">
+                  <button id="btn-trigger-guide-speak" class="btn btn-random" type="button" title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
+                  <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu hỏi mới</button>
+                </div>
+              </div>
+              <div id="guide-messages-list" class="messages-list">
+                <!-- Render động bởi JavaScript -->
               </div>
             </div>
 
-            <!-- Danh sách các câu hướng dẫn viên động -->
-            <div id="guide-messages-list" class="messages-list">
-              <!-- Render động bởi JavaScript -->
+            <!-- TAB 2: ĐỔI NHẠC -->
+            <div id="tab-activity-music" class="activity-tab-content">
+              <div class="card-subtitle-row">
+                <label class="field-label" style="margin-bottom: 0;">Danh sách giai điệu / bài nhạc trên xe:</label>
+                <div class="btn-group-row">
+                  <button id="btn-stop-cabin-music" class="btn btn-icon-danger" type="button" title="Tắt nhạc">⏹️ Tắt nhạc</button>
+                  <button id="btn-random-cabin-music" class="btn btn-random" type="button" title="Đổi bài ngẫu nhiên">🎲 Đổi ngẫu nhiên</button>
+                </div>
+              </div>
+              <div class="music-track-list" id="cabin-music-list">
+                <!-- Render động các bài nhạc -->
+              </div>
+              <div class="music-volume-control">
+                <span class="music-vol-label">🔊 Âm lượng nhạc xe:</span>
+                <input type="range" id="cabin-music-volume" min="0" max="100" value="70" class="music-vol-slider">
+                <span id="cabin-music-vol-val" class="music-vol-badge">70%</span>
+              </div>
             </div>
+
+            <!-- TAB 3: NHẢY (CHO NHÂN VẬT LÊN NHẢY) -->
+            <div id="tab-activity-dance" class="activity-tab-content">
+              <div class="dance-controls-box">
+                <div class="dance-banner-info">
+                  <span class="dance-icon-big">🪩</span>
+                  <div class="dance-desc-text">
+                    <b>HOẠT ĐỘNG NHẢY QUẨY TƯNG BỪNG:</b>
+                    <p>Toàn bộ 20 nhân vật trên ghế và Hướng Dẫn Viên sẽ cùng đứng dậy nhảy múa theo nhạc kèm đèn Disco!</p>
+                  </div>
+                </div>
+                <div class="dance-actions-row">
+                  <button id="btn-start-dance" class="btn btn-dance-start" type="button">
+                    💃 Bắt đầu Nhảy (Quẩy 30s)
+                  </button>
+                  <button id="btn-stop-dance" class="btn btn-dance-stop" type="button">
+                    ⏹️ Dừng nhảy ngay
+                  </button>
+                </div>
+                <div class="dance-modes-container">
+                  <span class="dance-modes-title">Chọn kiểu nhảy:</span>
+                  <div class="dance-modes-grid">
+                    <label class="dance-radio-label">
+                      <input type="radio" name="dance-mode" value="disco" checked>
+                      <span>🕺 Nhún nhảy Disco sôi động</span>
+                    </label>
+                    <label class="dance-radio-label">
+                      <input type="radio" name="dance-mode" value="jump">
+                      <span>🤸 Nhảy tưng bừng bốc lửa</span>
+                    </label>
+                    <label class="dance-radio-label">
+                      <input type="radio" name="dance-mode" value="groove">
+                      <span>🪩 Lắc lư theo điệu nhạc</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 

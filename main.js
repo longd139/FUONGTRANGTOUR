@@ -749,6 +749,9 @@ function renderCabinPassengers() {
     const charEl = createCharacterElement(passenger.username, passenger.giftName);
     charEl.id = `cabin-char-${passenger.username.replace(/\s+/g, '_')}`;
     charEl.className = "cabin-passenger-seat";
+    if (typeof isCabinDancing !== "undefined" && isCabinDancing) {
+      charEl.classList.add("dancing", `dancing-${currentDanceMode}`);
+    }
     charEl.style.left = `${seat.x}%`;
     charEl.style.top = `${seat.y}%`;
     charEl.style.zIndex = seat.zIndex;
@@ -1069,6 +1072,289 @@ function triggerGuideActivity(question = null, answer = null) {
       }
     }
   }, 1000);
+}
+
+/* ================== HOẠT ĐỘNG 2: ĐỔI NHẠC XE (CABIN MUSIC) ================== */
+const CABIN_MUSIC_TRACKS = [
+  { id: "vinahouse", name: "Vinahouse Quẩy Xe Khách", genre: "132 BPM • Bass căng cực", icon: "🎧", bpm: 132 },
+  { id: "chibi-dance", name: "Nhạc Tàu Lên Xe Đi Bão", genre: "140 BPM • Chiptune tươi vui", icon: "🎺", bpm: 140 },
+  { id: "edm-club", name: "EDM Nonstop Bay Lắc", genre: "128 BPM • Vũ điệu điện tử", icon: "⚡", bpm: 128 },
+  { id: "dalat-chill", name: "Đà Lạt Hoàng Hôn Chill", genre: "95 BPM • Lofi acoustic êm dịu", icon: "🎸", bpm: 95 }
+];
+
+let currentPlayingTrackIndex = -1;
+let musicLoopInterval = null;
+let cabinMusicVolume = 0.7;
+
+function playCabinBeat(step, trackId) {
+  try {
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    const now = audioCtx.currentTime;
+
+    // 1. Nhịp Kick Drum 4-on-the-floor
+    if (step % 4 === 0) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
+      gain.gain.setValueAtTime(0.5 * cabinMusicVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+
+    // 2. Hi-hat nhịp Disco xèng xèng
+    if (step % 2 === 1) {
+      const bufferSize = Math.floor(audioCtx.sampleRate * 0.04);
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "highpass";
+      filter.frequency.setValueAtTime(7000, now);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.16 * cabinMusicVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(now);
+    }
+
+    // 3. Bassline / Melody theo phong cách từng bài
+    const trackBassNotes = {
+      "vinahouse": [65.41, 65.41, 77.78, 87.31, 65.41, 98.00, 87.31, 77.78],
+      "chibi-dance": [130.81, 164.81, 196.00, 261.63, 196.00, 220.00, 246.94, 261.63],
+      "edm-club": [73.42, 73.42, 82.41, 98.00, 110.00, 98.00, 82.41, 73.42],
+      "dalat-chill": [110.00, 130.81, 146.83, 164.81, 130.81, 146.83, 164.81, 196.00]
+    };
+    const notes = trackBassNotes[trackId] || trackBassNotes["vinahouse"];
+    const noteFreq = notes[step % notes.length];
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = trackId === "chibi-dance" ? "square" : (trackId === "dalat-chill" ? "sine" : "sawtooth");
+    osc.frequency.setValueAtTime(noteFreq, now);
+
+    const dur = trackId === "dalat-chill" ? 0.28 : 0.12;
+    gain.gain.setValueAtTime(0.2 * cabinMusicVolume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  } catch (e) {}
+}
+
+function playCabinMusic(trackIndex = 0, announce = true) {
+  if (trackIndex < 0 || trackIndex >= CABIN_MUSIC_TRACKS.length) {
+    trackIndex = 0;
+  }
+  stopCabinMusic(false);
+
+  currentPlayingTrackIndex = trackIndex;
+  const track = CABIN_MUSIC_TRACKS[trackIndex];
+
+  // Tính chu kỳ nhịp 16th note dựa vào BPM
+  const stepMs = Math.round((60000 / track.bpm) / 4);
+  let step = 0;
+
+  musicLoopInterval = setInterval(() => {
+    playCabinBeat(step, track.id);
+    step++;
+  }, stepMs);
+
+  updateCabinMusicUI();
+
+  if (announce) {
+    showGuideBubble(
+      "🎵 ĐỔI NHẠC TRÊN XE",
+      `Bác tài đã đổi bài: <b>${track.name}</b>!<br><span style="color:#94a3b8; font-size:10px;">${track.genre}</span>`,
+      false,
+      8000
+    );
+    if (appSettings.enableGuideVoice) {
+      speakStationAnnouncement(`Bác tài ơi lên bài ${track.name} cho cả xe cùng nghe nào bà con!`);
+    }
+    showToast("🎵 ĐÃ ĐỔI BÀI HÁT", `Đang phát: ${track.name}`, "🎶");
+  }
+}
+
+function stopCabinMusic(showNotification = true) {
+  if (musicLoopInterval) {
+    clearInterval(musicLoopInterval);
+    musicLoopInterval = null;
+  }
+  currentPlayingTrackIndex = -1;
+  updateCabinMusicUI();
+
+  if (showNotification) {
+    showGuideBubble("⏹️ TẮT NHẠC XE", "Bác tài đã tắt nhạc để bà con nghỉ ngơi!", false, 5000);
+    showToast("⏹️ ĐÃ TẮT NHẠC", "Nhạc trên xe đã tạm dừng!", "🔇");
+  }
+}
+
+function renderCabinMusicList() {
+  const container = document.getElementById("cabin-music-list");
+  if (!container) return;
+  container.innerHTML = "";
+
+  CABIN_MUSIC_TRACKS.forEach((track, idx) => {
+    const isPlaying = idx === currentPlayingTrackIndex;
+    const item = document.createElement("div");
+    item.className = `music-track-item ${isPlaying ? "playing" : ""}`;
+    item.id = `music-track-${idx}`;
+    item.innerHTML = `
+      <div class="music-track-info">
+        <span class="music-track-icon">${track.icon}</span>
+        <div>
+          <div class="music-track-name">${track.name}</div>
+          <div class="music-track-genre">${track.genre}</div>
+        </div>
+      </div>
+      <div class="music-track-actions">
+        <button class="btn btn-play-track" data-index="${idx}" type="button">
+          ${isPlaying ? "⏹️ Đang phát" : "▶️ Chọn bài"}
+        </button>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+
+  container.querySelectorAll(".btn-play-track").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const idx = parseInt(e.currentTarget.dataset.index);
+      if (currentPlayingTrackIndex === idx) {
+        stopCabinMusic(true);
+      } else {
+        playCabinMusic(idx, true);
+      }
+    });
+  });
+}
+
+function updateCabinMusicUI() {
+  renderCabinMusicList();
+}
+
+/* ================== HOẠT ĐỘNG 3: CHO NHÂN VẬT LÊN NHẢY (CABIN DANCE) ================== */
+let isCabinDancing = false;
+let cabinDanceTimeout = null;
+let currentDanceMode = "disco"; // 'disco' | 'jump' | 'groove'
+
+function startCabinDance(mode = null, duration = 30000) {
+  if (mode) currentDanceMode = mode;
+  isCabinDancing = true;
+
+  if (cabinDanceTimeout) clearTimeout(cabinDanceTimeout);
+
+  // 1. Tự động bật nhạc quẩy nếu chưa có nhạc
+  if (currentPlayingTrackIndex === -1) {
+    playCabinMusic(0, false);
+  }
+
+  // 2. Gán class nhảy cho toàn bộ nhân vật trên ghế
+  const seats = document.querySelectorAll(".cabin-passenger-seat");
+  seats.forEach(seat => {
+    seat.classList.remove("dancing", "dancing-disco", "dancing-jump", "dancing-groove");
+    seat.classList.add("dancing", `dancing-${currentDanceMode}`);
+  });
+
+  // 3. Cho Hướng Dẫn Viên nhảy giữa xe
+  const guide = document.getElementById("cabin-tour-guide");
+  if (guide) {
+    guide.classList.add("dancing-guide");
+  }
+
+  // 4. Bật hiệu ứng đèn Disco sân khấu
+  const discoOverlay = document.getElementById("cabin-disco-overlay");
+  if (discoOverlay) {
+    discoOverlay.classList.remove("hidden");
+  }
+
+  // 5. HDV phát thanh và hiển thị bong bóng
+  showGuideBubble(
+    "💃 CẢ XE CÙNG NHẢY!",
+    `Toàn thể hành khách đứng dậy quẩy theo điệu nhạc nào!<br><b style="color:#fbbf24;">1 2 3... LÊN LÀ LÊN!</b>`,
+    false,
+    8000
+  );
+
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement("Bà con ơi cùng đứng dậy nhảy quẩy theo điệu nhạc nào! Lên luôn bà con ơi!");
+  }
+
+  showToast("💃 CẢ XE CÙNG NHẢY!", "Toàn bộ hành khách đang nhảy quẩy cực sung!", "🪩");
+
+  // Tự động dừng sau thời gian duration (mặc định 30 giây)
+  cabinDanceTimeout = setTimeout(() => {
+    stopCabinDance();
+  }, duration);
+}
+
+function stopCabinDance() {
+  isCabinDancing = false;
+  if (cabinDanceTimeout) {
+    clearTimeout(cabinDanceTimeout);
+    cabinDanceTimeout = null;
+  }
+
+  // Bỏ hiệu ứng nhảy của các nhân vật trên ghế
+  const seats = document.querySelectorAll(".cabin-passenger-seat");
+  seats.forEach(seat => {
+    seat.classList.remove("dancing", "dancing-disco", "dancing-jump", "dancing-groove");
+  });
+
+  // Bỏ hiệu ứng nhảy của Hướng Dẫn Viên
+  const guide = document.getElementById("cabin-tour-guide");
+  if (guide) {
+    guide.classList.remove("dancing-guide");
+  }
+
+  // Tắt đèn Disco sân khấu
+  const discoOverlay = document.getElementById("cabin-disco-overlay");
+  if (discoOverlay) {
+    discoOverlay.classList.add("hidden");
+  }
+
+  showGuideBubble(
+    "🚌 HẾT GIỜ NHẢY",
+    "Cảm ơn bà con đã quẩy nhiệt tình! Mời bà con ngồi lại vị trí ghế để xe tiếp tục hành trình!",
+    false,
+    6000
+  );
+
+  showToast("⏹️ ĐÃ DỪNG NHẢY", "Hành khách đã ngồi lại vị trí ghế!", "🚌");
+}
+
+/* ================== QUẢN LÝ 3 TAB HOẠT ĐỘNG TRONG ADMIN ================== */
+function initActivityTabs() {
+  const tabBtns = document.querySelectorAll(".activity-tab-btn");
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document.querySelectorAll(".activity-tab-content").forEach(content => {
+        content.classList.remove("active");
+      });
+
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.classList.add("active");
+      }
+    });
+  });
 }
 
 /* ================== QUẢN LÝ TIMELINE CHUYẾN XE 15 PHÚT (PHASE 2) ================== */
@@ -1820,6 +2106,57 @@ function initTestControls() {
     });
   }
 
+  // Khởi tạo 3 Tab Hoạt Động (Đặt câu hỏi, Đổi nhạc, Nhảy)
+  initActivityTabs();
+
+  // Khởi tạo danh sách nhạc và điều khiển đổi nhạc
+  renderCabinMusicList();
+
+  const btnStopMusic = document.getElementById("btn-stop-cabin-music");
+  if (btnStopMusic) {
+    btnStopMusic.addEventListener("click", () => stopCabinMusic(true));
+  }
+  const btnRandomMusic = document.getElementById("btn-random-cabin-music");
+  if (btnRandomMusic) {
+    btnRandomMusic.addEventListener("click", () => {
+      const r = Math.floor(Math.random() * CABIN_MUSIC_TRACKS.length);
+      playCabinMusic(r, true);
+    });
+  }
+
+  const volSlider = document.getElementById("cabin-music-volume");
+  const volBadge = document.getElementById("cabin-music-vol-val");
+  if (volSlider) {
+    volSlider.addEventListener("input", e => {
+      const v = parseInt(e.target.value);
+      cabinMusicVolume = v / 100;
+      if (volBadge) volBadge.innerText = `${v}%`;
+    });
+  }
+
+  // Khởi tạo các nút điều khiển Nhảy (cho nhân vật lên nhảy)
+  const btnStartDance = document.getElementById("btn-start-dance");
+  if (btnStartDance) {
+    btnStartDance.addEventListener("click", () => {
+      const selectedRadio = document.querySelector('input[name="dance-mode"]:checked');
+      const mode = selectedRadio ? selectedRadio.value : "disco";
+      startCabinDance(mode, 30000);
+    });
+  }
+  const btnStopDance = document.getElementById("btn-stop-dance");
+  if (btnStopDance) {
+    btnStopDance.addEventListener("click", () => stopCabinDance());
+  }
+
+  document.querySelectorAll('input[name="dance-mode"]').forEach(radio => {
+    radio.addEventListener("change", e => {
+      currentDanceMode = e.target.value;
+      if (isCabinDancing) {
+        startCabinDance(currentDanceMode, 30000);
+      }
+    });
+  });
+
   // 3. Nút sao chép link OBS
   const btnCopyObs = document.getElementById("btn-copy-obs");
   if (btnCopyObs) {
@@ -2357,4 +2694,8 @@ if (typeof window !== "undefined") {
   window.triggerGuideActivity = triggerGuideActivity;
   window.checkGuideQuizAnswer = checkGuideQuizAnswer;
   window.isAnswerMatching = isAnswerMatching;
+  window.playCabinMusic = playCabinMusic;
+  window.stopCabinMusic = stopCabinMusic;
+  window.startCabinDance = startCabinDance;
+  window.stopCabinDance = stopCabinDance;
 }

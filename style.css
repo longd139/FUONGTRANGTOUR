@@ -1673,3 +1673,389 @@ body.obs-mode .phone-frame,
   background: #059669;
   color: #fff;
 }
+
+/* ================== 3 TAB HOẠT ĐỘNG: ĐỐ VUI, ĐỔI NHẠC, NHẢY ================== */
+.activity-tabs-nav {
+  display: flex;
+  gap: 6px;
+  background: #0a0d14;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #1e2433;
+}
+
+.activity-tab-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.activity-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.activity-tab-btn.active {
+  background: var(--color-brand-orange);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(249, 115, 22, 0.35);
+}
+
+.activity-tab-content {
+  display: none;
+}
+
+.activity-tab-content.active {
+  display: block;
+}
+
+/* ================== TAB 2: ĐỔI NHẠC TRÊN XE ================== */
+.music-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.music-track-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #11141e;
+  border: 1.2px solid #23283a;
+  border-radius: 10px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.music-track-item:hover {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: #151926;
+}
+
+.music-track-item.playing {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.music-track-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.music-track-icon {
+  font-size: 20px;
+}
+
+.music-track-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.music-track-genre {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.music-track-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-play-track {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-weight: 800;
+  cursor: pointer;
+  background: #1e3a8a;
+  color: #93c5fd;
+  border: 1px solid #3b82f6;
+  transition: all 0.2s ease;
+}
+
+.btn-play-track:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.music-track-item.playing .btn-play-track {
+  background: #059669;
+  color: #fff;
+  border-color: #10b981;
+}
+
+.music-volume-control {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #11141e;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #1e2433;
+}
+
+.music-vol-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.music-vol-slider {
+  flex: 1;
+  accent-color: var(--color-brand-orange);
+  cursor: pointer;
+}
+
+.music-vol-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+  min-width: 34px;
+  text-align: right;
+}
+
+/* ================== TAB 3: HOẠT ĐỘNG NHẢY CỦA NHÂN VẬT ================== */
+.dance-controls-box {
+  background: #11141e;
+  border: 1.2px solid #23283a;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.dance-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.dance-icon-big {
+  font-size: 32px;
+  animation: pulseWinner 0.6s infinite alternate;
+}
+
+.dance-desc-text b {
+  display: block;
+  font-size: 12px;
+  color: #d8b4fe;
+  margin-bottom: 3px;
+}
+
+.dance-desc-text p {
+  font-size: 11px;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.dance-actions-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.btn-dance-start {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-dance-start:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.btn-dance-stop {
+  background: #1e2433;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-dance-stop:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.dance-modes-container {
+  margin-top: 14px;
+  border-top: 1px solid #1e2433;
+  padding-top: 10px;
+}
+
+.dance-modes-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.dance-modes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dance-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: #0a0d14;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #1e2433;
+  transition: border-color 0.2s ease;
+}
+
+.dance-radio-label:hover {
+  border-color: #a855f7;
+}
+
+.dance-radio-label input {
+  accent-color: #a855f7;
+}
+
+/* ================== ANIMATION NHẢY CỦA CÁC NHÂN VẬT TRÊN XE ================== */
+/* 1. Kiểu Disco: Nhún nhảy và nghiêng nhẹ */
+.cabin-passenger-seat.dancing,
+.cabin-passenger-seat.dancing-disco {
+  animation: passengerDisco 0.38s infinite alternate ease-in-out !important;
+}
+
+@keyframes passengerDisco {
+  0% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateY(-12px) rotate(-6deg);
+  }
+  100% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateY(-18px) rotate(6deg);
+  }
+}
+
+/* 2. Kiểu Jump: Bật nhảy mạnh mẽ tưng bừng */
+.cabin-passenger-seat.dancing-jump {
+  animation: passengerJump 0.28s infinite alternate cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+@keyframes passengerJump {
+  0% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateY(0px) scaleY(0.92);
+  }
+  100% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateY(-26px) scaleY(1.08);
+  }
+}
+
+/* 3. Kiểu Groove: Lắc lư theo điệu nhạc */
+.cabin-passenger-seat.dancing-groove {
+  animation: passengerGroove 0.45s infinite alternate ease-in-out !important;
+}
+
+@keyframes passengerGroove {
+  0% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateX(-6px) rotate(-8deg);
+  }
+  100% {
+    transform: translate(-50%, -88%) scale(var(--seat-scale, 1)) translateX(6px) rotate(8deg);
+  }
+}
+
+/* Tạo độ trễ so le (wave) giữa các hàng ghế để động tác nhảy nhấp nhô tuyệt đẹp */
+.cabin-passengers-layer .cabin-passenger-seat:nth-child(2n) {
+  animation-delay: 0.08s !important;
+}
+.cabin-passengers-layer .cabin-passenger-seat:nth-child(3n) {
+  animation-delay: 0.16s !important;
+}
+.cabin-passengers-layer .cabin-passenger-seat:nth-child(4n) {
+  animation-delay: 0.24s !important;
+}
+
+/* Hướng dẫn viên nhảy sôi động giữa xe */
+.cabin-tour-guide.dancing-guide {
+  animation: tourGuideDance 0.32s infinite alternate cubic-bezier(0.3, 0, 0.7, 1) !important;
+}
+
+@keyframes tourGuideDance {
+  0% {
+    transform: translate(-50%, -90%) scale(0.68) translateY(0) rotate(-5deg);
+  }
+  100% {
+    transform: translate(-50%, -90%) scale(0.68) translateY(-22px) rotate(5deg);
+  }
+}
+
+/* ================== HIỆU ỨNG ĐÈN DISCO SÂN KHẤU TRONG XE ================== */
+.cabin-disco-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle at 50% 30%, rgba(236, 72, 153, 0.35), transparent 60%),
+              radial-gradient(circle at 20% 70%, rgba(59, 130, 246, 0.35), transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(234, 179, 8, 0.35), transparent 50%);
+  animation: discoFlashes 0.6s infinite alternate ease-in-out;
+  transition: opacity 0.4s ease;
+}
+
+.cabin-disco-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@keyframes discoFlashes {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+    opacity: 0.6;
+  }
+  50% {
+    filter: hue-rotate(120deg) brightness(1.3);
+    opacity: 0.85;
+  }
+  100% {
+    filter: hue-rotate(240deg) brightness(1.5);
+    opacity: 0.7;
+  }
+}
