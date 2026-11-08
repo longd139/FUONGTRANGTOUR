@@ -193,6 +193,28 @@
             <div class="guide-bubble-header" id="guide-bubble-type">❓ ĐỐ VUI CÓ THƯỞNG</div>
             <div class="guide-bubble-text" id="guide-speech-text">Đố vui: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì không?</div>
           </div>
+
+          <!-- BẢNG MINIGAME NỐI TỪ 5 GIÂY (HIỂN THỊ DƯỚI THANH TIMELINE KHI BẬT) -->
+          <div id="wordchain-box" class="wordchain-box hidden">
+            <div class="wordchain-header">
+              <span class="wordchain-title">🔤 MINIGAME NỐI TỪ</span>
+              <span class="wordchain-timer-badge" id="wordchain-timer">05.0s</span>
+            </div>
+            <div class="wordchain-body">
+              <div class="wordchain-prompt">
+                Từ khóa: <span class="wordchain-current-word" id="wordchain-current-word">Đà Lạt</span>
+              </div>
+              <div class="wordchain-rule">
+                👉 Nhanh tay gõ từ bắt đầu bằng chữ "<span id="wordchain-next-letter" class="highlight-letter">Lạt</span>"! (+1đ, đủ 20đ = 1 Vé Free)
+              </div>
+              <div class="wordchain-track">
+                <div class="wordchain-fill" id="wordchain-fill" style="width: 100%;"></div>
+              </div>
+            </div>
+            <div class="wordchain-footer" id="wordchain-last-winner">
+              ⏱️ Còn 5 giây để nối từ...
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -347,7 +369,7 @@
           <div class="card-header">
             <div class="card-title">
               <span class="card-icon">🎤</span>
-              <h3>5. Hoạt động Hướng Dẫn Viên (3 Loại Hoạt Động)</h3>
+              <h3>5. Hoạt động Hướng Dẫn Viên (4 Loại Hoạt Động)</h3>
             </div>
             <label class="switch" title="Bật/Tắt hướng dẫn viên phát thanh">
               <input type="checkbox" id="setting-enable-guide-voice" checked>
@@ -355,7 +377,7 @@
             </label>
           </div>
           <div class="card-body">
-            <!-- 3 TAB CHỌN LOẠI HOẠT ĐỘNG: ĐẶT CÂU HỎI | ĐỔI NHẠC | NHẢY -->
+            <!-- 4 TAB CHỌN LOẠI HOẠT ĐỘNG: ĐẶT CÂU HỎI | ĐỔI NHẠC | NHẢY | NỐI TỪ -->
             <div class="activity-tabs-nav">
               <button class="activity-tab-btn active" data-tab="tab-activity-quiz" type="button">
                 <span>❓</span> 1. Đặt câu hỏi (Đố vui)
@@ -365,6 +387,9 @@
               </button>
               <button class="activity-tab-btn" data-tab="tab-activity-dance" type="button">
                 <span>💃</span> 3. Cho nhân vật Nhảy
+              </button>
+              <button class="activity-tab-btn" data-tab="tab-activity-wordchain" type="button">
+                <span>🔤</span> 4. Minigame Nối Từ (5s)
               </button>
             </div>
 
@@ -454,6 +479,45 @@
                       <input type="radio" name="dance-mode" value="groove">
                       <span>🪩 Lắc lư theo điệu nhạc</span>
                     </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 4: MINIGAME NỐI TỪ (5 GIÂY) -->
+            <div id="tab-activity-wordchain" class="activity-tab-content">
+              <div class="wordchain-admin-box">
+                <div class="card-subtitle-row">
+                  <label class="field-label" style="margin-bottom: 0;">Điều khiển Minigame Nối Từ (Đếm ngược 5s):</label>
+                </div>
+                <div class="wordchain-control-row">
+                  <div class="input-with-label" style="flex: 1;">
+                    <span class="sub-label">Từ khởi đầu:</span>
+                    <input type="text" id="input-wordchain-start" class="form-input" value="Đà Lạt" placeholder="Ví dụ: Đà Lạt, Bến xe, Bông hoa...">
+                  </div>
+                  <div class="btn-group-row" style="align-self: flex-end;">
+                    <button id="btn-start-wordchain" class="btn btn-random" type="button">🚀 Bắt đầu Nối Từ 5s</button>
+                    <button id="btn-stop-wordchain" class="btn btn-icon-danger" type="button">⏹️ Dừng trò chơi</button>
+                  </div>
+                </div>
+
+                <div class="wordchain-rule-banner">
+                  <div class="rule-title">📜 LUẬT CHƠI & TÍCH ĐIỂM VÉ FREE:</div>
+                  <ul>
+                    <li>Mỗi lượt đếm ngược <b>5 giây</b>. Khán giả comment từ 2 tiếng bắt đầu bằng tiếng cuối từ trước.</li>
+                    <li>Người comment nhanh nhất & đúng luật: <b>+1 điểm</b> và từ đó trở thành từ mới để nối tiếp!</li>
+                    <li>Đủ <b>20 điểm</b> = Nhận <b>1 Vé miễn phí (Free Ticket)</b> cho các chuyến đi tiếp theo!</li>
+                    <li>Số điểm tích lũy được <b>lưu vĩnh viễn</b> qua các chuyến đi (không bị mất khi hết hành trình).</li>
+                  </ul>
+                </div>
+
+                <div class="wordchain-leaderboard-section">
+                  <div class="leaderboard-header-row">
+                    <span class="leaderboard-title">🏆 BẢNG TÍCH ĐIỂM & VÉ MIỄN PHÍ:</span>
+                    <button id="btn-clear-wordchain-pts" class="btn btn-sm btn-outline-danger" type="button" title="Xóa toàn bộ điểm đã lưu">🗑️ Xóa điểm đã lưu</button>
+                  </div>
+                  <div class="wordchain-leaderboard-table" id="wordchain-leaderboard-list">
+                    <!-- Render động danh sách người tích điểm -->
                   </div>
                 </div>
               </div>

@@ -517,6 +517,11 @@ function handleComment(username = "Hành khách", commentText = "") {
   // 1. Hiển thị bong bóng bình luận trên đầu hành khách (cả Phase 1 ngoài sân lẫn Phase 2 trên xe)
   showPassengerComment(username, text);
 
+  // 1.5. Kiểm tra nếu minigame Nối Từ đang chạy thì ưu tiên bắt từ nối
+  if (typeof wordChainState !== "undefined" && wordChainState.active && checkWordChainComment(username, text)) {
+    return;
+  }
+
   // 2. Kiểm tra nếu có câu đố vui của HDV đang chờ người trả lời đúng
   if (checkGuideQuizAnswer(username, text)) {
     return;
@@ -645,6 +650,19 @@ function onPassengerJoin(username) {
 
   if (state.farPassengers.includes(username) || state.seatedPassengers.some(p => p.username === username)) {
     return;
+  }
+
+  // Nếu hành khách có vé miễn phí tích lũy từ Minigame Nối Từ và xe chưa kín 20 chỗ: Tự động cho lên xe VIP!
+  if (state.currentPhase === 1 && state.seatedPassengers.length < CONFIG.TOTAL_SEATS) {
+    const data = getWordChainUserData();
+    if ((data.tickets[username] || 0) > 0) {
+      data.tickets[username] -= 1;
+      saveWordChainUserData(data.points, data.tickets);
+      renderWordChainLeaderboard();
+      onPassengerGift(username, "🌸 Vé xe (Free Minigame)");
+      showToast("🎟️ DÙNG VÉ MIỄN PHÍ!", `${username} đã dùng 1 vé tích lũy minigame để lên xe VIP!`, "🎉");
+      return;
+    }
   }
 
   // Tối đa 25 người cùng lúc trên khoảng sân rộng
@@ -1244,6 +1262,254 @@ function triggerGuideActivity(question = null, answer = null, force = false) {
       }
     }
   }, 1000);
+}
+
+/* ================== HOẠT ĐỘNG 4: MINIGAME NỐI TỪ 5 GIÂY & TÍCH ĐIỂM VÉ MIỄN PHÍ ================== */
+const WORDCHAIN_STORAGE_KEY = "fuongtrang_wordchain_points";
+const FREETICKET_STORAGE_KEY = "fuongtrang_free_tickets";
+
+const wordChainState = {
+  active: false,
+  currentWord: "Đà Lạt",
+  currentLastWord: "lạt",
+  remainingMs: 5000,
+  timerInterval: null
+};
+
+function getWordChainUserData() {
+  try {
+    const rawPts = localStorage.getItem(WORDCHAIN_STORAGE_KEY);
+    const rawTkt = localStorage.getItem(FREETICKET_STORAGE_KEY);
+    return {
+      points: rawPts ? JSON.parse(rawPts) : {},
+      tickets: rawTkt ? JSON.parse(rawTkt) : {}
+    };
+  } catch (e) {
+    return { points: {}, tickets: {} };
+  }
+}
+
+function saveWordChainUserData(points, tickets) {
+  try {
+    localStorage.setItem(WORDCHAIN_STORAGE_KEY, JSON.stringify(points));
+    localStorage.setItem(FREETICKET_STORAGE_KEY, JSON.stringify(tickets));
+  } catch (e) {}
+}
+
+function parseWordParts(phrase) {
+  if (!phrase) return null;
+  const clean = phrase.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'<>]/g, "").trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length < 2) return null; // Từ phải có ít nhất 2 tiếng
+  return {
+    firstWord: words[0].toLowerCase(),
+    lastWord: words[words.length - 1].toLowerCase(),
+    fullPhrase: words.slice(0, 3).join(" ")
+  };
+}
+
+function updateWordChainUI() {
+  const currentWordEl = document.getElementById("wordchain-current-word");
+  const nextLetterEl = document.getElementById("wordchain-next-letter");
+  if (currentWordEl) currentWordEl.innerText = wordChainState.currentWord;
+  if (nextLetterEl) {
+    const cap = wordChainState.currentLastWord.charAt(0).toUpperCase() + wordChainState.currentLastWord.slice(1);
+    nextLetterEl.innerText = cap;
+  }
+}
+
+function startWordChain(initialWord = "") {
+  let word = (initialWord || "").trim();
+  if (!word) {
+    const input = document.getElementById("input-wordchain-start");
+    word = input ? input.value.trim() : "Đà Lạt";
+  }
+  const parts = parseWordParts(word);
+  if (!parts) {
+    wordChainState.currentWord = word || "Đà Lạt";
+    const splitted = wordChainState.currentWord.split(/\s+/);
+    wordChainState.currentLastWord = splitted[splitted.length - 1].toLowerCase();
+  } else {
+    wordChainState.currentWord = parts.fullPhrase;
+    wordChainState.currentLastWord = parts.lastWord;
+  }
+
+  wordChainState.active = true;
+
+  // Ẩn bảng câu hỏi HDV, hiện bảng minigame nối từ
+  const guideBubble = document.getElementById("guide-bubble");
+  const wordchainBox = document.getElementById("wordchain-box");
+  if (guideBubble) guideBubble.classList.add("hidden");
+  if (wordchainBox) wordchainBox.classList.remove("hidden");
+
+  updateWordChainUI();
+  const footerEl = document.getElementById("wordchain-last-winner");
+  if (footerEl) footerEl.innerHTML = "⏱️ Còn 5 giây để nối từ tiếp theo...";
+
+  resetWordChainTimer();
+
+  const capLetter = wordChainState.currentLastWord.charAt(0).toUpperCase() + wordChainState.currentLastWord.slice(1);
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement(`Bắt đầu minigame nối từ! Từ khởi đầu là ${wordChainState.currentWord}. Mau comment từ bắt đầu bằng chữ ${capLetter}!`);
+  }
+  showToast("🔤 MINIGAME NỐI TỪ", `Từ khóa: "${wordChainState.currentWord}". Nhanh tay comment từ bắt đầu bằng "${capLetter}" trong 5s!`, "⏱️");
+}
+
+function resetWordChainTimer() {
+  if (wordChainState.timerInterval) clearInterval(wordChainState.timerInterval);
+  wordChainState.remainingMs = 5000;
+
+  const timerBadge = document.getElementById("wordchain-timer");
+  const timerFill = document.getElementById("wordchain-fill");
+
+  if (timerBadge) timerBadge.innerText = "05.0s";
+  if (timerFill) timerFill.style.width = "100%";
+
+  wordChainState.timerInterval = setInterval(() => {
+    wordChainState.remainingMs -= 100;
+    const sec = Math.max(0, wordChainState.remainingMs / 1000);
+
+    if (timerBadge) {
+      timerBadge.innerText = sec < 10 ? `0${sec.toFixed(1)}s` : `${sec.toFixed(1)}s`;
+    }
+    if (timerFill) {
+      const pct = Math.max(0, Math.min(100, (wordChainState.remainingMs / 5000) * 100));
+      timerFill.style.width = `${pct}%`;
+    }
+
+    if (wordChainState.remainingMs <= 0) {
+      clearInterval(wordChainState.timerInterval);
+      wordChainState.timerInterval = null;
+      endWordChainByTimeout();
+    }
+  }, 100);
+}
+
+function endWordChainByTimeout() {
+  const footerEl = document.getElementById("wordchain-last-winner");
+  if (footerEl) {
+    footerEl.innerHTML = `⏰ <b style="color:#ef4444;">HẾT 5 GIÂY!</b> Không ai đối được từ "${wordChainState.currentWord}". Trò chơi kết thúc!`;
+  }
+
+  if (appSettings.enableGuideVoice) {
+    speakStationAnnouncement(`Hết 5 giây rồi bà con ơi! Không ai đối được từ ${wordChainState.currentWord}. Minigame nối từ kết thúc!`);
+  }
+  showToast("⏰ KẾT THÚC NỐI TỪ", `Hết 5 giây không ai đối được từ "${wordChainState.currentWord}"!`, "💡");
+
+  setTimeout(() => {
+    stopWordChain();
+  }, 3500);
+}
+
+function stopWordChain() {
+  wordChainState.active = false;
+  if (wordChainState.timerInterval) {
+    clearInterval(wordChainState.timerInterval);
+    wordChainState.timerInterval = null;
+  }
+  const wordchainBox = document.getElementById("wordchain-box");
+  if (wordchainBox) wordchainBox.classList.add("hidden");
+
+  // Hiển thị lại câu hỏi HDV nếu có
+  const guideBubble = document.getElementById("guide-bubble");
+  if (guideBubble && currentActiveQA) {
+    guideBubble.classList.remove("hidden");
+  }
+}
+
+function awardWordChainWin(username, matchedPhrase) {
+  const data = getWordChainUserData();
+  const currentPts = (data.points[username] || 0) + 1;
+  let newTickets = data.tickets[username] || 0;
+  let gotNewTicket = false;
+
+  if (currentPts >= 20) {
+    newTickets += 1;
+    data.points[username] = currentPts - 20; // 20 điểm đổi 1 vé miễn phí
+    gotNewTicket = true;
+  } else {
+    data.points[username] = currentPts;
+  }
+  data.tickets[username] = newTickets;
+  saveWordChainUserData(data.points, data.tickets);
+  renderWordChainLeaderboard();
+
+  return {
+    points: data.points[username],
+    tickets: newTickets,
+    gotNewTicket
+  };
+}
+
+function checkWordChainComment(username, text) {
+  if (!wordChainState.active) return false;
+  const parts = parseWordParts(text);
+  if (!parts) return false;
+
+  // So sánh tiếng đầu của câu trả lời với tiếng cuối của từ hiện tại
+  if (parts.firstWord.toLowerCase() === wordChainState.currentLastWord.toLowerCase()) {
+    const matchedPhrase = parts.fullPhrase;
+    wordChainState.currentWord = matchedPhrase;
+    wordChainState.currentLastWord = parts.lastWord;
+
+    const result = awardWordChainWin(username, matchedPhrase);
+    updateWordChainUI();
+
+    const footerEl = document.getElementById("wordchain-last-winner");
+    if (footerEl) {
+      footerEl.innerHTML = `🎉 <b>${username}</b> nối đúng: "<span style="color:#38bdf8;">${matchedPhrase}</span>" (+1đ | có <b>${result.points}/20đ</b>, <b>${result.tickets}</b> vé free)`;
+    }
+
+    if (result.gotNewTicket) {
+      showToast("🎟️ ĐẠT 1 VÉ MIỄN PHÍ!", `Chúc mừng ${username} tích đủ 20 điểm và nhận 1 Vé Free cho chuyến sau!`, "🏆");
+      triggerGuideActivity(`Chúc mừng ${username} tích đủ 20 điểm nối từ và nhận 1 vé xe miễn phí cho chuyến sau!`, "", true);
+    } else {
+      showToast("🎯 NỐI TỪ ĐÚNG!", `${username} nối đúng "${matchedPhrase}"! (+1đ, hiện có ${result.points}/20đ)`, "⭐");
+    }
+
+    // Reset lại 5 giây cho từ tiếp theo
+    resetWordChainTimer();
+    return true;
+  }
+
+  return false;
+}
+
+function renderWordChainLeaderboard() {
+  const listContainer = document.getElementById("wordchain-leaderboard-list");
+  if (!listContainer) return;
+  const data = getWordChainUserData();
+
+  const users = Object.keys(data.points);
+  Object.keys(data.tickets).forEach(u => {
+    if (!users.includes(u)) users.push(u);
+  });
+
+  if (users.length === 0) {
+    listContainer.innerHTML = '<div class="empty-leaderboard">Chưa có ai tích điểm nối từ. Hãy chơi minigame để tích lũy!</div>';
+    return;
+  }
+
+  users.sort((a, b) => {
+    const tA = data.tickets[a] || 0;
+    const tB = data.tickets[b] || 0;
+    if (tB !== tA) return tB - tA;
+    return (data.points[b] || 0) - (data.points[a] || 0);
+  });
+
+  listContainer.innerHTML = users.map((u, idx) => {
+    const pts = data.points[u] || 0;
+    const tkts = data.tickets[u] || 0;
+    return `
+      <div class="wordchain-user-row">
+        <span class="wordchain-user-name">${idx + 1}. ${u}</span>
+        <div class="wordchain-user-stats">
+          <span class="wordchain-stat-badge stat-pts">${pts}/20 điểm</span>
+          <span class="wordchain-stat-badge stat-tickets">🎟️ ${tkts} vé free</span>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 /* ================== HOẠT ĐỘNG 2: ĐỔI NHẠC XE (CABIN MUSIC) ================== */
@@ -2348,6 +2614,41 @@ function initTestControls() {
   if (btnStopDance) {
     btnStopDance.addEventListener("click", () => stopCabinDance());
   }
+
+  // Khởi tạo các nút điều khiển Minigame Nối Từ (5s)
+  const btnStartWordChain = document.getElementById("btn-start-wordchain");
+  if (btnStartWordChain) {
+    btnStartWordChain.addEventListener("click", () => {
+      const inputEl = document.getElementById("input-wordchain-start");
+      const word = inputEl ? inputEl.value : "Đà Lạt";
+      if (state.currentPhase !== 2) {
+        switchToPhase(2);
+      }
+      startWordChain(word);
+    });
+  }
+
+  const btnStopWordChain = document.getElementById("btn-stop-wordchain");
+  if (btnStopWordChain) {
+    btnStopWordChain.addEventListener("click", () => {
+      stopWordChain();
+      showToast("⏹️ ĐÃ DỪNG NỐI TỪ", "Minigame nối từ đã được dừng!", "ℹ️");
+    });
+  }
+
+  const btnClearWordChainPts = document.getElementById("btn-clear-wordchain-pts");
+  if (btnClearWordChainPts) {
+    btnClearWordChainPts.addEventListener("click", () => {
+      if (confirm("Bạn có chắc chắn muốn xóa toàn bộ điểm tích lũy và vé miễn phí không?")) {
+        localStorage.removeItem(WORDCHAIN_STORAGE_KEY);
+        localStorage.removeItem(FREETICKET_STORAGE_KEY);
+        renderWordChainLeaderboard();
+        showToast("🗑️ ĐÃ XÓA ĐIỂM", "Đã đặt lại toàn bộ điểm tích lũy về 0!", "ℹ️");
+      }
+    });
+  }
+
+  renderWordChainLeaderboard();
 
   document.querySelectorAll('input[name="dance-mode"]').forEach(radio => {
     radio.addEventListener("change", e => {
