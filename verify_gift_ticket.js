@@ -118,6 +118,14 @@ it("Hành khách đã mua vé khi bình luận sẽ hiển thị bong bóng chat
   assert.ok(css.includes('@keyframes passengerBubblePop'), "Phải có hiệu ứng nảy lên passengerBubblePop");
 });
 
+// Test 10: Kiểm tra hiển thị bình luận cho cả hành khách tham gia ở Phase 1 (bến xe)
+it("Hành khách tham gia ở Phase 1 khi bình luận cũng hiển thị bong bóng chat trên đầu", () => {
+  assert.ok(js.includes('charDiv.dataset.username = username;'), "createCharacterElement phải gán dataset.username cho khách Phase 1");
+  assert.ok(js.includes('this.el.dataset.username = this.name;'), "SpriteActor phải gán dataset.username");
+  assert.ok(js.includes('state.currentPhase === 1 && !state.farPassengers.includes(username)'), "Tự động kết nạp khách vào bến xe Phase 1 khi họ bình luận");
+  assert.ok(js.includes('document.querySelectorAll("#far-passengers-container .char-2d")'), "showPassengerComment hỗ trợ tìm hành khách ngoài sân Phase 1");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);

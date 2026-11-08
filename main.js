@@ -422,23 +422,57 @@ function showPassengerComment(username, text) {
   let targetEl = null;
   const targetName = username.trim().toLowerCase();
 
-  // 1. Ưu tiên tìm hành khách đã ngồi trên ghế trong Phase 2
-  const cabinSeats = document.querySelectorAll("#cabin-passengers-layer .cabin-passenger-seat");
-  for (const seat of cabinSeats) {
-    if ((seat.dataset.username || "").toLowerCase() === targetName) {
-      targetEl = seat;
-      break;
+  // 1. Nếu đang ở Phase 2 (trong xe): Tìm hành khách trên 20 ghế xanh
+  if (state.currentPhase === 2) {
+    const cabinSeats = document.querySelectorAll("#cabin-passengers-layer .cabin-passenger-seat");
+    for (const seat of cabinSeats) {
+      if ((seat.dataset.username || "").toLowerCase() === targetName) {
+        targetEl = seat;
+        break;
+      }
+    }
+    if (!targetEl) {
+      targetEl = document.getElementById(`cabin-char-${username.replace(/\s+/g, '_')}`);
     }
   }
 
-  // Fallback theo ID trong khoang xe
-  if (!targetEl) {
-    targetEl = document.getElementById(`cabin-char-${username.replace(/\s+/g, '_')}`);
-  }
+  // 2. Nếu đang ở Phase 1 (bến xe): Tìm hành khách ngoài sân hoặc trong giường nằm
+  if (state.currentPhase === 1 || !targetEl) {
+    // 2.1. Tìm hành khách ngoài sân bến xe
+    const courtyardChars = document.querySelectorAll("#far-passengers-container .char-2d");
+    for (const char of courtyardChars) {
+      if ((char.dataset.username || "").toLowerCase() === targetName) {
+        targetEl = char;
+        break;
+      }
+    }
 
-  // 2. Nếu đang ở Phase 1, tìm hành khách đang đi dạo ngoài sân
-  if (!targetEl && state.currentPhase === 1) {
-    targetEl = document.getElementById(`char-${username.replace(/\s+/g, '_')}`);
+    // 2.2. Tìm theo ID
+    if (!targetEl) {
+      targetEl = document.getElementById(`char-${username.replace(/\s+/g, '_')}`);
+    }
+
+    // 2.3. Tìm trong các nhân vật SpriteActor trên sân
+    if (!targetEl) {
+      const spriteChars = document.querySelectorAll(".char-2d.char-sprite");
+      for (const char of spriteChars) {
+        if ((char.dataset.username || "").toLowerCase() === targetName) {
+          targetEl = char;
+          break;
+        }
+      }
+    }
+
+    // 2.4. Tìm trong 20 slot giường nằm (nếu khách đã đặt vé ở Phase 1)
+    if (!targetEl) {
+      const bunkChars = document.querySelectorAll("#seats-grid .char-2d");
+      for (const char of bunkChars) {
+        if ((char.dataset.username || "").toLowerCase() === targetName) {
+          targetEl = char;
+          break;
+        }
+      }
+    }
   }
 
   if (!targetEl) return;
@@ -468,7 +502,12 @@ function handleComment(username = "Hành khách", commentText = "") {
   const text = (commentText || "").trim();
   if (!text) return;
 
-  // 1. Hiển thị bong bóng bình luận trên đầu hành khách (đặc biệt khi đang ngồi trên xe ở Phase 2)
+  // Nếu người này chưa có trong bến xe ở Phase 1 và chưa có ghế, tự động cho họ vào bến xe
+  if (state.currentPhase === 1 && !state.farPassengers.includes(username) && !state.seatedPassengers.some(p => p.username === username)) {
+    onPassengerJoin(username);
+  }
+
+  // 1. Hiển thị bong bóng bình luận trên đầu hành khách (cả Phase 1 ngoài sân lẫn Phase 2 trên xe)
   showPassengerComment(username, text);
 
   // 2. Kiểm tra nếu có câu đố vui của HDV đang chờ người trả lời đúng
@@ -544,6 +583,7 @@ function createCharacterElement(username, gift = null) {
   const charDiv = document.createElement("div");
   charDiv.className = "char-2d char-sprite";
   charDiv.id = `char-${username.replace(/\s+/g, '_')}`;
+  charDiv.dataset.username = username;
 
   const charNum = getCharacterTypeForUser(username);
   const imgSrc = `public/CHARACTER_${charNum}/1.png`;
@@ -2582,6 +2622,7 @@ class SpriteActor {
     this.el = document.createElement("div");
     this.el.className = "char-2d char-sprite";
     this.el.id = this.id;
+    this.el.dataset.username = this.name;
     this.el.innerHTML = `
       <div class="char-tag">
         <span class="char-name">${this.name}</span>
