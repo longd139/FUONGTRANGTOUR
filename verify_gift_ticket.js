@@ -153,6 +153,30 @@ it("Bảng Bình xăng và Còi xe (interactive-hud) nằm nâng cao và z-index
   assert.ok(hudMatch[0].includes('bottom: 110px;') || hudMatch[0].includes('bottom: 115px;') || hudMatch[0].includes('bottom: 120px;'), "interactive-hud phải được nâng vị trí bottom lên cao (>= 110px)");
 });
 
+// Test 13: Kiểm tra khung quà tặng Phase 2 (trong xe) và quà Nitro Tăng Tốc giảm thời gian
+it("Khung quà tặng Phase 2 ở cạnh trái chứa Nitro Tăng Tốc rút ngắn thời gian tới Đà Lạt", () => {
+  // 1. Phải có khung #cabin-gift-board trong #bus-interior-stage
+  const interiorMatch = html.match(/<section id="bus-interior-stage"[\s\S]*?<\/section>/);
+  assert.ok(interiorMatch, "Phải tìm thấy #bus-interior-stage trong html");
+  assert.ok(interiorMatch[0].includes('id="cabin-gift-board"'), "Phải có #cabin-gift-board ở Phase 2");
+  assert.ok(interiorMatch[0].includes('data-gift="🚀 Nitro"'), "Khung quà Phase 2 phải có quà 🚀 Nitro");
+  assert.ok(interiorMatch[0].includes('Nitro'), "Pill phải có chữ Nitro");
+
+  // 2. Select gift trong admin phải có option Nitro để test
+  assert.ok(html.includes('<option value="🚀 Nitro">'), "Admin select-gift phải có option 🚀 Nitro");
+
+  // 3. CSS của cabin-gift-board và nitro-boost
+  assert.ok(css.includes('.cabin-gift-board {'), "Phải có CSS cho .cabin-gift-board");
+  assert.ok(css.includes('nitro-boost'), "Phải có hiệu ứng nitro-boost trong CSS");
+  assert.ok(css.includes('.cabin-nitro-overlay'), "Phải có overlay vệt sáng nitro trong CSS");
+
+  // 4. Logic JavaScript: applyNitroBoost rút ngắn thời gian và tăng tốc video
+  assert.ok(js.includes('function applyNitroBoost'), "main.js phải có hàm applyNitroBoost");
+  assert.ok(js.includes('REDUCE_SECONDS = 120'), "applyNitroBoost phải rút ngắn 120s (2 phút)");
+  assert.ok(js.includes('tripRemainingSeconds = Math.max(10, tripRemainingSeconds - REDUCE_SECONDS)'), "Phải trừ thời gian chuyến đi");
+  assert.ok(js.includes('roadVideo.playbackRate = 2.0'), "Phải tăng tốc video 2x khi kích hoạt Nitro");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);

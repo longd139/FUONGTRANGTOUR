@@ -725,6 +725,39 @@ setInterval(() => {
   }
 }, 4500);
 
+/* ================== HIỆU ỨNG NITRO TĂNG TỐC XE ĐẾN ĐÀ LẠT ================== */
+function applyNitroBoost(username) {
+  if (state.currentPhase === 2) {
+    const REDUCE_SECONDS = 120; // Rút ngắn 2 phút (120 giây)
+    tripRemainingSeconds = Math.max(10, tripRemainingSeconds - REDUCE_SECONDS);
+    updateTripTimerUI();
+
+    const roadVideo = document.getElementById("cabin-road-video");
+    const cabinStage = document.getElementById("bus-interior-stage");
+    if (roadVideo) {
+      roadVideo.playbackRate = 2.0;
+    }
+    if (cabinStage) {
+      cabinStage.classList.add("nitro-boost");
+    }
+
+    setTimeout(() => {
+      if (roadVideo) roadVideo.playbackRate = 1.0;
+      if (cabinStage) cabinStage.classList.remove("nitro-boost");
+    }, 5000);
+
+    showToast("🚀 NITRO TĂNG TỐC!", `${username} vừa tặng Nitro! Rút ngắn 2 phút đến Đà Lạt!`, "⚡");
+    triggerGuideActivity(`🚀 Cảm ơn ${username} đã tiếp Nitro! Bác tài đạp ga tăng tốc, rút ngắn ngay 2 phút đến Đà Lạt!`, "", true);
+
+    if (appSettings.enableHorn) {
+      playBusHorn();
+    }
+    showPassengerComment(username, "🚀 Bác tài đạp ga tăng tốc!");
+  } else {
+    showToast("🚀 TIẾP NITRO!", `${username} tặng Nitro chuẩn bị cho chuyến xe bứt tốc!`, "⚡");
+  }
+}
+
 /* ================== SỰ KIỆN 2: TẶNG QUÀ & VÀO GHẾ VIP ================== */
 function onPassengerGift(username, giftName) {
   if (state.isDeparting) return;
@@ -732,6 +765,14 @@ function onPassengerGift(username, giftName) {
   // 1. Tự động đổi nhạc khi khán giả tặng quà
   if (appSettings.enableGiftChangeMusic !== false) {
     triggerMusicChangeByGift(username, giftName);
+  }
+
+  // 2. Xử lý quà đặc biệt: 🚀 Nitro Tăng Tốc
+  if (giftName && giftName.includes("Nitro")) {
+    applyNitroBoost(username);
+    if (state.currentPhase === 2) {
+      return;
+    }
   }
 
   if (state.seatedPassengers.some(p => p.username === username)) {

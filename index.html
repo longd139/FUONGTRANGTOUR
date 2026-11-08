@@ -149,6 +149,23 @@
           <!-- HIỆU ỨNG ĐÈN DISCO KHI CẢ XE LÊN NHẢY / QUẨY -->
           <div id="cabin-disco-overlay" class="cabin-disco-overlay hidden"></div>
 
+          <!-- HIỆU ỨNG NITRO TĂNG TỐC KHI ĐƯỢC TẶNG NITRO -->
+          <div id="cabin-nitro-overlay" class="cabin-nitro-overlay"></div>
+
+          <!-- BẢNG HIỂN THỊ CÁC QUÀ TẶNG DẠNG DỌC BÊN CẠNH TRÁI Ở PHASE 2 (TRONG XE) -->
+          <div class="hud-gift-board cabin-gift-board" id="cabin-gift-board">
+            <div class="hud-gift-header">
+              <span class="hud-gift-icon">🎁</span>
+              <span class="hud-gift-title">QUÀ TẶNG</span>
+            </div>
+            <div class="hud-gift-list">
+              <div class="hud-gift-pill cabin-gift-pill" data-gift="🚀 Nitro" title="Tặng Nitro để xe tăng tốc, rút ngắn 2 phút đến Đà Lạt!">
+                <span class="gift-icon">🚀</span>
+                <span class="gift-text">Nitro</span>
+              </div>
+            </div>
+          </div>
+
           <!-- HUD THÔNG TIN CHUYẾN XE KHI ĐANG TRÊN ĐƯỜNG ĐI ĐÀ LẠT -->
           <div class="cabin-trip-hud" id="cabin-trip-hud">
             <div class="cabin-route-header">
@@ -469,6 +486,7 @@
                 <div class="input-group">
                   <select id="select-gift" class="form-input">
                     <option value="🌸 Vé xe" selected>🌸 Tặng Hoa (Vé xe)</option>
+                    <option value="🚀 Nitro">🚀 Tặng Nitro (Rút ngắn 2 phút)</option>
                     <option value="🍦 Cây Kem">🍦 Tặng Kem</option>
                     <option value="🧢 Nón Lá">🧢 Tặng Nón</option>
                     <option value="💖 Trái Tim">💖 Tặng Tim</option>
