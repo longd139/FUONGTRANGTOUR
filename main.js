@@ -498,7 +498,6 @@ function createCharacterElement(username, gift = null) {
 
   charDiv.innerHTML = `
     <div class="char-tag">
-      <span class="char-badge">${gift ? '🎟️' : '🚶'}</span>
       <span class="char-name">${username}</span>
     </div>
     <div class="char-sprite-wrapper">
@@ -2508,7 +2507,6 @@ class SpriteActor {
     this.el.id = this.id;
     this.el.innerHTML = `
       <div class="char-tag">
-        <span class="char-badge">${this.badge}</span>
         <span class="char-name">${this.name}</span>
       </div>
       <div class="char-sprite-wrapper">

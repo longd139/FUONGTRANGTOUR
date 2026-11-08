@@ -64,6 +64,14 @@ it("main.js xử lý quà tặng mặc định và click pill hợp lệ", () =>
   assert.ok(js.includes('onPassengerGift(dummyName, "🌸 Vé xe");'), "Test quick fill phải tặng 🌸 Vé xe");
 });
 
+// Test 5: Kiểm tra đã bỏ toàn bộ icon trước tên của khách (trong createCharacterElement và SpriteActor)
+it("Đã bỏ toàn bộ icon (char-badge) trước tên khách trong createCharacterElement và SpriteActor", () => {
+  assert.ok(!js.includes('<span class="char-badge">'), "Không được còn char-badge trong bất kỳ thẻ tên khách nào");
+  assert.ok(!js.includes("${gift ? '🎟️' : '🚶'}"), "Không còn icon vé hoặc người đi bộ trong thẻ tên");
+  assert.ok(!js.includes("${this.badge}"), "Không còn icon badge trong thẻ tên SpriteActor");
+  assert.ok(js.includes('<div class="char-tag">\n      <span class="char-name">${username}</span>\n    </div>'), "Thẻ tên chỉ còn duy nhất tên khách");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);

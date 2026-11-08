@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,8 +9,11 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@700;800;900&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <!-- GIAO DIỆN CHIA 2 BÊN: BÊN TRÁI MÀN HÌNH ĐIỆN THOẠI 9:16 LIVE, BÊN PHẢI CÀI ĐẶT QUẢN TRỊ -->
   <div class="workspace-layout" id="workspace-layout">
@@ -49,7 +53,7 @@
             <section class="bus-dock-section">
               <div class="bus-container" id="fuong-trang-bus">
                 <img src="public/removeBg.png" alt="Xe khách FUONG TRANG" class="bus-photo" id="bus-photo">
-                
+
                 <!-- Ống khói khi khởi hành -->
                 <div class="bus-exhaust" id="bus-exhaust">
                   <div class="smoke-puff p1"></div>
@@ -120,7 +124,8 @@
         <!-- GIAO DIỆN PHASE 2: TRONG XE (FULL MÀN HÌNH ĐIỆN THOẠI 9:16) -->
         <section id="bus-interior-stage" class="bus-interior-stage hidden">
           <!-- VIDEO LỘ TRÌNH ĐƯỜNG ĐI (LỚP NẰM DƯỚI CÙNG) -->
-          <video id="cabin-road-video" class="cabin-road-video" src="public/1107.mp4" autoplay loop muted playsinline></video>
+          <video id="cabin-road-video" class="cabin-road-video" src="public/1107.mp4" autoplay loop muted
+            playsinline></video>
 
           <!-- LỚP KHUNG XE / NỘI THẤT XE FUONG TRANG (KÍNH TRONG SUỐT NHÌN RA ĐƯỜNG) -->
           <img src="public/TRONG_XE.png" alt="Trong xe FUONG TRANG" class="interior-bg-img">
@@ -133,7 +138,8 @@
             <!-- Bong bóng lời nói hoạt náo -->
             <div id="guide-bubble" class="guide-speech-bubble hidden">
               <div class="guide-bubble-header" id="guide-bubble-type">❓ ĐỐ VUI CÓ THƯỞNG</div>
-              <div class="guide-bubble-text" id="guide-speech-text">Đố vui: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì không?</div>
+              <div class="guide-bubble-text" id="guide-speech-text">Đố vui: Ai biết đặc sản nổi tiếng nhất Đà Lạt là gì
+                không?</div>
             </div>
             <!-- Thẻ tên hướng dẫn viên -->
             <div class="guide-tag">
@@ -182,7 +188,8 @@
           <span class="badge-status">🟢 Bến Xe Sẵn Sàng</span>
         </div>
         <div class="admin-actions">
-          <button id="btn-copy-obs" class="btn btn-obs" title="Sao chép liên kết chỉ lấy khung live cho OBS Browser Source">
+          <button id="btn-copy-obs" class="btn btn-obs"
+            title="Sao chép liên kết chỉ lấy khung live cho OBS Browser Source">
             🎥 Copy Link OBS
           </button>
         </div>
@@ -205,11 +212,12 @@
             <div class="card-subtitle-row">
               <label class="field-label" style="margin-bottom: 0;">Danh sách câu chào (BOT tự động random):</label>
               <div class="btn-group-row">
-                <button id="btn-random-join-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-random-join-msg" class="btn btn-random" type="button"
+                  title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
                 <button id="btn-add-join-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
               </div>
             </div>
-            
+
             <!-- Danh sách các câu chào động -->
             <div id="join-messages-list" class="messages-list">
               <!-- Render động bởi JavaScript -->
@@ -233,9 +241,11 @@
           </div>
           <div class="card-body">
             <div class="card-subtitle-row">
-              <label class="field-label" style="margin-bottom: 0;">Danh sách câu cảm ơn đổ xăng (BOT tự động random):</label>
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu cảm ơn đổ xăng (BOT tự động
+                random):</label>
               <div class="btn-group-row">
-                <button id="btn-random-fuel-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-random-fuel-msg" class="btn btn-random" type="button"
+                  title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
                 <button id="btn-add-fuel-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
               </div>
             </div>
@@ -245,7 +255,8 @@
               <!-- Render động bởi JavaScript -->
             </div>
 
-            <p class="field-hint">💡 Dùng <code>{username}</code> (tên người thêm xăng) và <code>{liters}</code> (số lít xăng).</p>
+            <p class="field-hint">💡 Dùng <code>{username}</code> (tên người thêm xăng) và <code>{liters}</code> (số lít
+              xăng).</p>
           </div>
         </section>
 
@@ -263,9 +274,11 @@
           </div>
           <div class="card-body">
             <div class="card-subtitle-row">
-              <label class="field-label" style="margin-bottom: 0;">Danh sách câu mời lên giường nằm VIP (BOT tự động random):</label>
+              <label class="field-label" style="margin-bottom: 0;">Danh sách câu mời lên giường nằm VIP (BOT tự động
+                random):</label>
               <div class="btn-group-row">
-                <button id="btn-random-gift-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-random-gift-msg" class="btn btn-random" type="button"
+                  title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
                 <button id="btn-add-gift-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
               </div>
             </div>
@@ -295,7 +308,8 @@
             <div class="card-subtitle-row">
               <label class="field-label" style="margin-bottom: 0;">Danh sách câu khởi hành (BOT tự động random):</label>
               <div class="btn-group-row">
-                <button id="btn-random-depart-msg" class="btn btn-random" type="button" title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
+                <button id="btn-random-depart-msg" class="btn btn-random" type="button"
+                  title="Đọc ngẫu nhiên 1 câu trong danh sách">🎲 Đọc ngẫu nhiên</button>
                 <button id="btn-add-depart-msg" class="btn btn-add" type="button">➕ Thêm câu mới</button>
               </div>
             </div>
@@ -340,9 +354,11 @@
             <!-- TAB 1: ĐẶT CÂU HỎI (ĐỐ VUI) -->
             <div id="tab-activity-quiz" class="activity-tab-content active">
               <div class="card-subtitle-row">
-                <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn (Giữ 2 phút):</label>
+                <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn (Giữ 2
+                  phút):</label>
                 <div class="btn-group-row">
-                  <button id="btn-trigger-guide-speak" class="btn btn-random" type="button" title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
+                  <button id="btn-trigger-guide-speak" class="btn btn-random" type="button"
+                    title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
                   <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu hỏi mới</button>
                 </div>
               </div>
@@ -356,8 +372,10 @@
               <div class="card-subtitle-row">
                 <label class="field-label" style="margin-bottom: 0;">Danh sách giai điệu / bài nhạc trên xe:</label>
                 <div class="btn-group-row">
-                  <button id="btn-stop-cabin-music" class="btn btn-icon-danger" type="button" title="Tắt nhạc">⏹️ Tắt nhạc</button>
-                  <button id="btn-random-cabin-music" class="btn btn-random" type="button" title="Đổi bài ngẫu nhiên">🎲 Đổi ngẫu nhiên</button>
+                  <button id="btn-stop-cabin-music" class="btn btn-icon-danger" type="button" title="Tắt nhạc">⏹️ Tắt
+                    nhạc</button>
+                  <button id="btn-random-cabin-music" class="btn btn-random" type="button" title="Đổi bài ngẫu nhiên">🎲
+                    Đổi ngẫu nhiên</button>
                 </div>
               </div>
               <div class="music-track-list" id="cabin-music-list">
@@ -368,12 +386,14 @@
                 <input type="range" id="cabin-music-volume" min="0" max="100" value="70" class="music-vol-slider">
                 <span id="cabin-music-vol-val" class="music-vol-badge">70%</span>
               </div>
-              <div class="gift-music-toggle-row" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: #11141e; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e2433;">
+              <div class="gift-music-toggle-row"
+                style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: #11141e; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e2433;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="font-size: 16px;">🎁</span>
                   <div>
                     <div style="font-size: 11.5px; font-weight: 800; color: #e2e8f0;">Tặng quà tự động đổi nhạc</div>
-                    <div style="font-size: 10px; color: #94a3b8;">Khi khán giả tặng quà bất kỳ, xe sẽ tự đổi sang bài nhạc mới</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Khi khán giả tặng quà bất kỳ, xe sẽ tự đổi sang bài
+                      nhạc mới</div>
                   </div>
                 </div>
                 <label class="switch" title="Bật/Tắt đổi nhạc khi có quà">
@@ -390,7 +410,8 @@
                   <span class="dance-icon-big">🪩</span>
                   <div class="dance-desc-text">
                     <b>HOẠT ĐỘNG NHẢY QUẨY TƯNG BỪNG:</b>
-                    <p>Toàn bộ 20 nhân vật trên ghế và Hướng Dẫn Viên sẽ cùng đứng dậy nhảy múa theo nhạc kèm đèn Disco!</p>
+                    <p>Toàn bộ 20 nhân vật trên ghế và Hướng Dẫn Viên sẽ cùng đứng dậy nhảy múa theo nhạc kèm đèn Disco!
+                    </p>
                   </div>
                 </div>
                 <div class="dance-actions-row">
@@ -437,7 +458,8 @@
               <div class="sim-box">
                 <label class="field-label">Thử người vào xem:</label>
                 <div class="input-group">
-                  <input type="text" id="input-username" class="form-input" value="Bác Ba Phi" placeholder="Nhập tên...">
+                  <input type="text" id="input-username" class="form-input" value="Bác Ba Phi"
+                    placeholder="Nhập tên...">
                   <button id="btn-simulate-join" class="btn btn-join">🚶 Vào xem</button>
                 </div>
               </div>
@@ -458,29 +480,37 @@
 
             <!-- MÔ PHỎNG BÌNH LUẬN TƯƠNG TÁC (GÕ 1, 2 HOẶC TRẢ LỜI ĐỐ VUI) -->
             <div class="sim-comment-section">
-              <label class="field-label">💬 Thử bình luận tương tác (Gõ 1 tiếp xăng, Gõ 2 bấm còi, hoặc Trả lời đố vui):</label>
+              <label class="field-label">💬 Thử bình luận tương tác (Gõ 1 tiếp xăng, Gõ 2 bấm còi, hoặc Trả lời đố
+                vui):</label>
               <div class="sim-comment-quick-btns">
                 <button id="btn-sim-fuel-1" class="btn btn-sim-fuel" type="button">⛽ Gõ 1 (+1L)</button>
                 <button id="btn-sim-fuel-10" class="btn btn-sim-fuel-bulk" type="button">⚡ Tiếp +10L Xăng</button>
                 <button id="btn-sim-horn" class="btn btn-sim-horn" type="button">📢 Gõ 2 (Bấm còi +1/5)</button>
-                <button id="btn-sim-correct-answer" class="btn btn-sim-answer" type="button" title="Gõ thử ngay đáp án đúng của câu hỏi hiện tại">🎯 Trả lời đúng</button>
+                <button id="btn-sim-correct-answer" class="btn btn-sim-answer" type="button"
+                  title="Gõ thử ngay đáp án đúng của câu hỏi hiện tại">🎯 Trả lời đúng</button>
               </div>
               <div class="input-group" style="margin-top: 8px;">
-                <input type="text" id="input-sim-comment" class="form-input" placeholder="Nhập '1', '2' hoặc câu trả lời đố vui..." value="Dâu tây">
+                <input type="text" id="input-sim-comment" class="form-input"
+                  placeholder="Nhập '1', '2' hoặc câu trả lời đố vui..." value="Dâu tây">
                 <button id="btn-sim-comment-send" class="btn btn-send-cmt" type="button">Gửi Cmt</button>
               </div>
             </div>
 
             <!-- NÚT CHUYỂN ĐỔI PHASE 1 VÀ PHASE 2 -->
-            <div class="phase-buttons-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-              <button id="btn-phase-terminal" class="btn" style="background: #0284c7; color: #fff; font-weight: 800;" type="button">🏢 Phase 1: Bến Xe</button>
-              <button id="btn-phase-interior" class="btn" style="background: #10b981; color: #fff; font-weight: 800;" type="button">🚌 Phase 2: Trong Xe</button>
+            <div class="phase-buttons-group"
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+              <button id="btn-phase-terminal" class="btn" style="background: #0284c7; color: #fff; font-weight: 800;"
+                type="button">🏢 Phase 1: Bến Xe</button>
+              <button id="btn-phase-interior" class="btn" style="background: #10b981; color: #fff; font-weight: 800;"
+                type="button">🚌 Phase 2: Trong Xe</button>
             </div>
 
             <div class="action-buttons-group">
               <button id="btn-quick-fill" class="btn btn-fill">⚡ Lên đủ 20 người ngay</button>
               <button id="btn-depart" class="btn btn-depart">🚌 Xuất bến ngay</button>
-              <button id="btn-fast-forward-timer" class="btn" style="background: #e11d48; color: #fff; font-weight: 800;" type="button" title="Tua thời gian xuống còn 30 giây để kiểm tra sự kiện đến Đà Lạt">⏩ Tua 30s (Test 15p)</button>
+              <button id="btn-fast-forward-timer" class="btn"
+                style="background: #e11d48; color: #fff; font-weight: 800;" type="button"
+                title="Tua thời gian xuống còn 30 giây để kiểm tra sự kiện đến Đà Lạt">⏩ Tua 30s (Test 15p)</button>
               <button id="btn-reset" class="btn btn-reset">🔄 Đặt lại bến</button>
             </div>
 
@@ -498,4 +528,5 @@
 
   <script src="main.js"></script>
 </body>
+
 </html>
