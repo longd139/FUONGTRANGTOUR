@@ -1211,14 +1211,14 @@ body.obs-mode .phone-frame,
 /* ================== BẢNG TƯƠNG TÁC TIKTOK LIVE HUD (GÕ 1 & GÕ 2) ================== */
 .interactive-hud {
   position: absolute;
-  bottom: 12px;
+  bottom: 110px;
   right: 14px;
   background: transparent;
   border: none;
   box-shadow: none;
   backdrop-filter: none;
   padding: 0;
-  z-index: 20;
+  z-index: 35;
   pointer-events: auto;
   min-width: 170px;
   max-width: 195px;

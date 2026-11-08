@@ -139,6 +139,20 @@ it("Bong bóng chat không xuống dòng, cắt >30 ký tự kèm dấu ... và 
   assert.ok(courtyardMatch[0].includes('overflow: visible;'), "Lớp sân bến xe phải overflow: visible không bị cắt khuất");
 });
 
+// Test 12: Kiểm tra 2 thanh Bình xăng & Còi xe (interactive-hud) nằm cao hơn và đè lên trên các nhân vật
+it("Bảng Bình xăng và Còi xe (interactive-hud) nằm nâng cao và z-index đè lên trên tất cả nhân vật", () => {
+  // 1. Phải đưa interactive-hud ra khỏi zone-far để không bị kẹt stacking context z-index 7
+  const zoneFarMatch = html.match(/<section class="zone-far"[\s\S]*?<\/section>/);
+  assert.ok(zoneFarMatch, "Phải có zone-far trong html");
+  assert.ok(!zoneFarMatch[0].includes('id="interactive-hud"'), "interactive-hud không được nằm trong zone-far (để tránh bị kẹt z-index 7)");
+
+  // 2. Kiểm tra CSS của .interactive-hud
+  const hudMatch = css.match(/\.interactive-hud\s*\{[\s\S]*?\}/);
+  assert.ok(hudMatch, "Không tìm thấy .interactive-hud trong style.css");
+  assert.ok(hudMatch[0].includes('z-index: 35;'), "interactive-hud phải có z-index: 35 (lớn hơn courtyard-passengers-layer: 15 và các nhân vật) để đè lên trên");
+  assert.ok(hudMatch[0].includes('bottom: 110px;') || hudMatch[0].includes('bottom: 115px;') || hudMatch[0].includes('bottom: 120px;'), "interactive-hud phải được nâng vị trí bottom lên cao (>= 110px)");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);
