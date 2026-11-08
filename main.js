@@ -483,10 +483,17 @@ function showPassengerComment(username, text) {
     existingBubble.remove();
   }
 
+  // Xử lý độ dài tin nhắn: nếu dài hơn 30 ký tự thì cắt gọn và hiển thị dấu "..."
+  let cleanText = text.trim();
+  if (cleanText.length > 30) {
+    cleanText = cleanText.slice(0, 30) + "...";
+  }
+
   // Tạo bong bóng bình luận mới
   const bubble = document.createElement("div");
   bubble.className = "passenger-chat-bubble";
-  bubble.innerText = text;
+  bubble.innerText = cleanText;
+  bubble.title = text;
   targetEl.appendChild(bubble);
 
   // Hiển thị trong 4.2 giây rồi mờ dần và tự hủy

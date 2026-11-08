@@ -126,6 +126,19 @@ it("Hành khách tham gia ở Phase 1 khi bình luận cũng hiển thị bong b
   assert.ok(js.includes('document.querySelectorAll("#far-passengers-container .char-2d")'), "showPassengerComment hỗ trợ tìm hành khách ngoài sân Phase 1");
 });
 
+// Test 11: Kiểm tra chống xuống dòng, cắt tối đa 30 ký tự và lớp hiển thị đè trên xe ở Phase 1
+it("Bong bóng chat không xuống dòng, cắt >30 ký tự kèm dấu ... và nằm trên xe ở Phase 1", () => {
+  assert.ok(js.includes('cleanText.length > 30'), "main.js phải kiểm tra độ dài > 30 ký tự");
+  assert.ok(js.includes('cleanText.slice(0, 30) + "..."'), "main.js phải cắt 30 ký tự và thêm dấu ...");
+  assert.ok(css.includes('white-space: nowrap !important;'), "CSS phải chống xuống dòng bằng nowrap");
+  assert.ok(css.includes('max-width: 220px;'), "CSS cho phép độ rộng tối đa 220px hiển thị nhiều thông tin");
+  
+  const courtyardMatch = css.match(/\.courtyard-passengers-layer\s*\{[\s\S]*?\}/);
+  assert.ok(courtyardMatch, "Không tìm thấy .courtyard-passengers-layer");
+  assert.ok(courtyardMatch[0].includes('z-index: 15;'), "Lớp sân bến xe phải có z-index: 15 để nằm trên xe (xe z-index: 10)");
+  assert.ok(courtyardMatch[0].includes('overflow: visible;'), "Lớp sân bến xe phải overflow: visible không bị cắt khuất");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);
