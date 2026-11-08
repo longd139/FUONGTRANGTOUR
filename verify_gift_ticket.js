@@ -91,6 +91,16 @@ it("Bảng câu hỏi HDV hiển thị dưới timeline và bằng chiều ngang
   assert.ok(bubbleMatch[0].includes('top: 76px'), "Bảng câu hỏi phải nằm ngay dưới timeline (top: 76px)");
 });
 
+// Test 7: Kiểm tra độ đồng đều font chữ trong toàn bộ tab quản trị
+it("Font chữ trong toàn bộ tab quản trị được đồng bộ thống nhất theo Nunito", () => {
+  assert.ok(html.includes('Nunito:wght@400;500;600;700;800;900'), "Phải tải đầy đủ trọng số font Nunito từ 400 đến 900");
+  assert.ok(css.includes(".admin-sidebar * {\n  font-family: 'Nunito'"), "Toàn bộ thành phần trong admin sidebar phải áp dụng font Nunito");
+  const titleH2Match = css.match(/\.admin-title-wrap h2\s*\{[\s\S]*?\}/);
+  assert.ok(titleH2Match, "Không tìm thấy .admin-title-wrap h2 trong CSS");
+  assert.ok(!titleH2Match[0].includes('var(--font-display)'), "Tiêu đề quản trị không dùng font cartoon Baloo 2");
+  assert.ok(titleH2Match[0].includes('font-weight: 900'), "Tiêu đề quản trị dùng font-weight: 900 sắc nét");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);
