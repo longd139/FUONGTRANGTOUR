@@ -109,6 +109,15 @@ it("Câu hỏi đố vui được giữ nguyên đủ 2 phút và chỉ tự đ�
   assert.ok(js.includes('remainingSec = 120'), "Thời gian đếm ngược đố vui chuẩn 120 giây (2 phút)");
 });
 
+// Test 9: Kiểm tra tính năng hiển thị bình luận của hành khách trên xe (Phase 2)
+it("Hành khách đã mua vé khi bình luận sẽ hiển thị bong bóng chat trên đầu", () => {
+  assert.ok(js.includes('function showPassengerComment'), "Phải có hàm showPassengerComment");
+  assert.ok(js.includes('showPassengerComment(username, text)'), "handleComment phải gọi showPassengerComment");
+  assert.ok(js.includes('charEl.dataset.username = passenger.username;'), "renderCabinPassengers phải gán dataset.username để tìm chính xác khách");
+  assert.ok(css.includes('.passenger-chat-bubble {'), "Phải có style cho .passenger-chat-bubble");
+  assert.ok(css.includes('@keyframes passengerBubblePop'), "Phải có hiệu ứng nảy lên passengerBubblePop");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);

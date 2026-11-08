@@ -415,16 +415,68 @@ function addHornVote(username = "Hành khách") {
   }
 }
 
+/* ================== HIỂN THỊ BÌNH LUẬN TRÊN ĐẦU HÀNH KHÁCH (PHASE 2 & PHASE 1) ================== */
+function showPassengerComment(username, text) {
+  if (!username || !text) return;
+
+  let targetEl = null;
+  const targetName = username.trim().toLowerCase();
+
+  // 1. Ưu tiên tìm hành khách đã ngồi trên ghế trong Phase 2
+  const cabinSeats = document.querySelectorAll("#cabin-passengers-layer .cabin-passenger-seat");
+  for (const seat of cabinSeats) {
+    if ((seat.dataset.username || "").toLowerCase() === targetName) {
+      targetEl = seat;
+      break;
+    }
+  }
+
+  // Fallback theo ID trong khoang xe
+  if (!targetEl) {
+    targetEl = document.getElementById(`cabin-char-${username.replace(/\s+/g, '_')}`);
+  }
+
+  // 2. Nếu đang ở Phase 1, tìm hành khách đang đi dạo ngoài sân
+  if (!targetEl && state.currentPhase === 1) {
+    targetEl = document.getElementById(`char-${username.replace(/\s+/g, '_')}`);
+  }
+
+  if (!targetEl) return;
+
+  // Xóa bong bóng bình luận cũ của nhân vật này (nếu có)
+  const existingBubble = targetEl.querySelector(".passenger-chat-bubble");
+  if (existingBubble) {
+    existingBubble.remove();
+  }
+
+  // Tạo bong bóng bình luận mới
+  const bubble = document.createElement("div");
+  bubble.className = "passenger-chat-bubble";
+  bubble.innerText = text;
+  targetEl.appendChild(bubble);
+
+  // Hiển thị trong 4.2 giây rồi mờ dần và tự hủy
+  setTimeout(() => {
+    bubble.classList.add("fade-out");
+    setTimeout(() => {
+      if (bubble.parentElement) bubble.remove();
+    }, 380);
+  }, 4200);
+}
+
 function handleComment(username = "Hành khách", commentText = "") {
   const text = (commentText || "").trim();
   if (!text) return;
 
-  // 1. Kiểm tra nếu có câu đố vui của HDV đang chờ người trả lời đúng
+  // 1. Hiển thị bong bóng bình luận trên đầu hành khách (đặc biệt khi đang ngồi trên xe ở Phase 2)
+  showPassengerComment(username, text);
+
+  // 2. Kiểm tra nếu có câu đố vui của HDV đang chờ người trả lời đúng
   if (checkGuideQuizAnswer(username, text)) {
     return;
   }
 
-  // 2. Tương tác gõ 1 (tiếp xăng) và gõ 2 (bình chọn bấm còi)
+  // 3. Tương tác gõ 1 (tiếp xăng) và gõ 2 (bình chọn bấm còi)
   if (text === "1" || text.startsWith("1")) {
     addFuel(username, 1);
   } else if (text === "2" || text.startsWith("2")) {
@@ -753,6 +805,7 @@ function renderCabinPassengers() {
     const seat = CABIN_SEATS[idx];
     const charEl = createCharacterElement(passenger.username, passenger.giftName);
     charEl.id = `cabin-char-${passenger.username.replace(/\s+/g, '_')}`;
+    charEl.dataset.username = passenger.username;
     charEl.className = "cabin-passenger-seat";
     if (typeof isCabinDancing !== "undefined" && isCabinDancing) {
       charEl.classList.add("dancing", `dancing-${currentDanceMode}`);
@@ -2419,9 +2472,14 @@ function startAutoDemo() {
     } else if (rand < 0.75) {
       // 35% người cmt tương tác (gõ 1 tiếp xăng hoặc gõ 2 bấm còi)
       const cmt = Math.random() < 0.65 ? "1" : "2";
-      const name = state.farPassengers.length > 0
-        ? state.farPassengers[Math.floor(Math.random() * state.farPassengers.length)]
-        : CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+      let name = "";
+      if (state.currentPhase === 2 && state.seatedPassengers.length > 0) {
+        name = state.seatedPassengers[Math.floor(Math.random() * state.seatedPassengers.length)].username;
+      } else if (state.farPassengers.length > 0) {
+        name = state.farPassengers[Math.floor(Math.random() * state.farPassengers.length)];
+      } else {
+        name = CONFIG.RANDOM_NAMES[Math.floor(Math.random() * CONFIG.RANDOM_NAMES.length)];
+      }
       handleComment(name, cmt);
     } else {
       // 25% người tặng quà để lên xe
@@ -2760,6 +2818,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Expose ra window để các tool kết nối TikTok Live / OBS overlay gọi trực tiếp
 if (typeof window !== "undefined") {
   window.handleComment = handleComment;
+  window.showPassengerComment = showPassengerComment;
   window.triggerGuideActivity = triggerGuideActivity;
   window.checkGuideQuizAnswer = checkGuideQuizAnswer;
   window.isAnswerMatching = isAnswerMatching;
