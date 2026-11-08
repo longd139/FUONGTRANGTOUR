@@ -395,10 +395,12 @@
 
             <!-- TAB 1: ĐẶT CÂU HỎI (ĐỐ VUI) -->
             <div id="tab-activity-quiz" class="activity-tab-content active">
-              <div class="card-subtitle-row">
-                <label class="field-label" style="margin-bottom: 0;">Danh sách câu hỏi & đáp án có sẵn (Giữ 2
-                  phút):</label>
-                <div class="btn-group-row">
+              <div class="card-subtitle-row" style="flex-wrap: wrap; gap: 8px;">
+                <div class="input-with-label" style="max-width: 160px;">
+                  <span class="sub-label">Thời gian đố vui (giây):</span>
+                  <input type="number" id="input-quiz-duration" class="form-input" value="120" min="10" max="600" step="5" title="Thời gian chờ người trả lời đúng (mặc định 120s)">
+                </div>
+                <div class="btn-group-row" style="align-self: flex-end; margin-left: auto;">
                   <button id="btn-trigger-guide-speak" class="btn btn-random" type="button"
                     title="Kích hoạt hướng dẫn viên hỏi ngẫu nhiên và tự công bố đáp án">🎲 Đố vui ngẫu nhiên</button>
                   <button id="btn-add-guide-msg" class="btn btn-add" type="button">➕ Thêm câu hỏi mới</button>
@@ -456,9 +458,13 @@
                     </p>
                   </div>
                 </div>
-                <div class="dance-actions-row">
+                <div class="dance-actions-row" style="align-items: flex-end; gap: 10px;">
+                  <div class="input-with-label" style="max-width: 160px;">
+                    <span class="sub-label">Thời gian nhảy (giây):</span>
+                    <input type="number" id="input-dance-duration" class="form-input" value="30" min="5" max="300" step="5" title="Thời gian quẩy của nhân vật (mặc định 30s)">
+                  </div>
                   <button id="btn-start-dance" class="btn btn-dance-start" type="button">
-                    💃 Bắt đầu Nhảy (Quẩy 30s)
+                    💃 Bắt đầu Nhảy
                   </button>
                   <button id="btn-stop-dance" class="btn btn-dance-stop" type="button">
                     ⏹️ Dừng nhảy ngay

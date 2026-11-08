@@ -1174,8 +1174,30 @@ function showGuideBubble(typeTitle, text, isAnswer = false, autoHideDelay = 6500
   }
 }
 
+function getQuizConfiguredDuration() {
+  const input = document.getElementById("input-quiz-duration");
+  if (input) {
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 5) {
+      return val;
+    }
+  }
+  return 120; // Mặc định 120 giây (2 phút)
+}
+
+function getDanceConfiguredDuration() {
+  const input = document.getElementById("input-dance-duration");
+  if (input) {
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 3) {
+      return val;
+    }
+  }
+  return 30; // Mặc định 30 giây
+}
+
 function triggerGuideActivity(question = null, answer = null, force = false) {
-  // Nếu là gọi tự động và đang có câu hỏi đố vui diễn ra chưa được trả lời (chưa hết 2 phút), TUYỆT ĐỐI không được chuyển câu!
+  // Nếu là gọi tự động và đang có câu hỏi đố vui diễn ra chưa được trả lời (chưa hết thời gian), TUYỆT ĐỐI không được chuyển câu!
   if (!question && !force && currentActiveQA && !currentActiveQA.answered) {
     return;
   }
@@ -1216,8 +1238,9 @@ function triggerGuideActivity(question = null, answer = null, force = false) {
     return;
   }
 
-  // Đếm ngược 2 phút = 120 giây
-  let remainingSec = 120;
+  // Đếm ngược thời gian do admin cài đặt (mặc định 120s)
+  const quizDurationSec = getQuizConfiguredDuration();
+  let remainingSec = quizDurationSec;
 
   function updateQuizCountdownHeader() {
     const m = Math.floor(remainingSec / 60);
@@ -1229,10 +1252,14 @@ function triggerGuideActivity(question = null, answer = null, force = false) {
     }
   }
 
-  // Bước 1: Hiển thị câu hỏi đố vui lên màn hình và GIỮ NGUYÊN (autoHideDelay = false) trong suốt 2 phút
-  showGuideBubble("❓ ĐỐ VUI CÓ THƯỞNG (02:00)", qText, false, false);
+  const initialM = Math.floor(quizDurationSec / 60);
+  const initialS = quizDurationSec % 60;
+  const initialTimeStr = `${String(initialM).padStart(2, '0')}:${String(initialS).padStart(2, '0')}`;
 
-  // Bước 2: Đếm ngược từng giây trong 2 phút; nếu hết giờ mà chưa ai trả lời -> Tự động đọc và hiện đáp án
+  // Bước 1: Hiển thị câu hỏi đố vui lên màn hình và GIỮ NGUYÊN (autoHideDelay = false) trong suốt thời gian đã cài
+  showGuideBubble(`❓ ĐỐ VUI CÓ THƯỞNG (${initialTimeStr})`, qText, false, false);
+
+  // Bước 2: Đếm ngược từng giây; nếu hết giờ mà chưa ai trả lời -> Tự động đọc và hiện đáp án
   guideQuizCountdownInterval = setInterval(() => {
     remainingSec--;
     if (remainingSec > 0) {
@@ -1246,7 +1273,7 @@ function triggerGuideActivity(question = null, answer = null, force = false) {
 
         showGuideBubble(
           "💡 HẾT GIỜ - ĐÁP ÁN CHÍNH XÁC",
-          `Hết 2 phút đố vui!<br>Đáp án: <b style="color:#34d399;">${cleanAns}</b>`,
+          `Hết ${quizDurationSec} giây đố vui!<br>Đáp án: <b style="color:#34d399;">${cleanAns}</b>`,
           true,
           12000
         );
@@ -1733,9 +1760,13 @@ let isCabinDancing = false;
 let cabinDanceTimeout = null;
 let currentDanceMode = "disco"; // 'disco' | 'jump' | 'groove'
 
-function startCabinDance(mode = null, duration = 30000) {
+function startCabinDance(mode = null, duration = null) {
   if (mode) currentDanceMode = mode;
   isCabinDancing = true;
+
+  const durationMs = (typeof duration === "number" && duration > 0)
+    ? duration
+    : (getDanceConfiguredDuration() * 1000);
 
   if (cabinDanceTimeout) clearTimeout(cabinDanceTimeout);
 
@@ -1777,10 +1808,10 @@ function startCabinDance(mode = null, duration = 30000) {
 
   showToast("💃 CẢ XE CÙNG NHẢY!", "Toàn bộ hành khách đang nhảy quẩy cực sung!", "🪩");
 
-  // Tự động dừng sau thời gian duration (mặc định 30 giây)
+  // Tự động dừng sau thời gian duration (do admin cài đặt hoặc mặc định 30 giây)
   cabinDanceTimeout = setTimeout(() => {
     stopCabinDance();
-  }, duration);
+  }, durationMs);
 }
 
 function stopCabinDance() {
@@ -2619,13 +2650,44 @@ function initTestControls() {
     });
   }
 
+  // Khởi tạo ô cài đặt thời gian Đố Vui (tùy chỉnh số giây)
+  const inputQuizDuration = document.getElementById("input-quiz-duration");
+  if (inputQuizDuration) {
+    const savedQuizDuration = localStorage.getItem("fuongtrang_quiz_duration");
+    if (savedQuizDuration) {
+      inputQuizDuration.value = savedQuizDuration;
+    }
+    inputQuizDuration.addEventListener("change", () => {
+      const v = parseInt(inputQuizDuration.value, 10);
+      if (!isNaN(v) && v >= 5) {
+        localStorage.setItem("fuongtrang_quiz_duration", v.toString());
+        showToast("⏱️ ĐÃ LƯU THỜI GIAN", `Thời gian đố vui: ${v} giây!`, "⚙️");
+      }
+    });
+  }
+
   // Khởi tạo các nút điều khiển Nhảy (cho nhân vật lên nhảy)
+  const inputDanceDuration = document.getElementById("input-dance-duration");
+  if (inputDanceDuration) {
+    const savedDanceDuration = localStorage.getItem("fuongtrang_dance_duration");
+    if (savedDanceDuration) {
+      inputDanceDuration.value = savedDanceDuration;
+    }
+    inputDanceDuration.addEventListener("change", () => {
+      const v = parseInt(inputDanceDuration.value, 10);
+      if (!isNaN(v) && v >= 3) {
+        localStorage.setItem("fuongtrang_dance_duration", v.toString());
+        showToast("⏱️ ĐÃ LƯU THỜI GIAN", `Thời gian quẩy: ${v} giây!`, "⚙️");
+      }
+    });
+  }
+
   const btnStartDance = document.getElementById("btn-start-dance");
   if (btnStartDance) {
     btnStartDance.addEventListener("click", () => {
       const selectedRadio = document.querySelector('input[name="dance-mode"]:checked');
       const mode = selectedRadio ? selectedRadio.value : "disco";
-      startCabinDance(mode, 30000);
+      startCabinDance(mode);
     });
   }
   const btnStopDance = document.getElementById("btn-stop-dance");

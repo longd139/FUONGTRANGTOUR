@@ -101,12 +101,13 @@ it("Font chữ trong toàn bộ tab quản trị được đồng bộ thống n
   assert.ok(titleH2Match[0].includes('font-weight: 900'), "Tiêu đề quản trị dùng font-weight: 900 sắc nét");
 });
 
-// Test 8: Kiểm tra cơ chế giữ nguyên câu hỏi đủ 2 phút, không bị ngắt quãng giữa chừng
-it("Câu hỏi đố vui được giữ nguyên đủ 2 phút và chỉ tự động chuyển khi xong câu hỏi", () => {
+// Test 8: Kiểm tra cơ chế giữ nguyên câu hỏi theo số giây cài đặt (mặc định 120s), không bị ngắt quãng giữa chừng
+it("Câu hỏi đố vui được giữ nguyên theo thời gian cài đặt (mặc định 120s) và chỉ tự động chuyển khi xong câu hỏi", () => {
   assert.ok(!js.includes('guideAutoTimer = setInterval'), "Không còn vòng lặp 18s gây ngắt câu hỏi giữa chừng");
   assert.ok(js.includes('!question && !force && currentActiveQA && !currentActiveQA.answered'), "triggerGuideActivity có guard bảo vệ không chuyển câu khi đang đố");
   assert.ok(js.includes('function scheduleNextGuideQuiz'), "Phải có hàm scheduleNextGuideQuiz để chuyển câu sau khi kết thúc");
-  assert.ok(js.includes('remainingSec = 120'), "Thời gian đếm ngược đố vui chuẩn 120 giây (2 phút)");
+  assert.ok(js.includes('getQuizConfiguredDuration'), "Thời gian đếm ngược đố vui lấy từ getQuizConfiguredDuration");
+  assert.ok(js.includes('return 120; // Mặc định 120 giây'), "Mặc định chuẩn 120 giây (2 phút) nếu chưa chỉnh");
 });
 
 // Test 9: Kiểm tra tính năng hiển thị bình luận của hành khách trên xe (Phase 2)
@@ -201,6 +202,28 @@ it("Minigame Nối Từ hỗ trợ tùy chỉnh số giây trong Admin, tích đ
   assert.ok(js.includes('currentPts >= 20'), "Đủ 20 điểm quy đổi 1 vé miễn phí");
   assert.ok(js.includes('checkWordChainComment'), "Phải có hàm checkWordChainComment");
   assert.ok(js.includes('onPassengerGift(username, "🌸 Vé xe (Free Minigame)")'), "Tự động kích hoạt vé miễn phí cho chuyến đi sau");
+});
+
+// Test 15: Kiểm tra toàn bộ các hoạt động HDV đều có ô tùy chỉnh số giây trong Admin và mặc định nếu chưa chỉnh
+it("Tất cả hoạt động HDV (Đố vui, Nhảy quẩy, Nối từ) có ô tùy chỉnh số giây trong Admin và fallback về mặc định", () => {
+  // 1. Kiểm tra 3 ô input cấu hình số giây trong Admin HTML
+  assert.ok(html.includes('id="input-quiz-duration"'), "Admin phải có ô nhập số giây đố vui #input-quiz-duration");
+  assert.ok(html.includes('id="input-dance-duration"'), "Admin phải có ô nhập số giây nhảy quẩy #input-dance-duration");
+  assert.ok(html.includes('id="input-wordchain-duration"'), "Admin phải có ô nhập số giây nối từ #input-wordchain-duration");
+
+  // 2. Kiểm tra logic mặc định trong JS nếu chưa chỉnh
+  assert.ok(js.includes('function getQuizConfiguredDuration'), "Phải có hàm getQuizConfiguredDuration");
+  assert.ok(js.includes('return 120; // Mặc định 120 giây'), "Đố vui mặc định 120 giây");
+
+  assert.ok(js.includes('function getDanceConfiguredDuration'), "Phải có hàm getDanceConfiguredDuration");
+  assert.ok(js.includes('return 30; // Mặc định 30 giây'), "Nhảy quẩy mặc định 30 giây");
+
+  assert.ok(js.includes('function getWordChainConfiguredDuration'), "Phải có hàm getWordChainConfiguredDuration");
+  assert.ok(js.includes('return 20; // Mặc định 20 giây'), "Nối từ mặc định 20 giây");
+
+  // 3. Kiểm tra lưu trữ localStorage
+  assert.ok(js.includes('fuongtrang_quiz_duration'), "Lưu thời gian đố vui vào localStorage");
+  assert.ok(js.includes('fuongtrang_dance_duration'), "Lưu thời gian nhảy quẩy vào localStorage");
 });
 
 console.log(`\n========================================`);
