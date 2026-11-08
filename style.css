@@ -1739,33 +1739,34 @@ body.obs-mode .phone-frame,
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.65));
 }
 
-/* Bong bóng lời nói hoạt náo của Hướng Dẫn Viên */
+/* Bảng câu hỏi & hoạt náo của Hướng Dẫn Viên (nằm ngay dưới thanh timeline, bằng đúng chiều ngang) */
 .guide-speech-bubble {
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: 76px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
   background: rgba(15, 23, 42, 0.96);
   color: #fff;
   border: 1.5px solid var(--color-brand-orange);
-  border-radius: 12px;
-  padding: 6px 12px;
+  border-radius: 14px;
+  padding: 8px 14px;
   text-align: center;
   white-space: normal;
-  width: max-content;
-  max-width: 230px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.75);
+  width: 90%;
+  max-width: 390px;
+  box-sizing: border-box;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.75);
   pointer-events: none;
   z-index: 35;
   transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .guide-bubble-header {
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 900;
   letter-spacing: 0.5px;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   color: #fbbf24;
 }
@@ -1775,27 +1776,21 @@ body.obs-mode .phone-frame,
 }
 
 .guide-bubble-text {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #fff;
+  line-height: 1.45;
 }
 
 .guide-speech-bubble::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: var(--color-brand-orange) transparent transparent transparent;
+  display: none;
 }
 
 .guide-speech-bubble.hidden {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transform: translateX(-50%) scale(0.85);
+  transform: translateX(-50%) translateY(-6px) scale(0.97);
 }
 
 /* Giao diện cài đặt câu hỏi & đáp án có sẵn trong Admin */

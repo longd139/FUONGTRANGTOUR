@@ -72,6 +72,25 @@ it("Đã bỏ toàn bộ icon (char-badge) trước tên khách trong createChar
   assert.ok(js.includes('<div class="char-tag">\n      <span class="char-name">${username}</span>\n    </div>'), "Thẻ tên chỉ còn duy nhất tên khách");
 });
 
+// Test 6: Kiểm tra bảng câu hỏi HDV hiển thị dưới thanh timeline và có chiều ngang bằng thanh timeline
+it("Bảng câu hỏi HDV hiển thị dưới timeline và bằng chiều ngang thanh timeline", () => {
+  // DOM vị trí
+  assert.ok(html.includes('id="cabin-trip-hud"'), "Phải có #cabin-trip-hud");
+  assert.ok(html.includes('id="guide-bubble" class="guide-speech-bubble hidden"'), "Phải có #guide-bubble");
+  
+  // Chiều ngang bằng nhau giữa timeline và bảng câu hỏi trong CSS
+  const hudMatch = css.match(/\.cabin-trip-hud\s*\{[\s\S]*?\}/);
+  assert.ok(hudMatch, "Không tìm thấy .cabin-trip-hud trong CSS");
+  assert.ok(hudMatch[0].includes('width: 90%'), "Timeline có width: 90%");
+  assert.ok(hudMatch[0].includes('max-width: 390px'), "Timeline có max-width: 390px");
+
+  const bubbleMatch = css.match(/\.guide-speech-bubble\s*\{[\s\S]*?\}/);
+  assert.ok(bubbleMatch, "Không tìm thấy .guide-speech-bubble trong CSS");
+  assert.ok(bubbleMatch[0].includes('width: 90%'), "Bảng câu hỏi phải có width: 90% bằng thanh timeline");
+  assert.ok(bubbleMatch[0].includes('max-width: 390px'), "Bảng câu hỏi phải có max-width: 390px bằng thanh timeline");
+  assert.ok(bubbleMatch[0].includes('top: 76px'), "Bảng câu hỏi phải nằm ngay dưới timeline (top: 76px)");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);
