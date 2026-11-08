@@ -772,6 +772,7 @@ let guideBubbleTimeout = null;
 let guideAutoTimer = null;
 let guideAnswerAutoTimeout = null;
 let guideQuizCountdownInterval = null;
+let guideNextQuizTimeout = null;
 let currentActiveQA = null; // Lưu câu hỏi & đáp án đang kích hoạt để người dùng trả lời
 
 function clearGuideQuizTimers() {
@@ -783,6 +784,19 @@ function clearGuideQuizTimers() {
     clearInterval(guideQuizCountdownInterval);
     guideQuizCountdownInterval = null;
   }
+  if (guideNextQuizTimeout) {
+    clearTimeout(guideNextQuizTimeout);
+    guideNextQuizTimeout = null;
+  }
+}
+
+function scheduleNextGuideQuiz(delayMs = 14000) {
+  if (guideNextQuizTimeout) clearTimeout(guideNextQuizTimeout);
+  guideNextQuizTimeout = setTimeout(() => {
+    if (state.currentPhase === 2 && !state.isDeparting) {
+      triggerGuideActivity();
+    }
+  }, delayMs);
 }
 
 // Hàm loại bỏ tiền tố đáp án ("Đáp án là:", "Đáp án chính xác:",...)
@@ -954,6 +968,9 @@ function checkGuideQuizAnswer(username, commentText) {
 
     // 4. Thông báo Toast nổi bật
     showToast("🏆 TRẢ LỜI CHÍNH XÁC!", `${winnerName} vừa trả lời đúng: ${cleanAns}`, "🎉");
+
+    // 5. Tự động chuyển sang câu hỏi tiếp theo sau khi chúc mừng 12s
+    scheduleNextGuideQuiz(12000);
     return true;
   }
 
@@ -998,7 +1015,12 @@ function showGuideBubble(typeTitle, text, isAnswer = false, autoHideDelay = 6500
   }
 }
 
-function triggerGuideActivity(question = null, answer = null) {
+function triggerGuideActivity(question = null, answer = null, force = false) {
+  // Nếu là gọi tự động và đang có câu hỏi đố vui diễn ra chưa được trả lời (chưa hết 2 phút), TUYỆT ĐỐI không được chuyển câu!
+  if (!question && !force && currentActiveQA && !currentActiveQA.answered) {
+    return;
+  }
+
   clearGuideQuizTimers();
 
   const msgs = (appSettings.guideMessages && appSettings.guideMessages.length > 0)
@@ -1028,9 +1050,10 @@ function triggerGuideActivity(question = null, answer = null) {
     speakStationAnnouncement(qText);
   }
 
-  // Nếu không có đáp án (chỉ là câu chào/giao lưu) thì hiện 8 giây rồi ẩn
+  // Nếu không có đáp án (chỉ là câu chào/giao lưu) thì hiện 8 giây rồi tự lên câu tiếp theo sau 12 giây
   if (!aText) {
     showGuideBubble("📢 HƯỚNG DẪN VIÊN", qText, false, 8000);
+    scheduleNextGuideQuiz(12000);
     return;
   }
 
@@ -1074,6 +1097,9 @@ function triggerGuideActivity(question = null, answer = null) {
         }
 
         showToast("⏰ HẾT THỜI GIAN ĐỐ VUI", `Đáp án chính xác: ${cleanAns}`, "💡");
+
+        // Tự động lên câu hỏi đố vui tiếp theo sau 15 giây
+        scheduleNextGuideQuiz(15000);
       }
     }
   }, 1000);
@@ -1514,18 +1540,12 @@ function switchToPhase(phaseNum) {
     // Bắt đầu timeline đếm ngược 15 phút
     startTripCountdown();
 
-    // Kích hoạt lời chào đầu tiên của HDV sau 1.2s
+    // Kích hoạt câu hỏi đố vui đầu tiên của HDV sau 1.5s
     setTimeout(() => {
-      triggerGuideActivity();
-    }, 1200);
-
-    // Chu kỳ hoạt náo tự động mỗi 18s
-    if (guideAutoTimer) clearInterval(guideAutoTimer);
-    guideAutoTimer = setInterval(() => {
-      if (state.currentPhase === 2) {
+      if (state.currentPhase === 2 && !currentActiveQA) {
         triggerGuideActivity();
       }
-    }, 18000);
+    }, 1500);
   } else {
     // Quay lại Phase 1: Bến xe khách
     if (interiorEl) interiorEl.classList.add("hidden");
@@ -1533,10 +1553,8 @@ function switchToPhase(phaseNum) {
     if (cabinVideo) {
       cabinVideo.pause();
     }
-    if (guideAutoTimer) {
-      clearInterval(guideAutoTimer);
-      guideAutoTimer = null;
-    }
+    clearGuideQuizTimers();
+    currentActiveQA = null;
     const bubbleEl = document.getElementById("guide-bubble");
     if (bubbleEl) bubbleEl.classList.add("hidden");
 
@@ -1933,6 +1951,7 @@ function renderGuideMessages() {
         speakStationAnnouncement(`Đáp án chính xác là: ${cleanAns}!`);
       }
       showToast("💡 ĐÃ CÔNG BỐ ĐÁP ÁN", "HDV đã công bố câu trả lời trên xe!", "🎉");
+      scheduleNextGuideQuiz(14000);
     });
   });
 
@@ -2123,7 +2142,7 @@ function initTestControls() {
   const btnTriggerGuide = document.getElementById("btn-trigger-guide-speak");
   if (btnTriggerGuide) {
     btnTriggerGuide.addEventListener("click", () => {
-      triggerGuideActivity();
+      triggerGuideActivity(null, null, true);
       showToast("🎤 HƯỚNG DẪN VIÊN", "Đã phát hoạt náo trên xe!", "🚌");
     });
   }
@@ -2132,7 +2151,7 @@ function initTestControls() {
   const cabinTourGuide = document.getElementById("cabin-tour-guide");
   if (cabinTourGuide) {
     cabinTourGuide.addEventListener("click", () => {
-      triggerGuideActivity();
+      triggerGuideActivity(null, null, true);
       showToast("🎤 HOẠT NÁO VIÊN", "Hướng dẫn viên đang giao lưu cùng hành khách!", "🚌");
     });
   }

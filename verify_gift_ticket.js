@@ -101,6 +101,14 @@ it("Font chữ trong toàn bộ tab quản trị được đồng bộ thống n
   assert.ok(titleH2Match[0].includes('font-weight: 900'), "Tiêu đề quản trị dùng font-weight: 900 sắc nét");
 });
 
+// Test 8: Kiểm tra cơ chế giữ nguyên câu hỏi đủ 2 phút, không bị ngắt quãng giữa chừng
+it("Câu hỏi đố vui được giữ nguyên đủ 2 phút và chỉ tự động chuyển khi xong câu hỏi", () => {
+  assert.ok(!js.includes('guideAutoTimer = setInterval'), "Không còn vòng lặp 18s gây ngắt câu hỏi giữa chừng");
+  assert.ok(js.includes('!question && !force && currentActiveQA && !currentActiveQA.answered'), "triggerGuideActivity có guard bảo vệ không chuyển câu khi đang đố");
+  assert.ok(js.includes('function scheduleNextGuideQuiz'), "Phải có hàm scheduleNextGuideQuiz để chuyển câu sau khi kết thúc");
+  assert.ok(js.includes('remainingSec = 120'), "Thời gian đếm ngược đố vui chuẩn 120 giây (2 phút)");
+});
+
 console.log(`\n========================================`);
 console.log(`KẾT QUẢ: ${passed}/${total} tests passed`);
 console.log(`========================================`);
