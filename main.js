@@ -1264,18 +1264,30 @@ function triggerGuideActivity(question = null, answer = null, force = false) {
   }, 1000);
 }
 
-/* ================== HOẠT ĐỘNG 4: MINIGAME NỐI TỪ 20 GIÂY & TÍCH ĐIỂM VÉ MIỄN PHÍ ================== */
+/* ================== HOẠT ĐỘNG 4: MINIGAME NỐI TỪ & TÍCH ĐIỂM VÉ MIỄN PHÍ ================== */
 const WORDCHAIN_STORAGE_KEY = "fuongtrang_wordchain_points";
 const FREETICKET_STORAGE_KEY = "fuongtrang_free_tickets";
-const WORDCHAIN_DURATION_MS = 20000; // 20 giây cho mỗi lượt nối từ
+const WORDCHAIN_DURATION_KEY = "fuongtrang_wordchain_duration";
 
 const wordChainState = {
   active: false,
   currentWord: "Đà Lạt",
   currentLastWord: "lạt",
-  remainingMs: WORDCHAIN_DURATION_MS,
+  durationMs: 20000,
+  remainingMs: 20000,
   timerInterval: null
 };
+
+function getWordChainConfiguredDuration() {
+  const durationInput = document.getElementById("input-wordchain-duration");
+  if (durationInput) {
+    const val = parseInt(durationInput.value, 10);
+    if (!isNaN(val) && val >= 3) {
+      return val;
+    }
+  }
+  return 20; // Mặc định 20 giây
+}
 
 function getWordChainUserData() {
   try {
@@ -1344,8 +1356,9 @@ function startWordChain(initialWord = "") {
   if (wordchainBox) wordchainBox.classList.remove("hidden");
 
   updateWordChainUI();
+  const durationSec = getWordChainConfiguredDuration();
   const footerEl = document.getElementById("wordchain-last-winner");
-  if (footerEl) footerEl.innerHTML = "⏱️ Còn 20 giây để nối từ tiếp theo...";
+  if (footerEl) footerEl.innerHTML = `⏱️ Còn ${durationSec} giây để nối từ tiếp theo...`;
 
   resetWordChainTimer();
 
@@ -1353,17 +1366,20 @@ function startWordChain(initialWord = "") {
   if (appSettings.enableGuideVoice) {
     speakStationAnnouncement(`Bắt đầu minigame nối từ! Từ khởi đầu là ${wordChainState.currentWord}. Mau comment từ bắt đầu bằng chữ ${capLetter}!`);
   }
-  showToast("🔤 MINIGAME NỐI TỪ", `Từ khóa: "${wordChainState.currentWord}". Nhanh tay comment từ bắt đầu bằng "${capLetter}" trong 20s!`, "⏱️");
+  showToast("🔤 MINIGAME NỐI TỪ", `Từ khóa: "${wordChainState.currentWord}". Nhanh tay comment từ bắt đầu bằng "${capLetter}" trong ${durationSec}s!`, "⏱️");
 }
 
 function resetWordChainTimer() {
   if (wordChainState.timerInterval) clearInterval(wordChainState.timerInterval);
-  wordChainState.remainingMs = WORDCHAIN_DURATION_MS;
+  const durationSec = getWordChainConfiguredDuration();
+  const durationMs = durationSec * 1000;
+  wordChainState.durationMs = durationMs;
+  wordChainState.remainingMs = durationMs;
 
   const timerBadge = document.getElementById("wordchain-timer");
   const timerFill = document.getElementById("wordchain-fill");
 
-  if (timerBadge) timerBadge.innerText = "20.0s";
+  if (timerBadge) timerBadge.innerText = `${String(durationSec).padStart(2, '0')}.0s`;
   if (timerFill) timerFill.style.width = "100%";
 
   wordChainState.timerInterval = setInterval(() => {
@@ -1374,7 +1390,7 @@ function resetWordChainTimer() {
       timerBadge.innerText = sec < 10 ? `0${sec.toFixed(1)}s` : `${sec.toFixed(1)}s`;
     }
     if (timerFill) {
-      const pct = Math.max(0, Math.min(100, (wordChainState.remainingMs / WORDCHAIN_DURATION_MS) * 100));
+      const pct = Math.max(0, Math.min(100, (wordChainState.remainingMs / wordChainState.durationMs) * 100));
       timerFill.style.width = `${pct}%`;
     }
 
@@ -1387,15 +1403,16 @@ function resetWordChainTimer() {
 }
 
 function endWordChainByTimeout() {
+  const durationSec = Math.round((wordChainState.durationMs || 20000) / 1000);
   const footerEl = document.getElementById("wordchain-last-winner");
   if (footerEl) {
-    footerEl.innerHTML = `⏰ <b style="color:#ef4444;">HẾT 20 GIÂY!</b> Không ai đối được từ "${wordChainState.currentWord}". Trò chơi kết thúc!`;
+    footerEl.innerHTML = `⏰ <b style="color:#ef4444;">HẾT ${durationSec} GIÂY!</b> Không ai đối được từ "${wordChainState.currentWord}". Trò chơi kết thúc!`;
   }
 
   if (appSettings.enableGuideVoice) {
-    speakStationAnnouncement(`Hết 20 giây rồi bà con ơi! Không ai đối được từ ${wordChainState.currentWord}. Minigame nối từ kết thúc!`);
+    speakStationAnnouncement(`Hết ${durationSec} giây rồi bà con ơi! Không ai đối được từ ${wordChainState.currentWord}. Minigame nối từ kết thúc!`);
   }
-  showToast("⏰ KẾT THÚC NỐI TỪ", `Hết 20 giây không ai đối được từ "${wordChainState.currentWord}"!`, "💡");
+  showToast("⏰ KẾT THÚC NỐI TỪ", `Hết ${durationSec} giây không ai đối được từ "${wordChainState.currentWord}"!`, "💡");
 
   setTimeout(() => {
     stopWordChain();
@@ -2616,7 +2633,22 @@ function initTestControls() {
     btnStopDance.addEventListener("click", () => stopCabinDance());
   }
 
-  // Khởi tạo các nút điều khiển Minigame Nối Từ (20s)
+  // Khởi tạo các nút điều khiển Minigame Nối Từ (tùy chỉnh số giây)
+  const inputWordChainDuration = document.getElementById("input-wordchain-duration");
+  if (inputWordChainDuration) {
+    const savedDuration = localStorage.getItem(WORDCHAIN_DURATION_KEY);
+    if (savedDuration) {
+      inputWordChainDuration.value = savedDuration;
+    }
+    inputWordChainDuration.addEventListener("change", () => {
+      const v = parseInt(inputWordChainDuration.value, 10);
+      if (!isNaN(v) && v >= 3) {
+        localStorage.setItem(WORDCHAIN_DURATION_KEY, v.toString());
+        showToast("⏱️ ĐÃ LƯU THỜI GIAN", `Thời gian nối từ: ${v} giây/lượt!`, "⚙️");
+      }
+    });
+  }
+
   const btnStartWordChain = document.getElementById("btn-start-wordchain");
   if (btnStartWordChain) {
     btnStartWordChain.addEventListener("click", () => {
