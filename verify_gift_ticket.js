@@ -177,8 +177,8 @@ it("Khung quà tặng Phase 2 ở cạnh trái chứa Nitro Tăng Tốc rút ng�
   assert.ok(js.includes('roadVideo.playbackRate = 2.0'), "Phải tăng tốc video 2x khi kích hoạt Nitro");
 });
 
-// Test 14: Kiểm tra Minigame Nối Từ (5s), cơ chế đếm ngược, tích lũy điểm đủ 20đ = 1 Vé Free và lưu vĩnh viễn
-it("Minigame Nối Từ (5s), đếm ngược 5 giây, tích điểm đủ 20đ = 1 Vé Free và lưu điểm qua các chuyến", () => {
+// Test 14: Kiểm tra Minigame Nối Từ (20s), cơ chế đếm ngược 20 giây, tích lũy điểm đủ 20đ = 1 Vé Free và lưu vĩnh viễn
+it("Minigame Nối Từ (20s), đếm ngược 20 giây, tích điểm đủ 20đ = 1 Vé Free và lưu điểm qua các chuyến", () => {
   // 1. Phải có UI wordchain-box trong index.html
   assert.ok(html.includes('id="wordchain-box" class="wordchain-box hidden"'), "Phải có #wordchain-box ở Phase 2");
   assert.ok(html.includes('id="wordchain-timer"'), "Phải có #wordchain-timer");
@@ -189,13 +189,14 @@ it("Minigame Nối Từ (5s), đếm ngược 5 giây, tích điểm đủ 20đ 
   // 2. CSS của wordchain-box
   assert.ok(css.includes('.wordchain-box {'), "Phải có style cho .wordchain-box");
   assert.ok(css.includes('.wordchain-timer-badge {'), "Phải có style cho .wordchain-timer-badge");
-  assert.ok(css.includes('.wordchain-fill {'), "Phải có style cho thanh fill đếm ngược 5s");
+  assert.ok(css.includes('.wordchain-fill {'), "Phải có style cho thanh fill đếm ngược");
 
-  // 3. Logic JS: kiểm tra nối từ, đếm ngược 5000ms, cộng điểm và đổi vé
+  // 3. Logic JS: kiểm tra nối từ, đếm ngược 20000ms (20s), cộng điểm và đổi vé
   assert.ok(js.includes('WORDCHAIN_STORAGE_KEY'), "Phải có key lưu điểm vào localStorage");
   assert.ok(js.includes('FREETICKET_STORAGE_KEY'), "Phải có key lưu vé miễn phí vào localStorage");
   assert.ok(js.includes('function startWordChain'), "Phải có hàm startWordChain");
-  assert.ok(js.includes('wordChainState.remainingMs = 5000'), "Đếm ngược chuẩn 5000ms (5 giây)");
+  assert.ok(js.includes('WORDCHAIN_DURATION_MS = 20000'), "Đếm ngược chuẩn 20000ms (20 giây)");
+  assert.ok(js.includes('wordChainState.remainingMs = WORDCHAIN_DURATION_MS'), "Đặt remainingMs bằng duration 20s");
   assert.ok(js.includes('currentPts >= 20'), "Đủ 20 điểm quy đổi 1 vé miễn phí");
   assert.ok(js.includes('checkWordChainComment'), "Phải có hàm checkWordChainComment");
   assert.ok(js.includes('onPassengerGift(username, "🌸 Vé xe (Free Minigame)")'), "Tự động kích hoạt vé miễn phí cho chuyến đi sau");
