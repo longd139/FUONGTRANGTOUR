@@ -1081,6 +1081,19 @@ input:checked+.slider:before {
   color: #fff;
 }
 
+.btn-test-destination {
+  padding: 7px 5px;
+  color: #ddd6fe;
+  background: rgba(109, 40, 217, 0.34);
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  font-size: 10px;
+}
+
+.btn-test-destination:hover {
+  color: #fff;
+  background: rgba(124, 58, 237, 0.72);
+}
+
 .action-buttons-group {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -2276,6 +2289,1468 @@ body.obs-mode .phone-frame,
 
 .activity-tab-content.active {
   display: block;
+}
+
+/* ================== PHASE 3: ĐẾN ĐÀ LẠT ================== */
+.dalat-arrival-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  overflow: hidden;
+  color: #fff;
+  background: #263d4d url("public/dalat-arrival.jpg") no-repeat center center;
+  background-size: cover;
+}
+
+.dalat-arrival-stage.hidden {
+  display: none !important;
+}
+
+.dalat-sky-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7,15,30,0.08) 0%, rgba(7,15,30,0.18) 48%, rgba(5,10,18,0.66) 100%);
+}
+
+.dalat-mountains {
+  display: none;
+  position: absolute;
+  left: -12%;
+  width: 125%;
+  transform: rotate(2deg);
+  clip-path: polygon(0 62%, 9% 42%, 18% 58%, 29% 22%, 41% 55%, 52% 31%, 64% 59%, 75% 18%, 87% 52%, 100% 35%, 100% 100%, 0 100%);
+}
+
+.mountain-back {
+  top: 25%;
+  height: 38%;
+  opacity: 0.62;
+  background: #6d8e78;
+}
+
+.mountain-front {
+  top: 34%;
+  height: 40%;
+  opacity: 0.92;
+  background: #355d49;
+  transform: rotate(-1deg) scaleX(-1);
+}
+
+.arrival-header {
+  position: relative;
+  z-index: 8;
+  margin: 14px 14px 0;
+  padding: 8px 12px;
+  text-align: center;
+  border: 1.5px solid rgba(255,255,255,0.42);
+  border-radius: 16px;
+  background: rgba(19, 35, 53, 0.82);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  backdrop-filter: blur(10px);
+}
+
+.arrival-route-label {
+  color: #fed7aa;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.arrival-title {
+  margin-top: 1px;
+  color: #fff7d6;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.55);
+}
+
+.arrival-stage-timer {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  min-width: 42px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(239,68,68,0.78);
+  border: 1px solid rgba(255,255,255,0.5);
+  font-size: 9px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.destination-visit-timeline {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255,255,255,0.16);
+}
+
+.destination-visit-timeline.hidden {
+  display: none !important;
+}
+
+.visit-timeline-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+  color: #e0f2fe;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: 0.35px;
+}
+
+.visit-timeline-info b {
+  color: #fef3c7;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-timeline-track {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(0,0,0,0.42);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+}
+
+.visit-timeline-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #22c55e, #facc15, #f97316, #ef4444);
+  transition: width 1s linear;
+}
+
+.dalat-arrival-stage.visit-timer-active .arrival-content {
+  top: 112px;
+}
+
+.arrival-content {
+  position: absolute;
+  z-index: 9;
+  top: 86px;
+  left: 50%;
+  width: calc(100% - 24px);
+  transform: translateX(-50%);
+}
+
+.arrival-panel {
+  width: 100%;
+  padding: 13px 12px 12px;
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(10, 18, 30, 0.9);
+  border: 1.5px solid rgba(255,255,255,0.28);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.45);
+  backdrop-filter: blur(12px);
+  animation: arrivalPanelIn 0.4s cubic-bezier(.2,.85,.3,1.15);
+}
+
+.arrival-panel.hidden {
+  display: none !important;
+}
+
+@keyframes arrivalPanelIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.arrival-panel-kicker {
+  color: #fbbf24;
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+}
+
+.arrival-panel h2 {
+  margin: 2px 0 8px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+.arrival-panel > p {
+  margin: -3px 0 9px;
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.summary-stat {
+  padding: 6px 3px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.summary-stat span,
+.summary-stat small {
+  display: block;
+}
+
+.summary-stat span {
+  color: #fcd34d;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.summary-stat small {
+  margin-top: -2px;
+  color: #cbd5e1;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.arrival-awards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.arrival-award {
+  min-width: 0;
+  padding: 7px 6px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(124,58,237,0.18));
+  border: 1px solid rgba(251,191,36,0.35);
+}
+
+.arrival-award-icon {
+  font-size: 16px;
+}
+
+.arrival-award-title {
+  color: #fcd34d;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.arrival-award-name {
+  overflow: hidden;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.arrival-next-hint,
+.arrival-announcement {
+  margin-top: 9px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  color: #dbeafe;
+  background: rgba(37,99,235,0.18);
+  border: 1px solid rgba(96,165,250,0.34);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.luggage-carousel {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+
+.luggage-item {
+  position: relative;
+  min-width: 0;
+  padding: 6px 2px 5px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.luggage-item:not(.claimed) {
+  animation: luggageBounce 1.5s infinite ease-in-out;
+}
+
+.luggage-item:nth-child(even) { animation-delay: -0.7s; }
+
+@keyframes luggageBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.luggage-item.claimed {
+  background: rgba(16,185,129,0.16);
+  border-color: #34d399;
+}
+
+.luggage-number {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #111827;
+  background: #fbbf24;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 18px;
+}
+
+.luggage-icon { font-size: 27px; }
+
+.luggage-owner {
+  overflow: hidden;
+  color: #e2e8f0;
+  font-size: 7px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.luggage-prize {
+  min-height: 17px;
+  color: #86efac;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.checkin-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.checkin-option {
+  min-width: 0;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.18);
+}
+
+.checkin-option.leading {
+  border-color: #fbbf24;
+  background: rgba(245,158,11,0.18);
+  box-shadow: 0 0 14px rgba(245,158,11,0.18);
+}
+
+.checkin-number {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #111827;
+  background: #fbbf24;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 20px;
+}
+
+.checkin-icon {
+  display: block;
+  margin: 3px 0 1px;
+  font-size: 23px;
+}
+
+.checkin-name {
+  min-height: 24px;
+  color: #f8fafc;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.checkin-votes {
+  color: #fde68a;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.travel-panel {
+  padding: 14px 12px 12px;
+  background: linear-gradient(145deg, rgba(7, 20, 36, 0.92), rgba(15, 55, 65, 0.9));
+}
+
+.travel-route-row {
+  display: grid;
+  grid-template-columns: 54px 1fr 54px;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 9px;
+}
+
+.travel-point {
+  color: #e2e8f0;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.travel-point small {
+  display: block;
+  margin-top: 2px;
+  color: #cbd5e1;
+  font-size: 7px;
+  line-height: 1.15;
+}
+
+.travel-point.destination span {
+  font-size: 25px;
+}
+
+.travel-track {
+  position: relative;
+  height: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.18);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
+}
+
+.travel-track::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  right: 5px;
+  border-top: 1px dashed rgba(255,255,255,0.38);
+}
+
+.travel-progress-fill {
+  position: relative;
+  z-index: 2;
+  width: 0;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f97316, #fbbf24, #34d399);
+  box-shadow: 0 0 10px rgba(52,211,153,0.55);
+}
+
+.travel-progress-fill.active {
+  animation: phase3TravelProgress 12s linear forwards;
+}
+
+@keyframes phase3TravelProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.travel-bus-marker {
+  position: absolute;
+  right: -10px;
+  top: -15px;
+  font-size: 18px;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
+}
+
+.travel-status-text {
+  padding: 6px 8px;
+  border-radius: 9px;
+  color: #fef3c7;
+  background: rgba(245,158,11,0.16);
+  border: 1px solid rgba(251,191,36,0.34);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.travel-scenery-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.travel-scenery-tags span {
+  padding: 3px 7px;
+  border-radius: 10px;
+  color: #d1fae5;
+  background: rgba(16,185,129,0.16);
+  border: 1px solid rgba(52,211,153,0.3);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.dalat-arrival-stage.travelling .arrival-bus-img {
+  animation: phase3BusDriving 0.55s infinite alternate ease-in-out;
+}
+
+.dalat-arrival-stage.travelling .arrival-road::after {
+  animation: phase3RoadMoving 0.42s infinite linear;
+}
+
+@keyframes phase3BusDriving {
+  from { transform: translateX(-50%) translateY(0) rotate(-0.4deg); }
+  to { transform: translateX(-50%) translateY(-3px) rotate(0.4deg); }
+}
+
+@keyframes phase3RoadMoving {
+  from { background-position-x: 0; }
+  to { background-position-x: -48px; }
+}
+
+.result-panel {
+  padding-top: 18px;
+  background: linear-gradient(145deg, rgba(76,29,149,0.92), rgba(7,89,133,0.92));
+}
+
+.arrival-passenger-status {
+  margin: 7px 0 2px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  color: #d1fae5;
+  background: rgba(16,185,129,0.18);
+  border: 1px solid rgba(52,211,153,0.38);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.arrival-live-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.arrival-live-actions span {
+  padding: 3px 5px;
+  border-radius: 7px;
+  color: #e0f2fe;
+  background: rgba(14,165,233,0.13);
+  border: 1px solid rgba(56,189,248,0.25);
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.arrival-live-actions b {
+  color: #fde68a;
+}
+
+.arrival-game-panel {
+  position: relative;
+  padding: 12px 11px 11px;
+  background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,64,175,0.91));
+}
+
+.destination-game-timer {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  min-width: 42px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(239,68,68,0.84);
+  border: 1px solid rgba(255,255,255,0.42);
+  font-size: 9px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.arrival-game-panel > p {
+  margin: -3px 0 7px;
+  color: #dbeafe;
+}
+
+.gift-power-hud {
+  display: none;
+  margin: 0 0 7px;
+  padding: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.5), rgba(15, 118, 110, 0.38));
+  box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.04);
+}
+
+.gift-power-hud.active {
+  display: block;
+  animation: giftHudEnter 0.35s ease-out;
+}
+
+@keyframes giftHudEnter {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gift-power-goal-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fef3c7;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.gift-power-goal-copy b {
+  color: #fff;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gift-power-goal-track {
+  height: 6px;
+  margin: 3px 0 2px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.gift-power-goal-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f43f5e, #fbbf24, #22c55e);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+  transition: width 0.35s ease;
+}
+
+.gift-power-goal small {
+  display: block;
+  color: #bae6fd;
+  font-size: 6px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.gift-power-items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.gift-power-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  grid-template-rows: auto auto;
+  min-width: 0;
+  padding: 3px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.42);
+  text-align: left;
+}
+
+.gift-power-item > span {
+  grid-row: 1 / 3;
+  align-self: center;
+  font-size: 14px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+}
+
+.gift-power-item b { color: #fff; font-size: 7px; }
+.gift-power-item small { overflow: hidden; color: #cbd5e1; font-size: 5.5px; white-space: nowrap; }
+.gift-power-item.flower { border-color: rgba(244, 114, 182, 0.48); }
+.gift-power-item.coffee { border-color: rgba(251, 191, 36, 0.48); }
+.gift-power-item.shield { border-color: rgba(96, 165, 250, 0.55); }
+
+.gift-team-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.gift-team-chip {
+  min-width: 0;
+  padding: 3px 4px;
+  border-radius: 7px;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.gift-team-chip b,
+.gift-team-chip span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gift-team-chip b { color: #f8fafc; font-size: 6px; }
+.gift-team-chip span { color: #fde68a; font-size: 5.5px; font-weight: 800; }
+.gift-team-chip.team-1 { border-color: rgba(244, 114, 182, 0.5); }
+.gift-team-chip.team-2 { border-color: rgba(56, 189, 248, 0.5); }
+.gift-team-chip.team-3 { border-color: rgba(250, 204, 21, 0.5); }
+
+.gift-supporter-board {
+  margin-top: 4px;
+  padding: 3px 5px;
+  overflow: hidden;
+  border-radius: 7px;
+  color: #d1fae5;
+  background: rgba(16, 185, 129, 0.14);
+  font-size: 6px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gift-supporter-board b { color: #fef08a; }
+
+.destination-game-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.boat-team-selection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.boat-team-choice {
+  position: relative;
+  min-width: 0;
+  padding: 8px 4px 6px;
+  border-radius: 11px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+}
+
+.boat-team-choice.team-1 { border-color: rgba(244,114,182,0.7); }
+.boat-team-choice.team-2 { border-color: rgba(56,189,248,0.7); }
+.boat-team-choice.team-3 { border-color: rgba(250,204,21,0.7); }
+
+.boat-choice-number {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  color: #111827;
+  background: #fbbf24;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 21px;
+}
+
+.boat-choice-icon {
+  display: block;
+  font-size: 31px;
+}
+
+.boat-team-choice b,
+.boat-team-choice small {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.boat-team-choice b { color: #f8fafc; font-size: 8px; }
+.boat-team-choice small { color: #a7f3d0; font-size: 7px; font-weight: 800; }
+
+.boat-member-list {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 31px;
+  margin-top: 4px;
+}
+
+.boat-member-list span {
+  position: relative;
+  width: 20px;
+  margin-left: -5px;
+}
+
+.boat-member-list span:first-child { margin-left: 0; }
+.boat-member-list img { width: 25px; height: 29px; object-fit: contain; }
+.boat-member-list i { display: none; }
+.boat-member-list em { color: #fde68a; font-size: 7px; font-weight: 900; }
+
+.vertical-boat-race {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  height: 245px;
+  padding: 3px 2px 0;
+}
+
+.vertical-boat-lane {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(125,211,252,0.34), rgba(2,132,199,0.48));
+  border: 1.5px solid rgba(186,230,253,0.5);
+  box-shadow: inset 0 0 18px rgba(3,105,161,0.3);
+}
+
+.vertical-boat-lane::before,
+.vertical-boat-lane::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  opacity: 0.5;
+  background: repeating-linear-gradient(90deg, #e0f2fe 0 9px, transparent 9px 17px);
+  animation: boatWaterRipple 0.8s infinite linear;
+}
+
+.vertical-boat-lane::before { top: 35%; }
+.vertical-boat-lane::after { top: 68%; animation-delay: -0.4s; }
+
+@keyframes boatWaterRipple {
+  to { background-position-x: 17px; }
+}
+
+.boat-finish-line {
+  position: absolute;
+  z-index: 3;
+  top: 3px;
+  left: 50%;
+  width: 88%;
+  padding-bottom: 2px;
+  transform: translateX(-50%);
+  border-bottom: 2px dashed rgba(255,255,255,0.88);
+  font-size: 13px;
+}
+
+.boat-lane-water {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.11), transparent);
+}
+
+.vertical-boat-marker {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  width: 58px;
+  height: 54px;
+  transform: translateX(-50%);
+  transition: bottom 0.3s cubic-bezier(.2,.75,.25,1.1);
+  animation: verticalBoatBob 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes verticalBoatBob {
+  to { transform: translateX(-50%) translateY(-3px); }
+}
+
+.vertical-boat-icon {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  font-size: 35px;
+  transform: translateX(-50%) rotate(-90deg);
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+
+.boat-rider-stack {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 15px;
+  display: flex;
+  align-items: flex-end;
+  transform: translateX(-50%);
+}
+
+.boat-rider-stack img {
+  width: 23px;
+  height: 27px;
+  margin-left: -9px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.65));
+}
+
+.boat-rider-stack img:first-child { margin-left: 0; }
+.boat-rider-stack span {
+  color: #fff;
+  font-size: 7px;
+  font-weight: 900;
+  text-shadow: 0 1px 3px #000;
+}
+
+.vertical-boat-label {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transform: translateX(-50%);
+  padding: 2px 5px;
+  border-radius: 9px;
+  background: rgba(2,6,23,0.78);
+  border: 1px solid rgba(255,255,255,0.25);
+  white-space: nowrap;
+}
+
+.vertical-boat-label b {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #111827;
+  background: #fbbf24;
+  line-height: 16px;
+}
+
+.vertical-boat-label span { color: #e0f2fe; font-size: 7px; font-weight: 900; }
+
+.vertical-climb-race {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  height: 245px;
+  padding: 2px;
+}
+
+.climb-dodge-guide {
+  margin-bottom: 5px;
+  padding: 5px 7px;
+  border-radius: 8px;
+  color: #fef3c7;
+  background: rgba(180,83,9,0.25);
+  border: 1px solid rgba(251,191,36,0.42);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.climb-dodge-guide b { color: #fff; }
+
+.vertical-climb-lane {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    linear-gradient(160deg, transparent 0 28%, rgba(255,255,255,0.08) 28% 31%, transparent 31% 58%, rgba(255,255,255,0.07) 58% 61%, transparent 61%),
+    linear-gradient(180deg, rgba(148,163,184,0.34), rgba(71,85,105,0.72));
+  border: 1.5px solid rgba(203,213,225,0.42);
+  box-shadow: inset 0 0 20px rgba(15,23,42,0.4);
+}
+
+.vertical-climb-lane.team-1 {
+  background-color: rgba(22,101,52,0.42);
+  border-color: rgba(74,222,128,0.62);
+}
+
+.vertical-climb-lane.team-2 {
+  background-color: rgba(71,85,105,0.48);
+  border-color: rgba(226,232,240,0.65);
+}
+
+.vertical-climb-lane.team-3 {
+  background-color: rgba(154,52,18,0.42);
+  border-color: rgba(251,146,60,0.68);
+}
+
+.vertical-climb-lane::before,
+.vertical-climb-lane::after {
+  content: "🌲";
+  position: absolute;
+  color: rgba(21,128,61,0.72);
+  font-size: 17px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.55));
+}
+
+.vertical-climb-lane::before { left: 4px; bottom: 30%; }
+.vertical-climb-lane::after { right: 3px; bottom: 58%; transform: scale(0.72); }
+
+.climb-summit {
+  position: absolute;
+  z-index: 5;
+  top: 3px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  color: #fef3c7;
+  font-size: 14px;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+}
+
+.climb-summit small {
+  margin-top: -2px;
+  font-size: 6px;
+}
+
+.climb-trail {
+  position: absolute;
+  top: 27px;
+  bottom: 26px;
+  left: 50%;
+  width: 18px;
+  transform: translateX(-50%);
+  border-left: 2px dashed rgba(254,240,138,0.72);
+  border-right: 2px dashed rgba(254,240,138,0.3);
+  background: rgba(120,53,15,0.18);
+}
+
+.climb-obstacle-layer {
+  position: absolute;
+  z-index: 7;
+  inset: 24px 0 25px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.climb-falling-obstacle {
+  position: absolute;
+  top: -34px;
+  font-size: 27px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.65));
+  animation: climbObstacleFall 3.4s linear forwards;
+}
+
+@keyframes climbObstacleFall {
+  0% { top: -34px; transform: translateX(-50%) rotate(0deg) scale(0.72); }
+  100% { top: calc(100% - 18px); transform: translateX(-50%) rotate(280deg) scale(1.12); }
+}
+
+.vertical-climber-marker {
+  position: absolute;
+  z-index: 8;
+  left: calc(50% + var(--dodge-x, 0px));
+  width: 58px;
+  height: 55px;
+  transform: translateX(-50%);
+  transition: bottom 0.35s cubic-bezier(.2,.8,.25,1.12), left 0.24s ease;
+  animation: verticalClimberStep 0.42s infinite alternate ease-in-out;
+}
+
+.vertical-climber-marker.dodge-success {
+  filter: drop-shadow(0 0 9px rgba(74,222,128,0.95));
+}
+
+.vertical-climber-marker.obstacle-hit {
+  animation: climbObstacleHit 0.12s 6 alternate ease-in-out;
+  filter: drop-shadow(0 0 9px rgba(239,68,68,0.95));
+}
+
+@keyframes climbObstacleHit {
+  from { transform: translateX(-50%) rotate(-7deg); }
+  to { transform: translateX(-50%) rotate(7deg); }
+}
+
+@keyframes verticalClimberStep {
+  to { transform: translateX(-50%) translateY(-3px) rotate(1deg); }
+}
+
+.climber-icon {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  font-size: 29px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.55));
+}
+
+.climber-team-icon {
+  position: absolute;
+  right: 3px;
+  bottom: 6px;
+  font-size: 15px;
+}
+
+.climb-member-stack {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 24px;
+  display: flex;
+  align-items: flex-end;
+  transform: translateX(-50%);
+}
+
+.climb-member-stack img {
+  width: 21px;
+  height: 25px;
+  margin-left: -8px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.65));
+}
+
+.climb-member-stack img:first-child { margin-left: 0; }
+.climb-member-stack span { color: #fff; font-size: 7px; font-weight: 900; text-shadow: 0 1px 3px #000; }
+
+.vertical-climb-label {
+  position: absolute;
+  z-index: 10;
+  left: 4px;
+  right: 4px;
+  bottom: 3px;
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(2,6,23,0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.vertical-climb-label b {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #111827;
+  background: #fbbf24;
+  line-height: 16px;
+}
+
+.vertical-climb-label span {
+  overflow: hidden;
+  font-size: 6px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vertical-climb-label strong { color: #86efac; font-size: 7px; }
+
+.game-race-lane {
+  padding: 5px 7px 8px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.13);
+}
+
+.game-team-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  color: #f8fafc;
+  font-size: 8px;
+}
+
+.game-team-label span {
+  color: #fde68a;
+  font-weight: 900;
+}
+
+.game-race-track {
+  position: relative;
+  height: 9px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.38);
+}
+
+.game-race-track.water {
+  background: repeating-linear-gradient(170deg, rgba(56,189,248,0.28) 0 8px, rgba(14,116,144,0.34) 8px 16px);
+}
+
+.game-race-track.mountain {
+  background: linear-gradient(90deg, rgba(74,222,128,0.25), rgba(120,113,108,0.45));
+}
+
+.game-race-progress {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f97316, #fbbf24, #22c55e);
+  transition: width 0.32s ease;
+}
+
+.game-racer {
+  position: absolute;
+  top: -13px;
+  font-size: 18px;
+  transform: translateX(-50%);
+  transition: left 0.32s ease;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.65));
+}
+
+.dance-command-card {
+  padding: 7px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(236,72,153,0.25), rgba(139,92,246,0.25));
+  border: 1px solid rgba(244,114,182,0.45);
+}
+
+.dance-command-card small,
+.dance-command-card strong {
+  display: block;
+}
+
+.dance-command-card small {
+  color: #fbcfe8;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.dance-command-card strong {
+  color: #fef08a;
+  font-size: 19px;
+  font-weight: 900;
+  animation: pulseWinner 0.55s infinite alternate;
+}
+
+.dance-team-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.dance-team-card {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  font-size: 8px;
+}
+
+.dance-team-card span { font-size: 20px; }
+.dance-team-card strong { color: #fde68a; font-size: 11px; }
+
+.mountain-challenge {
+  padding: 6px 8px;
+  border-radius: 9px;
+  color: #fee2e2;
+  background: rgba(220,38,38,0.28);
+  border: 1px solid rgba(248,113,113,0.5);
+  font-size: 9px;
+  font-weight: 800;
+  animation: pulseWinner 0.55s infinite alternate;
+}
+
+.mountain-challenge b { color: #fef08a; text-transform: uppercase; }
+
+.destination-game-feed {
+  margin-top: 7px;
+  min-height: 25px;
+  padding: 5px 7px;
+  border-radius: 8px;
+  color: #d1fae5;
+  background: rgba(16,185,129,0.14);
+  border: 1px solid rgba(52,211,153,0.3);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.destination-game-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 9px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(168,85,247,0.24));
+  border: 1px solid rgba(251,191,36,0.5);
+}
+
+.destination-game-winner span { font-size: 35px; }
+.destination-game-winner b { color: #fef3c7; font-size: 13px; }
+.destination-game-winner strong { color: #86efac; font-size: 10px; }
+
+.arrival-passengers-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.arrival-passenger {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transform: translate(-50%, -92%) scale(0.25);
+  transform-origin: bottom center;
+  transition: left 0.9s cubic-bezier(.2,.75,.25,1),
+              top 0.9s cubic-bezier(.2,.75,.25,1),
+              opacity 0.22s ease,
+              transform 0.9s cubic-bezier(.2,.75,.25,1);
+}
+
+.arrival-passenger.on-boat {
+  opacity: 0 !important;
+}
+
+.arrival-passenger.on-climb {
+  opacity: 0 !important;
+}
+
+.arrival-passenger .char-sprite-wrapper {
+  width: 58px;
+  height: 64px;
+}
+
+.arrival-passenger .char-tag {
+  max-width: 82px;
+  overflow: hidden;
+  padding: 1px 5px;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrival-passenger.walking .char-sprite-wrapper {
+  animation: walkBob 0.22s infinite alternate ease-in-out;
+}
+
+.arrival-passenger.arrived .char-sprite-wrapper {
+  animation: arrivalPassengerCelebrate 1.5s infinite ease-in-out;
+  animation-delay: calc(var(--arrival-scale, 0.5) * -1s);
+}
+
+.arrival-passenger.arrived.walking .char-sprite-wrapper {
+  animation: walkBob 0.22s infinite alternate ease-in-out;
+}
+
+.arrival-passenger.checkin-posing .char-sprite-wrapper {
+  animation: arrivalCheckinPose 0.45s infinite alternate ease-in-out;
+}
+
+.arrival-passenger.live-dancing .char-sprite-wrapper {
+  animation: arrivalLiveDance 0.28s infinite alternate ease-in-out;
+}
+
+@keyframes arrivalPassengerCelebrate {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+@keyframes arrivalCheckinPose {
+  from { transform: translateY(0) rotate(-5deg) scale(1); }
+  to { transform: translateY(-7px) rotate(6deg) scale(1.08); }
+}
+
+@keyframes arrivalLiveDance {
+  from { transform: translateY(0) rotate(-10deg) scale(1); }
+  to { transform: translateY(-9px) rotate(10deg) scale(1.1); }
+}
+
+.arrival-live-effects {
+  position: absolute;
+  inset: 0;
+  z-index: 32;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.arrival-live-effect {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+  animation: arrivalLiveEffectFly 2.25s ease-out forwards;
+}
+
+@keyframes arrivalLiveEffectFly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.45) rotate(-12deg);
+  }
+  16% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--effect-x)), var(--effect-y)) scale(1.3) rotate(14deg);
+  }
+}
+
+.dalat-arrival-stage.unloading .arrival-bus-img {
+  filter: drop-shadow(0 13px 12px rgba(0,0,0,0.52)) brightness(1.06);
+}
+
+.dalat-arrival-stage.bus-leaving .arrival-bus-img {
+  animation: arrivalBusExit 1.75s cubic-bezier(.55,.05,.8,.35) forwards;
+}
+
+.dalat-arrival-stage.bus-gone .arrival-bus-img {
+  animation: none !important;
+  opacity: 0;
+  transform: translateX(135%);
+}
+
+@keyframes arrivalBusExit {
+  0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+  18% { transform: translateX(-52%) translateY(-2px); }
+  100% { transform: translateX(135%) translateY(-3px); opacity: 1; }
+}
+
+.result-confetti {
+  margin-bottom: 4px;
+  font-size: 16px;
+  letter-spacing: 5px;
+  animation: resultConfetti 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes resultConfetti {
+  to { transform: translateY(-4px) scale(1.05); }
+}
+
+.checkin-result-icon {
+  margin: 4px 0;
+  font-size: 52px;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+}
+
+.arrival-bus-scene {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 39%;
+}
+
+.arrival-road {
+  position: absolute;
+  inset: 42% 0 0;
+  background: linear-gradient(180deg, #536154, #2f3435 12%, #181b1c 100%);
+  border-top: 3px solid rgba(255,255,255,0.5);
+}
+
+.arrival-road::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 48%;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #f8fafc 0 28px, transparent 28px 48px);
+  opacity: 0.65;
+}
+
+.arrival-bus-img {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  width: 92%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 13px 12px rgba(0,0,0,0.52));
+  animation: arrivalBusPark 0.9s cubic-bezier(.2,.8,.3,1) both;
+}
+
+.dalat-photo-credit {
+  position: absolute;
+  z-index: 12;
+  right: 7px;
+  bottom: 4px;
+  color: rgba(255,255,255,0.72);
+  font-size: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+@keyframes arrivalBusPark {
+  from { transform: translateX(-150%); }
+  to { transform: translateX(-50%); }
 }
 
 /* ================== TAB 2: ĐỔI NHẠC TRÊN XE ================== */

@@ -21,9 +21,31 @@ const state = {
   farPassengers: [],    // Danh sách người ở sân ngoài
   seatedPassengers: [], // Danh sách người đã vào ghế
   isDeparting: false,   // Đang trong hiệu ứng xe chạy
-  currentPhase: 1,      // 1: Bến xe (Phase 1), 2: Trong xe (Phase 2)
+  currentPhase: 1,      // 1: Bến xe, 2: Trong xe, 3: Đến Đà Lạt
   autoDemoInterval: null
 };
+
+// Thành tích chỉ tính trong một chuyến, dùng cho bảng tổng kết Phase 3.
+const tripStats = {
+  fuel: {},
+  horn: {},
+  gifts: {},
+  quiz: {},
+  wordChain: {},
+  nitro: {}
+};
+
+function addTripStat(category, username, amount = 1) {
+  if (!tripStats[category] || !username) return;
+  const name = String(username).trim() || "Hành khách";
+  tripStats[category][name] = (tripStats[category][name] || 0) + amount;
+}
+
+function resetTripStats() {
+  Object.keys(tripStats).forEach(category => {
+    tripStats[category] = {};
+  });
+}
 
 /* ================== QUẢN TRỊ CÀI ĐẶT BOT LIVESTREAM ================== */
 const defaultSettings = {
@@ -356,6 +378,7 @@ function addFuel(username = "Hành khách", amount = 1) {
 
   const prevFuel = currentFuel;
   currentFuel = Math.min(INTERACT_CONFIG.MAX_FUEL, currentFuel + amount);
+  addTripStat("fuel", username, currentFuel - prevFuel);
   updateFuelUI();
   playFuelSound();
 
@@ -375,7 +398,7 @@ function addFuel(username = "Hành khách", amount = 1) {
     // Đạt đủ 100L: Xe rồ ga nổ máy, ống khói xả mù mịt
     showInteractBubble(`⛽ BÌNH XĂNG ĐÃ ĐẦY 100L! XE ĐÃ NỔ MÁY!`);
     showToast("⛽ ĐẦY BÌNH XĂNG!", `${username} cùng bà con đã tiếp đủ 100L xăng cho xe!`, "⛽");
-    
+
     if (busContainer) {
       busContainer.classList.add("engine-running");
     }
@@ -395,6 +418,7 @@ function addFuel(username = "Hành khách", amount = 1) {
 
 function addHornVote(username = "Hành khách") {
   currentHornCount++;
+  addTripStat("horn", username, 1);
   updateHornUI();
 
   if (currentHornCount >= INTERACT_CONFIG.HORN_TARGET) {
@@ -436,8 +460,19 @@ function showPassengerComment(username, text) {
     }
   }
 
+  // Phase 3: tìm nhân vật đang tham quan tại địa điểm check-in.
+  if (state.currentPhase === 3) {
+    const arrivalChars = document.querySelectorAll("#arrival-passengers-layer .arrival-passenger");
+    for (const char of arrivalChars) {
+      if ((char.dataset.username || "").trim().toLowerCase() === targetName) {
+        targetEl = char;
+        break;
+      }
+    }
+  }
+
   // 2. Nếu đang ở Phase 1 (bến xe): Tìm hành khách ngoài sân hoặc trong giường nằm
-  if (state.currentPhase === 1 || !targetEl) {
+  if (state.currentPhase === 1 || (state.currentPhase !== 3 && !targetEl)) {
     // 2.1. Tìm hành khách ngoài sân bến xe
     const courtyardChars = document.querySelectorAll("#far-passengers-container .char-2d");
     for (const char of courtyardChars) {
@@ -508,6 +543,12 @@ function showPassengerComment(username, text) {
 function handleComment(username = "Hành khách", commentText = "") {
   const text = (commentText || "").trim();
   if (!text) return;
+
+  // Phase 3 dùng comment số cho Nhận hành lý và Bình chọn check-in.
+  if (state.currentPhase === 3) {
+    handlePhase3Comment(username, text);
+    return;
+  }
 
   // Nếu người này chưa có trong bến xe ở Phase 1 và chưa có ghế, tự động cho họ vào bến xe
   if (state.currentPhase === 1 && !state.farPassengers.includes(username) && !state.seatedPassengers.some(p => p.username === username)) {
@@ -700,13 +741,13 @@ function onPassengerJoin(username) {
     charEl.style.left = `${targetX}px`;
     setTimeout(() => {
       charEl.classList.remove("walking");
-        // Nếu bật BOT chào người xem mới: tự động Random 1 câu trong danh sách
-        if (appSettings.enableJoinVoice && appSettings.joinMessages && appSettings.joinMessages.length > 0) {
-          const randomTpl = appSettings.joinMessages[Math.floor(Math.random() * appSettings.joinMessages.length)];
-          const welcome = randomTpl.replace(/{username}/g, username);
-          speakStationAnnouncement(welcome);
-        }
-      }, 850);
+      // Nếu bật BOT chào người xem mới: tự động Random 1 câu trong danh sách
+      if (appSettings.enableJoinVoice && appSettings.joinMessages && appSettings.joinMessages.length > 0) {
+        const randomTpl = appSettings.joinMessages[Math.floor(Math.random() * appSettings.joinMessages.length)];
+        const welcome = randomTpl.replace(/{username}/g, username);
+        speakStationAnnouncement(welcome);
+      }
+    }, 850);
   }, 40);
 }
 
@@ -746,6 +787,7 @@ setInterval(() => {
 /* ================== HIỆU ỨNG NITRO TĂNG TỐC XE ĐẾN ĐÀ LẠT ================== */
 function applyNitroBoost(username) {
   if (state.currentPhase === 2) {
+    addTripStat("nitro", username, 1);
     const REDUCE_SECONDS = 120; // Rút ngắn 2 phút (120 giây)
     tripRemainingSeconds = Math.max(10, tripRemainingSeconds - REDUCE_SECONDS);
     updateTripTimerUI();
@@ -779,6 +821,17 @@ function applyNitroBoost(username) {
 /* ================== SỰ KIỆN 2: TẶNG QUÀ & VÀO GHẾ VIP ================== */
 function onPassengerGift(username, giftName) {
   if (state.isDeparting) return;
+
+  addTripStat("gifts", username, 1);
+
+  if (state.currentPhase === 3 && phase3State.stage === "result") {
+    triggerArrivalGiftInteraction(username, giftName);
+    return;
+  }
+  if (state.currentPhase === 3 && phase3State.stage === "game") {
+    handleDestinationGameGift(username, giftName);
+    return;
+  }
 
   // 1. Tự động đổi nhạc khi khán giả tặng quà
   if (appSettings.enableGiftChangeMusic !== false) {
@@ -889,7 +942,7 @@ const CABIN_SEATS = [
   { x: 88.8, y: 63.8, scale: 0.86, zIndex: 14 },
 
   // Hàng 1 (gần nhất dưới đáy màn hình)
-  { x: 9.2,  y: 76.5, scale: 1.08, zIndex: 15 },
+  { x: 9.2, y: 76.5, scale: 1.08, zIndex: 15 },
   { x: 26.2, y: 76.5, scale: 1.08, zIndex: 15 },
   { x: 73.8, y: 76.5, scale: 1.08, zIndex: 15 },
   { x: 90.8, y: 76.5, scale: 1.08, zIndex: 15 }
@@ -1014,7 +1067,7 @@ function isAnswerMatching(userComment, rawAnswer) {
 
   // 3. Từ khóa bỏ qua (từ nối, cảm thán phổ biến)
   const stopWords = new Set([
-    "nha", "nhe", "ba", "con", "oi", "la", "cua", "cac", "nhung", "mot", 
+    "nha", "nhe", "ba", "con", "oi", "la", "cua", "cac", "nhung", "mot",
     "chinh", "xac", "rat", "thom", "ngon", "tho", "mong", "hoac", "thanh", "pho"
   ]);
 
@@ -1072,7 +1125,7 @@ function playSuccessChime() {
       osc.start(now + idx * 0.1);
       osc.stop(now + idx * 0.1 + 0.4);
     });
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // Hiển thị bong bóng vinh danh người trả lời đúng
@@ -1111,6 +1164,7 @@ function checkGuideQuizAnswer(username, commentText) {
     clearGuideQuizTimers(); // Lập tức dừng bộ đếm 2 phút
 
     const winnerName = (username || "Bạn khán giả").trim();
+    addTripStat("quiz", winnerName, 1);
     const cleanAns = stripAnswerPrefixSuffix(currentActiveQA.a);
 
     // 1. Phát nhạc chúc mừng
@@ -1333,7 +1387,7 @@ function saveWordChainUserData(points, tickets) {
   try {
     localStorage.setItem(WORDCHAIN_STORAGE_KEY, JSON.stringify(points));
     localStorage.setItem(FREETICKET_STORAGE_KEY, JSON.stringify(tickets));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function parseWordParts(phrase) {
@@ -1463,6 +1517,7 @@ function stopWordChain() {
 }
 
 function awardWordChainWin(username, matchedPhrase) {
+  addTripStat("wordChain", username, 1);
   const data = getWordChainUserData();
   const currentPts = (data.points[username] || 0) + 1;
   let newTickets = data.tickets[username] || 0;
@@ -1635,7 +1690,7 @@ function playCabinBeat(step, trackId) {
     gain.connect(audioCtx.destination);
     osc.start(now);
     osc.stop(now + dur + 0.02);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function playCabinMusic(trackIndex = 0, announce = true) {
@@ -1760,57 +1815,57 @@ let isCabinDancing = false;
 let cabinDanceTimeout = null;
 let currentDanceMode = "disco"; // 'disco' | 'jump' | 'groove'
 
-function startCabinDance(mode = null, duration = null) {
-  if (mode) currentDanceMode = mode;
-  isCabinDancing = true;
+  function startCabinDance(mode = null, duration = null) {
+    if (mode) currentDanceMode = mode;
+    isCabinDancing = true;
 
-  const durationMs = (typeof duration === "number" && duration > 0)
-    ? duration
-    : (getDanceConfiguredDuration() * 1000);
+    const durationMs = (typeof duration === "number" && duration > 0)
+      ? duration
+      : (getDanceConfiguredDuration() * 1000);
 
-  if (cabinDanceTimeout) clearTimeout(cabinDanceTimeout);
+    if (cabinDanceTimeout) clearTimeout(cabinDanceTimeout);
 
-  // 1. Tự động bật nhạc quẩy nếu chưa có nhạc
-  if (currentPlayingTrackIndex === -1) {
-    playCabinMusic(0, false);
-  }
+    // 1. Tự động bật nhạc quẩy nếu chưa có nhạc
+    if (currentPlayingTrackIndex === -1) {
+      playCabinMusic(0, false);
+    }
 
-  // 2. Gán class nhảy cho toàn bộ nhân vật trên ghế
-  const seats = document.querySelectorAll(".cabin-passenger-seat");
-  seats.forEach(seat => {
-    seat.classList.remove("dancing", "dancing-disco", "dancing-jump", "dancing-groove");
-    seat.classList.add("dancing", `dancing-${currentDanceMode}`);
-  });
+    // 2. Gán class nhảy cho toàn bộ nhân vật trên ghế
+    const seats = document.querySelectorAll(".cabin-passenger-seat");
+    seats.forEach(seat => {
+      seat.classList.remove("dancing", "dancing-disco", "dancing-jump", "dancing-groove");
+      seat.classList.add("dancing", `dancing-${currentDanceMode}`);
+    });
 
-  // 3. Cho Hướng Dẫn Viên nhảy giữa xe
-  const guide = document.getElementById("cabin-tour-guide");
-  if (guide) {
-    guide.classList.add("dancing-guide");
-  }
+    // 3. Cho Hướng Dẫn Viên nhảy giữa xe
+    const guide = document.getElementById("cabin-tour-guide");
+    if (guide) {
+      guide.classList.add("dancing-guide");
+    }
 
-  // 4. Bật hiệu ứng đèn Disco sân khấu
-  const discoOverlay = document.getElementById("cabin-disco-overlay");
-  if (discoOverlay) {
-    discoOverlay.classList.remove("hidden");
-  }
+    // 4. Bật hiệu ứng đèn Disco sân khấu
+    const discoOverlay = document.getElementById("cabin-disco-overlay");
+    if (discoOverlay) {
+      discoOverlay.classList.remove("hidden");
+    }
 
-  // 5. HDV phát thanh và hiển thị bong bóng
-  showGuideBubble(
-    "💃 CẢ XE CÙNG NHẢY!",
-    `Toàn thể hành khách đứng dậy quẩy theo điệu nhạc nào!<br><b style="color:#fbbf24;">1 2 3... LÊN LÀ LÊN!</b>`,
-    false,
-    8000
-  );
+    // 5. HDV phát thanh và hiển thị bong bóng
+    showGuideBubble(
+      "💃 CẢ XE CÙNG NHẢY!",
+      `Toàn thể hành khách đứng dậy quẩy theo điệu nhạc nào!<br><b style="color:#fbbf24;">1 2 3... LÊN LÀ LÊN!</b>`,
+      false,
+      8000
+    );
 
-  if (appSettings.enableGuideVoice) {
-    speakStationAnnouncement("Bà con ơi cùng đứng dậy nhảy quẩy theo điệu nhạc nào! Lên luôn bà con ơi!");
-  }
+    if (appSettings.enableGuideVoice) {
+      speakStationAnnouncement("Bà con ơi cùng đứng dậy nhảy quẩy theo điệu nhạc nào! Lên luôn bà con ơi!");
+    }
 
-  showToast("💃 CẢ XE CÙNG NHẢY!", "Toàn bộ hành khách đang nhảy quẩy cực sung!", "🪩");
+    showToast("💃 CẢ XE CÙNG NHẢY!", "Toàn bộ hành khách đang nhảy quẩy cực sung!", "🪩");
 
-  // Tự động dừng sau thời gian duration (do admin cài đặt hoặc mặc định 30 giây)
-  cabinDanceTimeout = setTimeout(() => {
-    stopCabinDance();
+    // Tự động dừng sau thời gian duration (do admin cài đặt hoặc mặc định 30 giây)
+    cabinDanceTimeout = setTimeout(() => {
+      stopCabinDance();
   }, durationMs);
 }
 
@@ -1868,6 +1923,1559 @@ function initActivityTabs() {
       }
     });
   });
+}
+
+/* ================== PHASE 3: ĐẾN ĐÀ LẠT ================== */
+const CHECKIN_OPTIONS = [
+  {
+    id: 1,
+    name: "Hồ Xuân Hương",
+    icon: "🌊",
+    distance: "Cách 2 km",
+    image: "public/dalat-xuan-huong.jpg",
+    tags: ["Hồ thơ mộng", "Rừng thông", "Không khí mát lạnh"],
+    credit: "Ảnh: P. Hughes • CC BY 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:Da_Lat_-_Xuan_Huong_Lake.jpg"
+  },
+  {
+    id: 2,
+    name: "Quảng trường Lâm Viên",
+    icon: "🌼",
+    distance: "Cách 3 km",
+    image: "public/dalat-lam-vien.jpg",
+    tags: ["Nụ hoa Atisô", "Quảng trường trung tâm", "Sát Hồ Xuân Hương"],
+    credit: "Ảnh: EA • CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:L%C3%A2m_Vi%C3%AAn_%C4%90%C3%A0_L%E1%BA%A1t.JPG"
+  },
+  {
+    id: 3,
+    name: "Đỉnh Langbiang",
+    icon: "⛰️",
+    distance: "Cách 12 km",
+    image: "public/dalat-langbiang.jpg",
+    tags: ["Đường đèo", "Rừng thông", "Ngắm toàn cảnh cao nguyên"],
+    credit: "Ảnh: The Erica Chang • CC BY 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Lang_Biang_mountain_in_Da_Lat_Vietnam_-_panoramio.jpg"
+  }
+];
+
+const LUGGAGE_PRIZES = [
+  { label: "1 Vé miễn phí", icon: "🎟️", freeTicket: true },
+  { label: "Giỏ dâu Đà Lạt", icon: "🍓" },
+  { label: "Bó hoa thành phố", icon: "💐" },
+  { label: "Móc khóa xe khách", icon: "🚌" },
+  { label: "Hộp trà Atisô", icon: "🍵" }
+];
+
+const phase3State = {
+  stage: "idle",
+  countdownInterval: null,
+  advanceTimeout: null,
+  disembarkTimeouts: [],
+  arrivalWanderInterval: null,
+  visitCountdownInterval: null,
+  visitRemainingSeconds: 30 * 60,
+  luggageClaims: [],
+  luggageUserClaims: new Map(),
+  eligibleLuggageUsers: new Set(),
+  luggageRejectedUsers: new Set(),
+  luggagePrizes: [],
+  checkinVotes: new Map(),
+  voteCounts: [0, 0, 0],
+  selectedDestinationIndex: 0
+};
+
+const destinationGameState = {
+  active: false,
+  type: "",
+  remaining: 45,
+  teams: [],
+  userTeams: new Map(),
+  userDisplayNames: new Map(),
+  userPoints: new Map(),
+  boatPhase: "select",
+  climbPhase: "select",
+  climbObstacleTimers: [],
+  climbObstacleSequence: 0,
+  roundCommand: "",
+  roundAnswered: new Set(),
+  challenge: "",
+  giftGoalEnergy: 0,
+  giftGoalTarget: 20,
+  giftGoalLevel: 1,
+  supporterPoints: new Map(),
+  giftHistory: [],
+  timerInterval: null,
+  eventInterval: null
+};
+
+function stopDestinationGameTimers() {
+  if (destinationGameState.timerInterval) clearInterval(destinationGameState.timerInterval);
+  if (destinationGameState.eventInterval) clearInterval(destinationGameState.eventInterval);
+  destinationGameState.timerInterval = null;
+  destinationGameState.eventInterval = null;
+  destinationGameState.climbObstacleTimers.forEach(timeoutId => clearTimeout(timeoutId));
+  destinationGameState.climbObstacleTimers = [];
+  document.querySelectorAll(".climb-falling-obstacle").forEach(obstacle => obstacle.remove());
+  destinationGameState.active = false;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function clearPhase3Timers() {
+  stopDestinationGameTimers();
+  if (phase3State.countdownInterval) {
+    clearInterval(phase3State.countdownInterval);
+    phase3State.countdownInterval = null;
+  }
+  if (phase3State.advanceTimeout) {
+    clearTimeout(phase3State.advanceTimeout);
+    phase3State.advanceTimeout = null;
+  }
+  phase3State.disembarkTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+  phase3State.disembarkTimeouts = [];
+  if (phase3State.arrivalWanderInterval) {
+    clearInterval(phase3State.arrivalWanderInterval);
+    phase3State.arrivalWanderInterval = null;
+  }
+  if (phase3State.visitCountdownInterval) {
+    clearInterval(phase3State.visitCountdownInterval);
+    phase3State.visitCountdownInterval = null;
+  }
+  const visitTimeline = document.getElementById("destination-visit-timeline");
+  if (visitTimeline) visitTimeline.classList.add("hidden");
+  document.getElementById("dalat-arrival-stage")?.classList.remove("visit-timer-active");
+  document.querySelectorAll("#arrival-passengers-layer .arrival-passenger")
+    .forEach(charEl => stopArrivalWalkFrames(charEl));
+}
+
+function setPhase3Countdown(seconds, onComplete) {
+  clearPhase3Timers();
+  let remaining = seconds;
+  const timerEl = document.getElementById("arrival-stage-timer");
+  const update = () => {
+    if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, remaining));
+  };
+  update();
+  phase3State.countdownInterval = setInterval(() => {
+    remaining--;
+    update();
+    if (remaining <= 0) {
+      clearPhase3Timers();
+      onComplete();
+    }
+  }, 1000);
+}
+
+function showPhase3Panel(panelId) {
+  ["arrival-summary-panel", "arrival-luggage-panel", "arrival-checkin-panel", "arrival-travel-panel", "arrival-result-panel", "arrival-game-panel"]
+    .forEach(id => {
+      const panel = document.getElementById(id);
+      if (panel) panel.classList.toggle("hidden", id !== panelId);
+    });
+}
+
+function getTopTripStat(category) {
+  const entries = Object.entries(tripStats[category] || {});
+  if (entries.length === 0) return null;
+  entries.sort((a, b) => b[1] - a[1]);
+  return { name: entries[0][0], value: entries[0][1] };
+}
+
+function getTopCombinedTripStat(categories) {
+  const totals = {};
+  categories.forEach(category => {
+    Object.entries(tripStats[category] || {}).forEach(([name, value]) => {
+      totals[name] = (totals[name] || 0) + value;
+    });
+  });
+  const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  return entries.length ? { name: entries[0][0], value: entries[0][1] } : null;
+}
+
+function fallbackPassengerName(index = 0) {
+  const passenger = state.seatedPassengers[index % Math.max(1, state.seatedPassengers.length)];
+  return passenger ? passenger.username : "Cả đoàn";
+}
+
+function renderArrivalSummary() {
+  const passengerCountEl = document.getElementById("summary-passenger-count");
+  const fuelCountEl = document.getElementById("summary-fuel-count");
+  const quizCountEl = document.getElementById("summary-quiz-count");
+  if (passengerCountEl) passengerCountEl.innerText = state.seatedPassengers.length;
+  if (fuelCountEl) fuelCountEl.innerText = `${currentFuel}L`;
+  if (quizCountEl) {
+    quizCountEl.innerText = Object.values(tripStats.quiz).reduce((sum, value) => sum + value, 0);
+  }
+
+  const fuelWinner = getTopTripStat("fuel");
+  const quizWinner = getTopTripStat("quiz");
+  const wordWinner = getTopTripStat("wordChain");
+  const activeWinner = getTopCombinedTripStat(["gifts", "nitro", "horn"]);
+  const awards = [
+    { icon: "⛽", title: "Tiếp sức nhiều nhất", winner: fuelWinner, fallback: 0 },
+    { icon: "🧠", title: "Vua đố vui", winner: quizWinner, fallback: 1 },
+    { icon: "🔤", title: "Cao thủ nối từ", winner: wordWinner, fallback: 2 },
+    { icon: "💖", title: "Nhiệt tình nhất", winner: activeWinner, fallback: 3 }
+  ];
+  const container = document.getElementById("arrival-awards");
+  if (container) {
+    container.innerHTML = awards.map(award => `
+      <div class="arrival-award">
+        <div class="arrival-award-icon">${award.icon}</div>
+        <div class="arrival-award-title">${award.title}</div>
+        <div class="arrival-award-name">${escapeHtml(award.winner?.name || fallbackPassengerName(award.fallback))}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function shuffledLuggagePrizes() {
+  const prizes = [...LUGGAGE_PRIZES];
+  for (let i = prizes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [prizes[i], prizes[j]] = [prizes[j], prizes[i]];
+  }
+  return prizes;
+}
+
+function renderLuggageCarousel() {
+  const container = document.getElementById("luggage-carousel");
+  if (!container) return;
+  container.innerHTML = phase3State.luggageClaims.map((claim, index) => {
+    const prize = phase3State.luggagePrizes[index];
+    return `
+      <div class="luggage-item ${claim ? "claimed" : ""}">
+        <span class="luggage-number">${index + 1}</span>
+        <div class="luggage-icon">${claim ? prize.icon : "🧳"}</div>
+        <div class="luggage-owner">${claim ? escapeHtml(claim) : "Chưa có chủ"}</div>
+        <div class="luggage-prize">${claim ? escapeHtml(prize.label) : "Quà bí mật"}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function awardFreeTicket(username) {
+  const data = getWordChainUserData();
+  data.tickets[username] = (data.tickets[username] || 0) + 1;
+  saveWordChainUserData(data.points, data.tickets);
+  renderWordChainLeaderboard();
+}
+
+function normalizeAudienceName(username) {
+  return String(username || "").trim().toLocaleLowerCase("vi");
+}
+
+function claimLuggage(username, luggageNumber) {
+  const index = luggageNumber - 1;
+  const audienceKey = normalizeAudienceName(username);
+  if (index < 0 || index >= phase3State.luggageClaims.length) return;
+  if (!phase3State.eligibleLuggageUsers.has(audienceKey)) {
+    if (!phase3State.luggageRejectedUsers.has(audienceKey)) {
+      phase3State.luggageRejectedUsers.add(audienceKey);
+      showToast("🎟️ CHƯA CÓ VÉ PHASE 1", `${username} chưa đi trên chuyến xe nên không có hành lý. Bạn vẫn được bình chọn check-in nhé!`, "🧳");
+    }
+    return;
+  }
+  if (phase3State.luggageUserClaims.has(audienceKey)) {
+    showToast("🧳 ĐÃ NHẬN HÀNH LÝ", `${username} đã nhận một vali rồi!`, "✅");
+    return;
+  }
+  if (phase3State.luggageClaims[index]) {
+    showToast("⏱️ CHẬM MẤT RỒI!", `Vali số ${luggageNumber} đã thuộc về ${phase3State.luggageClaims[index]}.`, "🧳");
+    return;
+  }
+
+  const prize = phase3State.luggagePrizes[index];
+  phase3State.luggageClaims[index] = username;
+  phase3State.luggageUserClaims.set(audienceKey, luggageNumber);
+  if (prize.freeTicket) awardFreeTicket(username);
+  renderLuggageCarousel();
+
+  const announcement = document.getElementById("luggage-announcement");
+  if (announcement) announcement.innerHTML = `🎉 <b>${escapeHtml(username)}</b> nhận vali số ${luggageNumber}: <b>${prize.icon} ${escapeHtml(prize.label)}</b>`;
+  showToast("🧳 NHẬN VALI THÀNH CÔNG!", `${username} mở được ${prize.label}!`, prize.icon);
+
+  if (phase3State.luggageClaims.every(Boolean)) {
+    clearPhase3Timers();
+    phase3State.advanceTimeout = setTimeout(startCheckinVoting, 2200);
+  }
+}
+
+function startLuggageGame() {
+  if (state.currentPhase !== 3) return;
+  phase3State.stage = "luggage";
+  showPhase3Panel("arrival-luggage-panel");
+  renderLuggageCarousel();
+  showToast("🧳 NHẬN HÀNH LÝ!", "Gõ số từ 1 đến 5 để giành một chiếc vali bí mật!", "🎁");
+  setPhase3Countdown(35, startCheckinVoting);
+}
+
+function renderCheckinOptions() {
+  const container = document.getElementById("checkin-options");
+  if (!container) return;
+  const maxVotes = Math.max(...phase3State.voteCounts);
+  container.innerHTML = CHECKIN_OPTIONS.map((option, index) => `
+    <div class="checkin-option ${maxVotes > 0 && phase3State.voteCounts[index] === maxVotes ? "leading" : ""}">
+      <span class="checkin-number">${option.id}</span>
+      <span class="checkin-icon">${option.icon}</span>
+      <div class="checkin-name">${option.name}</div>
+      <div class="checkin-votes">${phase3State.voteCounts[index]} phiếu</div>
+    </div>
+  `).join("");
+}
+
+function setArrivalDestinationBackground(option = null) {
+  const stage = document.getElementById("dalat-arrival-stage");
+  const creditEl = document.querySelector(".dalat-photo-credit");
+  if (!stage) return;
+  const image = option?.image || "public/dalat-arrival.jpg";
+  stage.style.backgroundImage = `url("${image}")`;
+  if (creditEl) {
+    creditEl.innerText = option?.credit || "Ảnh: Tuong Lam Photos • CC BY-SA 4.0";
+    creditEl.href = option?.source || "https://commons.wikimedia.org/wiki/File:Da_Lat_-_Viet_Nam.jpg";
+  }
+}
+
+function updateDestinationVisitTimerUI() {
+  const countdownEl = document.getElementById("visit-timeline-countdown");
+  const fillEl = document.getElementById("visit-timeline-fill");
+  if (countdownEl) countdownEl.innerText = formatTripTime(Math.max(0, phase3State.visitRemainingSeconds));
+  if (fillEl) {
+    const elapsed = (30 * 60) - phase3State.visitRemainingSeconds;
+    fillEl.style.width = `${Math.min(100, Math.max(0, elapsed / (30 * 60) * 100)).toFixed(1)}%`;
+  }
+}
+
+function startDestinationVisitTimer(destination) {
+  if (phase3State.visitCountdownInterval) clearInterval(phase3State.visitCountdownInterval);
+  phase3State.visitRemainingSeconds = 30 * 60;
+  const timelineEl = document.getElementById("destination-visit-timeline");
+  const labelEl = document.getElementById("visit-timeline-label");
+  const titleEl = document.getElementById("arrival-title");
+  const routeEl = document.getElementById("arrival-route-label");
+  const stage = document.getElementById("dalat-arrival-stage");
+  if (timelineEl) timelineEl.classList.remove("hidden");
+  if (labelEl) labelEl.innerText = `🕒 THAM QUAN ${destination.name.toUpperCase()}`;
+  if (titleEl) titleEl.innerText = `KHÁM PHÁ ${destination.name.toUpperCase()}`;
+  if (routeEl) routeEl.innerText = `🚌 TRUNG TÂM ĐÀ LẠT → ${destination.name.toUpperCase()}`;
+  if (stage) stage.classList.add("visit-timer-active");
+  updateDestinationVisitTimerUI();
+
+  phase3State.visitCountdownInterval = setInterval(() => {
+    phase3State.visitRemainingSeconds--;
+    updateDestinationVisitTimerUI();
+    if (phase3State.visitRemainingSeconds <= 0) returnToDalatHub();
+  }, 1000);
+}
+
+function returnToDalatHub() {
+  if (state.currentPhase !== 3) return;
+  clearPhase3Timers();
+  phase3State.stage = "returned";
+  const stage = document.getElementById("dalat-arrival-stage");
+  const passengerLayer = document.getElementById("arrival-passengers-layer");
+  const effectsLayer = document.getElementById("arrival-live-effects");
+  const titleEl = document.getElementById("arrival-title");
+  const routeEl = document.getElementById("arrival-route-label");
+  const timerEl = document.getElementById("arrival-stage-timer");
+  if (stage) stage.classList.remove("travelling", "unloading", "bus-leaving", "bus-gone");
+  if (passengerLayer) passengerLayer.innerHTML = "";
+  if (effectsLayer) effectsLayer.innerHTML = "";
+  setArrivalDestinationBackground();
+  if (titleEl) titleEl.innerText = "ĐÃ TRỞ VỀ TRUNG TÂM ĐÀ LẠT";
+  if (routeEl) routeEl.innerText = "🚌 ĐIỂM THAM QUAN → TRUNG TÂM ĐÀ LẠT";
+  if (timerEl) timerEl.innerText = "ĐÃ VỀ";
+
+  const iconEl = document.getElementById("checkin-result-icon");
+  const nameEl = document.getElementById("checkin-result-name");
+  const votesEl = document.getElementById("checkin-result-votes");
+  const statusEl = document.getElementById("arrival-passenger-status");
+  if (iconEl) iconEl.innerText = "🚌";
+  if (nameEl) nameEl.innerText = "Trung tâm Đà Lạt";
+  if (votesEl) votesEl.innerText = "Đã kết thúc 30 phút tham quan";
+  if (statusEl) statusEl.innerText = "✅ Cả đoàn đã trở về Đà Lạt an toàn";
+  showPhase3Panel("arrival-result-panel");
+  showToast("🚌 ĐÃ TRỞ VỀ ĐÀ LẠT!", "Kết thúc 30 phút tham quan. Cảm ơn cả đoàn!", "🏔️");
+  speakStationAnnouncement("Đã hết thời gian tham quan. Xe đã đưa cả đoàn trở về trung tâm Đà Lạt an toàn!");
+}
+
+function startCheckinVoting() {
+  if (state.currentPhase !== 3) return;
+  phase3State.stage = "checkin";
+  showPhase3Panel("arrival-checkin-panel");
+  renderCheckinOptions();
+  showToast("📸 BÌNH CHỌN CHECK-IN!", "Gõ 1, 2 hoặc 3 để chọn địa điểm cả đoàn sẽ ghé thăm!", "🏔️");
+  setPhase3Countdown(35, finishCheckinVoting);
+}
+
+function voteCheckin(username, optionNumber) {
+  const index = optionNumber - 1;
+  const audienceKey = normalizeAudienceName(username);
+  if (index < 0 || index >= CHECKIN_OPTIONS.length) return;
+  const oldIndex = phase3State.checkinVotes.get(audienceKey);
+  if (oldIndex === index) return;
+  if (oldIndex !== undefined) {
+    phase3State.voteCounts[oldIndex] = Math.max(0, phase3State.voteCounts[oldIndex] - 1);
+  }
+  phase3State.checkinVotes.set(audienceKey, index);
+  phase3State.voteCounts[index]++;
+  renderCheckinOptions();
+  const announcement = document.getElementById("checkin-announcement");
+  if (announcement) announcement.innerHTML = `📸 <b>${escapeHtml(username)}</b> chọn <b>${CHECKIN_OPTIONS[index].name}</b>`;
+}
+
+function finishCheckinVoting() {
+  if (state.currentPhase !== 3) return;
+  const maxVotes = Math.max(...phase3State.voteCounts);
+  const candidateIndexes = phase3State.voteCounts
+    .map((count, index) => ({ count, index }))
+    .filter(item => item.count === maxVotes)
+    .map(item => item.index);
+  const winnerIndex = candidateIndexes[Math.floor(Math.random() * candidateIndexes.length)] || 0;
+  startTravelToCheckin(winnerIndex);
+}
+
+function startTravelToCheckin(winnerIndex) {
+  if (state.currentPhase !== 3) return;
+  phase3State.stage = "travel";
+  phase3State.selectedDestinationIndex = winnerIndex;
+  const winner = CHECKIN_OPTIONS[winnerIndex] || CHECKIN_OPTIONS[0];
+  const stage = document.getElementById("dalat-arrival-stage");
+  const nameEl = document.getElementById("travel-destination-name");
+  const iconEl = document.getElementById("travel-destination-icon");
+  const distanceEl = document.getElementById("travel-distance-label");
+  const tagsEl = document.getElementById("travel-scenery-tags");
+  const progressEl = document.getElementById("travel-progress-fill");
+  const passengerLayer = document.getElementById("arrival-passengers-layer");
+  if (passengerLayer) passengerLayer.innerHTML = "";
+  const effectsLayer = document.getElementById("arrival-live-effects");
+  if (effectsLayer) effectsLayer.innerHTML = "";
+  if (nameEl) nameEl.innerText = winner.name;
+  if (iconEl) iconEl.innerText = winner.icon;
+  if (distanceEl) distanceEl.innerText = winner.distance;
+  if (tagsEl) {
+    tagsEl.innerHTML = winner.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("");
+  }
+  setArrivalDestinationBackground(winner);
+  showPhase3Panel("arrival-travel-panel");
+  if (stage) {
+    stage.classList.remove("unloading", "bus-leaving", "bus-gone");
+    stage.classList.add("travelling");
+  }
+  if (progressEl) {
+    progressEl.classList.remove("active");
+    void progressEl.offsetWidth;
+    progressEl.classList.add("active");
+  }
+  showToast("🚌 KHỞI HÀNH CHECK-IN!", `Cả đoàn đang di chuyển đến ${winner.name}!`, winner.icon);
+  speakStationAnnouncement(`Địa điểm được yêu thích nhất là ${winner.name}. Xe bắt đầu di chuyển, mời cả đoàn chuẩn bị check in!`);
+  setPhase3Countdown(12, () => showCheckinArrivalResult(winnerIndex));
+}
+
+function showCheckinArrivalResult(winnerIndex) {
+  if (state.currentPhase !== 3) return;
+  phase3State.stage = "result";
+  const winner = CHECKIN_OPTIONS[winnerIndex] || CHECKIN_OPTIONS[0];
+  const stage = document.getElementById("dalat-arrival-stage");
+  if (stage) {
+    stage.classList.remove("travelling");
+    stage.classList.add("unloading");
+  }
+
+  const iconEl = document.getElementById("checkin-result-icon");
+  const nameEl = document.getElementById("checkin-result-name");
+  const votesEl = document.getElementById("checkin-result-votes");
+  if (iconEl) iconEl.innerText = winner.icon;
+  if (nameEl) nameEl.innerText = winner.name;
+  if (votesEl) votesEl.innerText = `${phase3State.voteCounts[winnerIndex]} lượt bình chọn`;
+  showPhase3Panel("arrival-result-panel");
+  showToast("📸 ĐÃ ĐẾN NƠI!", `Cả đoàn đã đến ${winner.name}, cùng check-in nào!`, winner.icon);
+  speakStationAnnouncement(`Xe đã đến ${winner.name}. Mời cả đoàn cùng chụp ảnh check in!`);
+  // Giữ nguyên giao diện tại địa điểm check-in. Chỉ quay lại bến khi streamer
+  // chủ động bấm nút "Đặt lại bến" trong bảng quản trị.
+  clearPhase3Timers();
+  const timerEl = document.getElementById("arrival-stage-timer");
+  if (timerEl) timerEl.innerText = "ĐÃ ĐẾN";
+  startDestinationVisitTimer(winner);
+  renderArrivalPassengers();
+}
+
+const ARRIVAL_PASSENGER_SPOTS = Array.from({ length: 20 }, (_, index) => {
+  const row = Math.floor(index / 5);
+  const column = index % 5;
+  const xRows = [
+    [14, 32, 50, 68, 86],
+    [9, 29, 50, 71, 91],
+    [14, 32, 50, 68, 86],
+    [9, 29, 50, 71, 91]
+  ];
+  return {
+    x: xRows[row][column],
+    y: 58 + row * 9.5,
+    scale: 0.48 + row * 0.1,
+    zIndex: 14 + row
+  };
+});
+
+function renderArrivalPassengers() {
+  const layer = document.getElementById("arrival-passengers-layer");
+  const statusEl = document.getElementById("arrival-passenger-status");
+  const stage = document.getElementById("dalat-arrival-stage");
+  if (!layer) return;
+  layer.innerHTML = "";
+
+  const passengers = state.seatedPassengers.slice(0, ARRIVAL_PASSENGER_SPOTS.length);
+  if (statusEl) statusEl.innerText = `🚪 Đang xuống xe: 0/${passengers.length} hành khách`;
+  if (passengers.length === 0) {
+    if (statusEl) statusEl.innerText = "🚌 Xe không có hành khách";
+    if (stage) stage.classList.remove("unloading");
+    const leaveTimeout = setTimeout(() => stage?.classList.add("bus-leaving"), 500);
+    const gameTimeout = setTimeout(() => {
+      if (stage) {
+        stage.classList.remove("bus-leaving");
+        stage.classList.add("bus-gone");
+      }
+      startDestinationGame(phase3State.selectedDestinationIndex);
+    }, 2400);
+    phase3State.disembarkTimeouts.push(leaveTimeout, gameTimeout);
+    return;
+  }
+
+  let arrivedCount = 0;
+  passengers.forEach((passenger, index) => {
+    const spot = ARRIVAL_PASSENGER_SPOTS[index];
+    const charEl = createCharacterElement(passenger.username, passenger.giftName);
+    charEl.id = `arrival-char-${passenger.username.replace(/\s+/g, "_")}`;
+    charEl.className = "arrival-passenger";
+    charEl.dataset.username = passenger.username;
+    charEl.style.left = "55%";
+    charEl.style.top = "78%";
+    charEl.style.zIndex = spot.zIndex;
+    charEl.style.setProperty("--arrival-scale", spot.scale.toFixed(2));
+    layer.appendChild(charEl);
+
+    const startTimeout = setTimeout(() => {
+      charEl.classList.add("walking", "disembarking");
+      charEl.style.left = `${spot.x}%`;
+      charEl.style.top = `${spot.y}%`;
+      charEl.style.opacity = "1";
+      charEl.style.transform = `translate(-50%, -92%) scale(${spot.scale.toFixed(2)})`;
+      startArrivalWalkFrames(charEl, 950);
+
+      const finishTimeout = setTimeout(() => {
+        charEl.classList.remove("walking", "disembarking");
+        charEl.classList.add("arrived");
+        arrivedCount++;
+        if (statusEl) statusEl.innerText = `✅ Đã xuống xe: ${arrivedCount}/${passengers.length} hành khách`;
+        if (arrivedCount === passengers.length) {
+          if (stage) stage.classList.remove("unloading");
+          const destinationName = document.getElementById("checkin-result-name")?.innerText || "điểm check-in";
+          showToast("👥 CẢ ĐOÀN ĐÃ XUỐNG XE!", `${passengers.length} hành khách đã tập trung tại ${destinationName}!`, "📸");
+          const leaveTimeout = setTimeout(() => {
+            if (stage) stage.classList.add("bus-leaving");
+            if (statusEl) statusEl.innerText = `👋 Xe đã trả đủ ${passengers.length} khách và đang rời đi`;
+          }, 650);
+          const roamTimeout = setTimeout(() => {
+            if (stage) {
+              stage.classList.remove("bus-leaving");
+              stage.classList.add("bus-gone");
+            }
+            startArrivalFreeRoam();
+            if (statusEl) statusEl.innerText = `🌲 ${passengers.length} hành khách đang tự do tham quan`;
+            const gameTimeout = setTimeout(() => {
+              startDestinationGame(phase3State.selectedDestinationIndex);
+            }, 1400);
+            phase3State.disembarkTimeouts.push(gameTimeout);
+          }, 2450);
+          phase3State.disembarkTimeouts.push(leaveTimeout, roamTimeout);
+        }
+      }, 950);
+      phase3State.disembarkTimeouts.push(finishTimeout);
+    }, 350 + index * 210);
+    phase3State.disembarkTimeouts.push(startTimeout);
+  });
+}
+
+function findArrivalPassenger(username) {
+  const audienceKey = normalizeAudienceName(username);
+  return Array.from(document.querySelectorAll("#arrival-passengers-layer .arrival-passenger"))
+    .find(charEl => normalizeAudienceName(charEl.dataset.username) === audienceKey) || null;
+}
+
+function moveArrivalPassengerRandom(charEl, wideMove = false) {
+  if (!charEl || charEl.classList.contains("disembarking") || charEl.classList.contains("on-boat")) return;
+  const currentX = parseFloat(charEl.style.left) || 50;
+  const currentY = parseFloat(charEl.style.top) || 72;
+  const rangeX = wideMove ? 28 : 15;
+  const rangeY = wideMove ? 14 : 8;
+  const nextX = Math.max(6, Math.min(94, currentX + (Math.random() * rangeX * 2 - rangeX)));
+  const nextY = Math.max(56, Math.min(91, currentY + (Math.random() * rangeY * 2 - rangeY)));
+  const scale = 0.46 + ((nextY - 56) / 35) * 0.34;
+
+  charEl.classList.add("walking");
+  charEl.style.left = `${nextX.toFixed(1)}%`;
+  charEl.style.top = `${nextY.toFixed(1)}%`;
+  charEl.style.zIndex = Math.round(14 + ((nextY - 56) / 35) * 5);
+  charEl.style.transform = `translate(-50%, -92%) scale(${scale.toFixed(2)})`;
+  startArrivalWalkFrames(charEl, 950);
+
+  setTimeout(() => charEl.classList.remove("walking"), 950);
+}
+
+function stopArrivalWalkFrames(charEl) {
+  if (!charEl?._arrivalWalkInterval) return;
+  clearInterval(charEl._arrivalWalkInterval);
+  charEl._arrivalWalkInterval = null;
+  const spriteImg = charEl.querySelector(".char-sprite-img");
+  if (spriteImg) {
+    const charNum = getCharacterTypeForUser(charEl.dataset.username || "Hành khách");
+    spriteImg.src = getArrivalCharacterFrames(charNum)[0];
+  }
+}
+
+function getArrivalCharacterFrames(charNum) {
+  const frameSets = {
+    1: SPRITE_FRAMES_CHAR1,
+    2: SPRITE_FRAMES_CHAR2,
+    3: SPRITE_FRAMES_CHAR3,
+    4: SPRITE_FRAMES_CHAR4,
+    5: SPRITE_FRAMES_CHAR5
+  };
+  return frameSets[charNum] || SPRITE_FRAMES_CHAR1;
+}
+
+function startArrivalWalkFrames(charEl, duration = 950) {
+  if (!charEl) return;
+  stopArrivalWalkFrames(charEl);
+  const spriteImg = charEl.querySelector(".char-sprite-img");
+  if (!spriteImg) return;
+  const charNum = getCharacterTypeForUser(charEl.dataset.username || "Hành khách");
+  const frames = getArrivalCharacterFrames(charNum);
+  let frameIndex = 0;
+  charEl._arrivalWalkInterval = setInterval(() => {
+    frameIndex = (frameIndex + 1) % frames.length;
+    spriteImg.src = frames[frameIndex];
+  }, 100);
+  setTimeout(() => stopArrivalWalkFrames(charEl), duration);
+}
+
+function startArrivalFreeRoam() {
+  if (phase3State.arrivalWanderInterval) clearInterval(phase3State.arrivalWanderInterval);
+  const wanderSomePassengers = () => {
+    if (state.currentPhase !== 3 || !["result", "game"].includes(phase3State.stage)) return;
+    const chars = Array.from(document.querySelectorAll("#arrival-passengers-layer .arrival-passenger:not(.on-boat)"))
+      .filter(charEl => !charEl.classList.contains("disembarking"));
+    chars.sort(() => Math.random() - 0.5)
+      .slice(0, Math.min(chars.length, 3 + Math.floor(Math.random() * 4)))
+      .forEach(charEl => moveArrivalPassengerRandom(charEl));
+  };
+  wanderSomePassengers();
+  phase3State.arrivalWanderInterval = setInterval(wanderSomePassengers, 1250);
+}
+
+function createArrivalLiveEffect(symbol, targetEl = null, count = 8) {
+  const layer = document.getElementById("arrival-live-effects");
+  if (!layer) return;
+  const baseX = targetEl ? (parseFloat(targetEl.style.left) || 50) : 50;
+  const baseY = targetEl ? (parseFloat(targetEl.style.top) || 70) : 62;
+  for (let index = 0; index < count; index++) {
+    const effect = document.createElement("span");
+    effect.className = "arrival-live-effect";
+    effect.innerText = symbol;
+    effect.style.left = `${Math.max(4, Math.min(96, baseX + (Math.random() * 18 - 9)))}%`;
+    effect.style.top = `${Math.max(28, Math.min(90, baseY + (Math.random() * 8 - 4)))}%`;
+    effect.style.setProperty("--effect-x", `${Math.random() * 90 - 45}px`);
+    effect.style.setProperty("--effect-y", `${-55 - Math.random() * 85}px`);
+    effect.style.animationDelay = `${index * 0.06}s`;
+    layer.appendChild(effect);
+    setTimeout(() => effect.remove(), 2400 + index * 60);
+  }
+}
+
+function addTemporaryArrivalClass(elements, className, duration = 2600) {
+  const targets = elements.filter(Boolean);
+  targets.forEach(element => element.classList.add(className));
+  setTimeout(() => {
+    targets.forEach(element => element.classList.remove(className));
+  }, duration);
+}
+
+function handleArrivalLiveInteraction(username, text) {
+  const targetEl = findArrivalPassenger(username);
+  const normalized = removeVietnameseTones(text).toLowerCase();
+  const allPassengers = Array.from(document.querySelectorAll("#arrival-passengers-layer .arrival-passenger"));
+
+  if (normalized.includes("checkin") || normalized.includes("chup anh")) {
+    createArrivalLiveEffect("📸", targetEl, 5);
+    addTemporaryArrivalClass(targetEl ? [targetEl] : allPassengers, "checkin-posing", 2400);
+    if (targetEl) showPassengerComment(username, "📸 Check-in Đà Lạt!");
+  } else if (normalized.includes("tim") || text.includes("❤") || text.includes("💖")) {
+    createArrivalLiveEffect("💖", targetEl, 10);
+    if (targetEl) showPassengerComment(username, "💖 Đà Lạt tuyệt quá!");
+  } else if (normalized.includes("hoa") || text.includes("🌸")) {
+    createArrivalLiveEffect("🌸", targetEl, 12);
+    addTemporaryArrivalClass(targetEl ? [targetEl] : allPassengers, "checkin-posing", 2200);
+    if (targetEl) showPassengerComment(username, "🌸 Thành phố ngàn hoa!");
+  } else if (normalized.includes("nhay") || normalized.includes("dance")) {
+    addTemporaryArrivalClass(targetEl ? [targetEl] : allPassengers, "live-dancing", 4200);
+    createArrivalLiveEffect("🎵", targetEl, 8);
+    if (targetEl) showPassengerComment(username, "💃 Quẩy tại Đà Lạt!");
+  } else if (normalized === "di" || normalized.includes("di dao")) {
+    if (targetEl) moveArrivalPassengerRandom(targetEl, true);
+  } else if (targetEl) {
+    showPassengerComment(username, text);
+  }
+}
+
+function triggerArrivalGiftInteraction(username, giftName = "Quà tặng") {
+  const targetEl = findArrivalPassenger(username);
+  const giftText = String(giftName || "");
+  const allPassengers = Array.from(document.querySelectorAll("#arrival-passengers-layer .arrival-passenger"));
+  if (giftText.includes("Tim")) {
+    createArrivalLiveEffect("💖", targetEl, 16);
+  } else if (giftText.includes("Hoa") || giftText.includes("Vé xe")) {
+    createArrivalLiveEffect("🌸", targetEl, 18);
+  } else if (giftText.includes("Nitro")) {
+    createArrivalLiveEffect("✨", null, 24);
+    addTemporaryArrivalClass(allPassengers, "live-dancing", 5000);
+  } else {
+    createArrivalLiveEffect("🎁", targetEl, 10);
+  }
+  if (targetEl) {
+    addTemporaryArrivalClass([targetEl], "checkin-posing", 2600);
+    showPassengerComment(username, `🎁 Cảm ơn ${giftText}!`);
+  }
+  showToast("🎁 QUÀ TẠI ĐIỂM CHECK-IN!", `${username} vừa tặng ${giftText}!`, "✨");
+}
+
+function setDestinationGameFeed(message) {
+  const feedEl = document.getElementById("destination-game-feed");
+  if (feedEl) feedEl.innerHTML = message;
+}
+
+function getLeastGameTeamIndex() {
+  let bestIndex = 0;
+  destinationGameState.teams.forEach((team, index) => {
+    if ((destinationGameState.type === "boat" && destinationGameState.boatPhase === "select") ||
+        (destinationGameState.type === "climb" && destinationGameState.climbPhase === "select")) {
+      if (getGameTeamMembers(index).length < getGameTeamMembers(bestIndex).length) bestIndex = index;
+    } else if ((team.value || 0) < (destinationGameState.teams[bestIndex].value || 0)) {
+      bestIndex = index;
+    }
+  });
+  return bestIndex;
+}
+
+function ensureUserGameTeam(username, preferredIndex = null) {
+  const key = normalizeAudienceName(username);
+  destinationGameState.userDisplayNames.set(key, String(username || "Khán giả").trim());
+  if (preferredIndex !== null && destinationGameState.teams[preferredIndex]) {
+    destinationGameState.userTeams.set(key, preferredIndex);
+  }
+  if (!destinationGameState.userTeams.has(key)) {
+    destinationGameState.userTeams.set(key, getLeastGameTeamIndex());
+  }
+  if (destinationGameState.type === "boat") {
+    const passengerEl = findArrivalPassenger(username);
+    if (passengerEl) {
+      stopArrivalWalkFrames(passengerEl);
+      passengerEl.classList.remove("walking");
+      passengerEl.classList.add("on-boat");
+    }
+  } else if (destinationGameState.type === "climb") {
+    const passengerEl = findArrivalPassenger(username);
+    if (passengerEl) {
+      stopArrivalWalkFrames(passengerEl);
+      passengerEl.classList.remove("walking");
+      passengerEl.classList.add("on-climb");
+    }
+  }
+  return destinationGameState.userTeams.get(key);
+}
+
+function getGameTeamMembers(teamIndex) {
+  return Array.from(destinationGameState.userTeams.entries())
+    .filter(([, index]) => index === teamIndex)
+    .map(([key]) => destinationGameState.userDisplayNames.get(key) || key);
+}
+
+function addDestinationUserPoints(username, amount) {
+  const key = String(username || "Khán giả").trim();
+  destinationGameState.userPoints.set(key, (destinationGameState.userPoints.get(key) || 0) + amount);
+}
+
+function initializeTeamPowerState(team) {
+  if (!team) return;
+  if (!Number.isFinite(team.startBonus)) team.startBonus = 0;
+  if (!Number.isFinite(team.shieldCharges)) team.shieldCharges = 0;
+  if (!Number.isFinite(team.turboCharges)) team.turboCharges = 0;
+  if (!Number.isFinite(team.boostUntil)) team.boostUntil = 0;
+  if (!Number.isFinite(team.giftCount)) team.giftCount = 0;
+}
+
+function getDestinationGiftType(giftName) {
+  const normalized = removeVietnameseTones(String(giftName || "")).toLowerCase();
+  if (normalized.includes("ca phe") || normalized.includes("coffee") || normalized.includes("nitro")) return "coffee";
+  if (normalized.includes("khien") || normalized.includes("ao mua") || normalized.includes("shield")) return "shield";
+  if (normalized.includes("hoa") || normalized.includes("rose") || normalized.includes("ve xe")) return "flower";
+  return "flower";
+}
+
+function getGiftPowerMeta(type) {
+  return {
+    flower: { icon: "🌹", label: "Hoa tiếp sức", weight: 1 },
+    coffee: { icon: "☕", label: "Cà phê tăng tốc", weight: 3 },
+    shield: { icon: "🛡️", label: "Khiên bảo vệ", weight: 2 }
+  }[type] || { icon: "🎁", label: "Quà tiếp sức", weight: 1 };
+}
+
+function getTeamActionMultiplier(team) {
+  return team && team.boostUntil > Date.now() ? 2 : 1;
+}
+
+function renderGiftPowerHud() {
+  const hud = document.getElementById("gift-power-hud");
+  if (!hud) return;
+  hud.classList.toggle("active", destinationGameState.active);
+
+  const countEl = document.getElementById("gift-community-count");
+  const fillEl = document.getElementById("gift-community-fill");
+  const hintEl = document.getElementById("gift-community-hint");
+  const target = destinationGameState.giftGoalTarget || 20;
+  const energy = Math.max(0, destinationGameState.giftGoalEnergy || 0);
+  if (countEl) countEl.innerText = `${energy}/${target}`;
+  if (fillEl) fillEl.style.width = `${Math.min(100, energy / target * 100)}%`;
+  if (hintEl) hintEl.innerText = `Mốc ${destinationGameState.giftGoalLevel}: đủ ${target} năng lượng, tất cả đội +5!`;
+
+  const teamStatusEl = document.getElementById("gift-team-status");
+  if (teamStatusEl) {
+    teamStatusEl.innerHTML = destinationGameState.teams.map((team, index) => {
+      initializeTeamPowerState(team);
+      const boosted = team.boostUntil > Date.now();
+      const queuedCoffee = team.turboCharges > 0 ? ` • ☕×${team.turboCharges}` : "";
+      const startBonus = team.startBonus > 0 ? ` • +${team.startBonus} xuất phát` : "";
+      return `<div class="gift-team-chip team-${index + 1}">
+        <b>${index + 1}. ${escapeHtml(team.name)}</b>
+        <span>${boosted ? "⚡ x2" : "🎁 " + team.giftCount}${queuedCoffee} • 🛡️×${team.shieldCharges}${startBonus}</span>
+      </div>`;
+    }).join("");
+  }
+
+  const supporterEl = document.getElementById("gift-supporter-board");
+  if (supporterEl) {
+    const topSupporters = Array.from(destinationGameState.supporterPoints.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    supporterEl.innerHTML = topSupporters.length
+      ? `💝 Tiếp sức nổi bật: ${topSupporters.map(([name, points], index) => `<b>${index + 1}. ${escapeHtml(name)}</b> ${points}⚡`).join(" • ")}`
+      : "💝 Chưa có người tiếp sức";
+  }
+}
+
+function recordDestinationGift(username, type, team) {
+  const meta = getGiftPowerMeta(type);
+  initializeTeamPowerState(team);
+  team.giftCount++;
+  destinationGameState.giftGoalEnergy += meta.weight;
+  destinationGameState.supporterPoints.set(
+    username,
+    (destinationGameState.supporterPoints.get(username) || 0) + meta.weight
+  );
+  destinationGameState.giftHistory.unshift({ username, type, team: team.name });
+  destinationGameState.giftHistory = destinationGameState.giftHistory.slice(0, 5);
+
+  let communityBonus = false;
+  if (destinationGameState.giftGoalEnergy >= destinationGameState.giftGoalTarget) {
+    destinationGameState.giftGoalEnergy -= destinationGameState.giftGoalTarget;
+    destinationGameState.giftGoalLevel++;
+    destinationGameState.teams.forEach(currentTeam => {
+      initializeTeamPowerState(currentTeam);
+      if ((destinationGameState.type === "boat" && destinationGameState.boatPhase === "select") ||
+          (destinationGameState.type === "climb" && destinationGameState.climbPhase === "select")) {
+        currentTeam.startBonus = Math.min(20, currentTeam.startBonus + 5);
+      } else {
+        currentTeam.value = Math.min(100, currentTeam.value + 5);
+      }
+    });
+    communityBonus = true;
+    createArrivalLiveEffect("🎉", null, 28);
+    showToast("🎯 ĐẠT MỤC TIÊU CỘNG ĐỒNG!", "Tất cả đội được tiếp sức +5 — mở mốc mới!", "⚡");
+  }
+  return { meta, communityBonus };
+}
+
+function renderDestinationGame() {
+  const arena = document.getElementById("destination-game-arena");
+  if (!arena) return;
+  if (destinationGameState.type === "boat") {
+    if (destinationGameState.boatPhase === "select") {
+      arena.innerHTML = `<div class="boat-team-selection">${destinationGameState.teams.map((team, index) => {
+        const members = getGameTeamMembers(index);
+        return `
+          <div class="boat-team-choice team-${index + 1}">
+            <span class="boat-choice-number">${index + 1}</span>
+            <span class="boat-choice-icon">${team.icon}</span>
+            <b>${team.name}</b>
+            <small>${members.length} thành viên</small>
+            <div class="boat-member-list">
+              ${members.slice(0, 6).map(name => {
+                const charNum = getCharacterTypeForUser(name);
+                return `<span title="${escapeHtml(name)}"><img src="public/CHARACTER_${charNum}/1.png" alt=""><i>${escapeHtml(name)}</i></span>`;
+              }).join("")}
+              ${members.length > 6 ? `<em>+${members.length - 6}</em>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("")}</div>`;
+    } else {
+      arena.innerHTML = `
+        <div class="vertical-boat-race">
+          ${destinationGameState.teams.map((team, index) => {
+            const members = getGameTeamMembers(index);
+            return `
+              <div class="vertical-boat-lane team-${index + 1}">
+                <div class="boat-finish-line">🏁</div>
+                <div class="boat-lane-water"></div>
+                <div class="vertical-boat-marker" style="bottom:${5 + Math.min(100, team.value) * 0.79}%">
+                  <div class="boat-rider-stack">
+                    ${members.slice(0, 4).map(name => {
+                      const charNum = getCharacterTypeForUser(name);
+                      return `<img src="public/CHARACTER_${charNum}/1.png" title="${escapeHtml(name)}" alt="">`;
+                    }).join("")}
+                    ${members.length > 4 ? `<span>+${members.length - 4}</span>` : ""}
+                  </div>
+                  <span class="vertical-boat-icon">${team.icon}</span>
+                </div>
+                <div class="vertical-boat-label"><b>${index + 1}</b><span>${Math.round(team.value)}m</span></div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+  } else if (destinationGameState.type === "dance") {
+    arena.innerHTML = `
+      <div class="dance-command-card">
+        <small>ĐỘNG TÁC HIỆN TẠI</small>
+        <strong>${destinationGameState.roundCommand.toUpperCase()}</strong>
+      </div>
+      <div class="dance-team-grid">
+        ${destinationGameState.teams.map((team, index) => `
+          <div class="dance-team-card"><span>${team.icon}</span><b>${index + 1}. ${team.name}</b><strong>${team.value} điểm</strong></div>
+        `).join("")}
+      </div>
+    `;
+  } else {
+    if (destinationGameState.climbPhase === "select") {
+      arena.innerHTML = `<div class="boat-team-selection climb-team-selection">${destinationGameState.teams.map((team, index) => {
+        const members = getGameTeamMembers(index);
+        return `
+          <div class="boat-team-choice team-${index + 1}">
+            <span class="boat-choice-number">${index + 1}</span>
+            <span class="boat-choice-icon">${team.icon}</span>
+            <b>${team.name}</b>
+            <small>${members.length} thành viên</small>
+            <div class="boat-member-list">
+              ${members.slice(0, 6).map(name => {
+                const charNum = getCharacterTypeForUser(name);
+                return `<span title="${escapeHtml(name)}"><img src="public/CHARACTER_${charNum}/1.png" alt=""><i>${escapeHtml(name)}</i></span>`;
+              }).join("")}
+              ${members.length > 6 ? `<em>+${members.length - 6}</em>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("")}</div>`;
+    } else {
+      arena.innerHTML = `
+        <div class="climb-dodge-guide">🪨 Vật cản đang rơi! Gõ <b>TRÁI</b> hoặc <b>PHẢI</b> để né</div>
+        <div class="vertical-climb-race">
+          ${destinationGameState.teams.map((team, index) => {
+            const members = getGameTeamMembers(index);
+            return `
+              <div class="vertical-climb-lane team-${index + 1}" data-team-index="${index}">
+                <div class="climb-summit"><span>🏁</span><small>ĐỈNH</small></div>
+                <div class="climb-trail"></div>
+                <div class="climb-obstacle-layer" data-obstacle-lane="${index}"></div>
+                <div id="climb-marker-${index}" class="vertical-climber-marker" style="bottom:${5 + Math.min(100, team.value) * 0.79}%; --dodge-x:${team.dodgeOffset || 0}px">
+                  <div id="climb-members-${index}" class="climb-member-stack">
+                    ${members.slice(0, 4).map(name => {
+                      const charNum = getCharacterTypeForUser(name);
+                      return `<img src="public/CHARACTER_${charNum}/1.png" title="${escapeHtml(name)}" alt="">`;
+                    }).join("")}
+                    ${members.length > 4 ? `<span>+${members.length - 4}</span>` : ""}
+                  </div>
+                  <span class="climber-icon">🧗</span>
+                  <span class="climber-team-icon">${team.icon}</span>
+                </div>
+                <div class="vertical-climb-label">
+                  <b>${index + 1}</b>
+                  <span>${team.name}</span>
+                  <strong id="climb-progress-${index}">${Math.round(team.value)}%</strong>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+  }
+}
+
+function nextDanceCommand() {
+  const commands = ["trái", "phải", "nhảy", "xoay"];
+  const choices = commands.filter(command => command !== destinationGameState.roundCommand);
+  destinationGameState.roundCommand = choices[Math.floor(Math.random() * choices.length)];
+  destinationGameState.roundAnswered = new Set();
+  renderDestinationGame();
+  setDestinationGameFeed(`🎵 Động tác mới: gõ <b>${destinationGameState.roundCommand}</b> thật nhanh!`);
+}
+
+function startBoatTeamSelectionClock() {
+  const timerEl = document.getElementById("destination-game-timer");
+  destinationGameState.remaining = 12;
+  destinationGameState.boatPhase = "select";
+  if (timerEl) timerEl.innerText = formatTripTime(destinationGameState.remaining);
+  destinationGameState.timerInterval = setInterval(() => {
+    destinationGameState.remaining--;
+    if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, destinationGameState.remaining));
+    if (destinationGameState.remaining <= 0) startBoatRace();
+  }, 1000);
+}
+
+function startBoatRace() {
+  if (!destinationGameState.active || destinationGameState.type !== "boat") return;
+  if (destinationGameState.timerInterval) clearInterval(destinationGameState.timerInterval);
+  destinationGameState.boatPhase = "race";
+  destinationGameState.remaining = 45;
+  destinationGameState.teams.forEach(team => {
+    initializeTeamPowerState(team);
+    team.value = Math.min(20, team.startBonus);
+    team.startBonus = 0;
+    if (team.turboCharges > 0) {
+      team.boostUntil = Date.now() + Math.min(15000, team.turboCharges * 5000);
+      team.turboCharges = 0;
+    }
+  });
+
+  const titleEl = document.getElementById("destination-game-title");
+  const instructionEl = document.getElementById("destination-game-instruction");
+  const timerEl = document.getElementById("destination-game-timer");
+  if (titleEl) titleEl.innerText = "🏁 Cuộc đua bắt đầu!";
+  if (instructionEl) instructionEl.innerText = "Thành viên hãy liên tục gõ đúng SỐ THUYỀN của đội mình để tiến lên!";
+  if (timerEl) timerEl.innerText = formatTripTime(destinationGameState.remaining);
+  renderDestinationGame();
+  renderGiftPowerHud();
+  setDestinationGameFeed("🚣 Gõ đúng số đội của bạn: thuyền sẽ chạy từ dưới lên vạch đích!");
+  showToast("🏁 XUẤT PHÁT!", "Ba thuyền bắt đầu đua — gõ liên tục số thuyền đội mình!", "🚣");
+
+  destinationGameState.timerInterval = setInterval(() => {
+    destinationGameState.remaining--;
+    if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, destinationGameState.remaining));
+    if (destinationGameState.remaining <= 0) endDestinationGame();
+  }, 1000);
+}
+
+function startClimbTeamSelectionClock() {
+  const timerEl = document.getElementById("destination-game-timer");
+  destinationGameState.remaining = 12;
+  destinationGameState.climbPhase = "select";
+  if (timerEl) timerEl.innerText = formatTripTime(destinationGameState.remaining);
+  destinationGameState.timerInterval = setInterval(() => {
+    destinationGameState.remaining--;
+    if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, destinationGameState.remaining));
+    if (destinationGameState.remaining <= 0) startClimbRace();
+  }, 1000);
+}
+
+function startClimbRace() {
+  if (!destinationGameState.active || destinationGameState.type !== "climb") return;
+  if (destinationGameState.timerInterval) clearInterval(destinationGameState.timerInterval);
+  destinationGameState.climbPhase = "race";
+  destinationGameState.remaining = 45;
+  destinationGameState.teams.forEach(team => {
+    initializeTeamPowerState(team);
+    team.value = Math.min(20, team.startBonus);
+    team.startBonus = 0;
+    team.dodgeOffset = 0;
+    team.dodgeUser = "";
+    if (team.turboCharges > 0) {
+      team.boostUntil = Date.now() + Math.min(15000, team.turboCharges * 5000);
+      team.turboCharges = 0;
+    }
+  });
+
+  const titleEl = document.getElementById("destination-game-title");
+  const instructionEl = document.getElementById("destination-game-instruction");
+  const timerEl = document.getElementById("destination-game-timer");
+  if (titleEl) titleEl.innerText = "🏁 Chinh phục đỉnh Langbiang";
+  if (instructionEl) instructionEl.innerText = "Gõ LEO để tiến lên • Gõ TRÁI hoặc PHẢI để dịch ngang né vật cản!";
+  if (timerEl) timerEl.innerText = formatTripTime(destinationGameState.remaining);
+  renderDestinationGame();
+  renderGiftPowerHud();
+  setDestinationGameFeed("🧗 Cuộc đua bắt đầu! Đá, cây và sương sẽ trôi ngược từ đỉnh xuống!");
+  showToast("🏁 BẮT ĐẦU LEO NÚI!", "Gõ LEO và quan sát vật cản để né sang trái hoặc phải!", "⛰️");
+
+  const firstObstacleTimeout = setTimeout(spawnClimbObstacleWave, 1800);
+  destinationGameState.climbObstacleTimers.push(firstObstacleTimeout);
+  destinationGameState.eventInterval = setInterval(spawnClimbObstacleWave, 5600);
+  destinationGameState.timerInterval = setInterval(() => {
+    destinationGameState.remaining--;
+    if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, destinationGameState.remaining));
+    if (destinationGameState.remaining <= 0) endDestinationGame();
+  }, 1000);
+}
+
+function updateClimbLanePositions() {
+  destinationGameState.teams.forEach((team, index) => {
+    const marker = document.getElementById(`climb-marker-${index}`);
+    const progressEl = document.getElementById(`climb-progress-${index}`);
+    if (marker) {
+      marker.style.bottom = `${5 + Math.min(100, team.value) * 0.79}%`;
+      marker.style.setProperty("--dodge-x", `${team.dodgeOffset || 0}px`);
+    }
+    if (progressEl) progressEl.innerText = `${Math.round(team.value)}%`;
+  });
+}
+
+function updateClimbTeamMembers(teamIndex) {
+  const container = document.getElementById(`climb-members-${teamIndex}`);
+  if (!container) return;
+  const members = getGameTeamMembers(teamIndex);
+  container.innerHTML = members.slice(0, 4).map(name => {
+    const charNum = getCharacterTypeForUser(name);
+    return `<img src="public/CHARACTER_${charNum}/1.png" title="${escapeHtml(name)}" alt="">`;
+  }).join("") + (members.length > 4 ? `<span>+${members.length - 4}</span>` : "");
+}
+
+function spawnClimbObstacleWave() {
+  if (!destinationGameState.active || destinationGameState.climbPhase !== "race") return;
+  const obstacles = [
+    { icon: "🪨", label: "đá lăn" },
+    { icon: "🌲", label: "cây đổ" },
+    { icon: "🌫️", label: "sương dày" }
+  ];
+  destinationGameState.teams.forEach((team, teamIndex) => {
+    const layer = document.querySelector(`.climb-obstacle-layer[data-obstacle-lane="${teamIndex}"]`);
+    if (!layer) return;
+    const obstacleData = obstacles[Math.floor(Math.random() * obstacles.length)];
+    const obstacle = document.createElement("span");
+    obstacle.className = "climb-falling-obstacle";
+    obstacle.dataset.obstacleId = String(++destinationGameState.climbObstacleSequence);
+    obstacle.innerText = obstacleData.icon;
+    obstacle.style.left = `${44 + Math.random() * 12}%`;
+    layer.appendChild(obstacle);
+    team.dodgeOffset = 0;
+    team.dodgeUser = "";
+    updateClimbLanePositions();
+
+    const resolveTimeout = setTimeout(() => {
+      if (!destinationGameState.active || destinationGameState.climbPhase !== "race") return;
+      const marker = document.getElementById(`climb-marker-${teamIndex}`);
+      if (Math.abs(team.dodgeOffset || 0) >= 18) {
+        team.value = Math.min(100, team.value + 5);
+        if (team.dodgeUser) addDestinationUserPoints(team.dodgeUser, 2);
+        setDestinationGameFeed(`✅ <b>${team.name}</b> né thành công ${obstacleData.label}: +5%!`);
+        if (marker) marker.classList.add("dodge-success");
+      } else if (team.shieldCharges > 0) {
+        team.shieldCharges--;
+        setDestinationGameFeed(`🛡️ <b>${team.name}</b> dùng khiên chặn ${obstacleData.label}, không bị trừ điểm!`);
+        if (marker) marker.classList.add("dodge-success");
+        createArrivalLiveEffect("🛡️", marker, 10);
+      } else {
+        team.value = Math.max(0, team.value - 5);
+        setDestinationGameFeed(`💥 <b>${team.name}</b> va phải ${obstacleData.label}: -5%!`);
+        if (marker) marker.classList.add("obstacle-hit");
+      }
+      updateClimbLanePositions();
+      renderGiftPowerHud();
+      const clearStateTimeout = setTimeout(() => {
+        team.dodgeOffset = 0;
+        updateClimbLanePositions();
+        marker?.classList.remove("dodge-success", "obstacle-hit");
+      }, 650);
+      destinationGameState.climbObstacleTimers.push(clearStateTimeout);
+    }, 2650);
+
+    const removeTimeout = setTimeout(() => obstacle.remove(), 3500);
+    destinationGameState.climbObstacleTimers.push(resolveTimeout, removeTimeout);
+  });
+}
+
+function startDestinationGame(destinationIndex) {
+  if (state.currentPhase !== 3) return;
+  stopDestinationGameTimers();
+  phase3State.stage = "game";
+  phase3State.selectedDestinationIndex = destinationIndex;
+  destinationGameState.active = true;
+  destinationGameState.remaining = 45;
+  destinationGameState.userTeams = new Map();
+  destinationGameState.userDisplayNames = new Map();
+  destinationGameState.userPoints = new Map();
+  destinationGameState.giftGoalEnergy = 0;
+  destinationGameState.giftGoalLevel = 1;
+  destinationGameState.supporterPoints = new Map();
+  destinationGameState.giftHistory = [];
+  destinationGameState.roundAnswered = new Set();
+  destinationGameState.challenge = "";
+
+  const titleEl = document.getElementById("destination-game-title");
+  const instructionEl = document.getElementById("destination-game-instruction");
+  const kickerEl = document.getElementById("destination-game-kicker");
+  const timerEl = document.getElementById("destination-game-timer");
+
+  if (destinationIndex === 0) {
+    destinationGameState.type = "boat";
+    destinationGameState.teams = [
+      { name: "Thiên Nga Hồng", icon: "🦩", value: 0 },
+      { name: "Thiên Nga Xanh", icon: "🦢", value: 0 },
+      { name: "Vịt Vàng", icon: "🐥", value: 0 }
+    ];
+    destinationGameState.boatPhase = "select";
+    destinationGameState.remaining = 12;
+    if (titleEl) titleEl.innerText = "Chọn đội đua thuyền";
+    if (instructionEl) instructionEl.innerText = "Tất cả khán giả gõ 1, 2 hoặc 3 để lên thuyền — không cần mua vé!";
+    if (kickerEl) kickerEl.innerText = "🙋 GIAI ĐOẠN 1: LÊN THUYỀN";
+  } else if (destinationIndex === 1) {
+    destinationGameState.type = "dance";
+    destinationGameState.teams = [
+      { name: "Hoa Dã Quỳ", icon: "🌻", value: 0 },
+      { name: "Nụ Atisô", icon: "🌿", value: 0 }
+    ];
+    destinationGameState.roundCommand = "nhảy";
+    if (titleEl) titleEl.innerText = "Flashmob Quảng trường Lâm Viên";
+    if (instructionEl) instructionEl.innerText = "Gõ 1–2 chọn đội • Làm đúng động tác hiện trên màn hình!";
+    if (kickerEl) kickerEl.innerText = "💃 ĐẠI CHIẾN FLASHMOB";
+    destinationGameState.eventInterval = setInterval(nextDanceCommand, 5500);
+  } else {
+    destinationGameState.type = "climb";
+    destinationGameState.teams = [
+      { name: "Đội Thông Xanh", icon: "🌲", value: 0 },
+      { name: "Đội Mây Trắng", icon: "☁️", value: 0 },
+      { name: "Đội Lửa Trại", icon: "🔥", value: 0 }
+    ];
+    destinationGameState.climbPhase = "select";
+    destinationGameState.remaining = 12;
+    if (titleEl) titleEl.innerText = "Chọn đội leo Langbiang";
+    if (instructionEl) instructionEl.innerText = "Tất cả khán giả gõ 1, 2 hoặc 3 để vào đội — không cần mua vé!";
+    if (kickerEl) kickerEl.innerText = "🙋 GIAI ĐOẠN 1: CHỌN ĐỘI LEO NÚI";
+  }
+
+  destinationGameState.teams.forEach(initializeTeamPowerState);
+  if (timerEl) timerEl.innerText = formatTripTime(destinationGameState.remaining);
+  showPhase3Panel("arrival-game-panel");
+  renderDestinationGame();
+  renderGiftPowerHud();
+  setDestinationGameFeed("🎮 Mọi khán giả đều có thể chọn đội và tham gia ngay!");
+  showToast("🎮 MINI GAME BẮT ĐẦU!", `${titleEl?.innerText || "Trò chơi địa điểm"} — tham gia ngay nào!`, "🏆");
+
+  if (destinationGameState.type === "boat") {
+    startBoatTeamSelectionClock();
+  } else if (destinationGameState.type === "climb") {
+    startClimbTeamSelectionClock();
+  } else {
+    destinationGameState.timerInterval = setInterval(() => {
+      destinationGameState.remaining--;
+      if (timerEl) timerEl.innerText = formatTripTime(Math.max(0, destinationGameState.remaining));
+      if (destinationGameState.remaining <= 0) endDestinationGame();
+    }, 1000);
+  }
+}
+
+function celebrateGameContribution(username, symbol) {
+  const targetEl = findArrivalPassenger(username);
+  createArrivalLiveEffect(symbol, targetEl, 5);
+  if (targetEl) addTemporaryArrivalClass([targetEl], "checkin-posing", 900);
+}
+
+function handleBoatGameComment(username, normalized) {
+  const numericChoice = /^[1-3]$/.test(normalized) ? Number(normalized) - 1 : null;
+  if (numericChoice === null || !destinationGameState.teams[numericChoice]) return;
+  const userKey = normalizeAudienceName(username);
+
+  if (destinationGameState.boatPhase === "select") {
+    const oldTeam = destinationGameState.userTeams.get(userKey);
+    ensureUserGameTeam(username, numericChoice);
+    const team = destinationGameState.teams[numericChoice];
+    renderDestinationGame();
+    setDestinationGameFeed(oldTeam === undefined
+      ? `🎟️ <b>${escapeHtml(username)}</b> đã lên thuyền số ${numericChoice + 1} — <b>${team.name}</b>!`
+      : `🔄 <b>${escapeHtml(username)}</b> chuyển sang thuyền số ${numericChoice + 1} — <b>${team.name}</b>!`);
+    createArrivalLiveEffect(team.icon, findArrivalPassenger(username), 4);
+    return;
+  }
+
+  let userTeam = destinationGameState.userTeams.get(userKey);
+  if (userTeam === undefined) {
+    userTeam = ensureUserGameTeam(username, numericChoice);
+    setDestinationGameFeed(`🏃 <b>${escapeHtml(username)}</b> lên muộn thuyền số ${numericChoice + 1} và bắt đầu chèo!`);
+  }
+  if (userTeam !== numericChoice) {
+    setDestinationGameFeed(`⚠️ <b>${escapeHtml(username)}</b> thuộc thuyền số ${userTeam + 1}; hãy gõ đúng số đội mình!`);
+    return;
+  }
+
+  const team = destinationGameState.teams[userTeam];
+  const multiplier = getTeamActionMultiplier(team);
+  const gain = (2.2 + Math.random() * 1.8) * multiplier;
+  team.value = Math.min(100, team.value + gain);
+  addDestinationUserPoints(username, 1);
+  celebrateGameContribution(username, "💦");
+  renderDestinationGame();
+  setDestinationGameFeed(`🚣 <b>${escapeHtml(username)}</b> chèo thuyền số ${userTeam + 1}: +${gain.toFixed(1)}m${multiplier > 1 ? " ⚡x2" : ""}`);
+  if (team.value >= 100) endDestinationGame();
+}
+
+function handleClimbGameComment(username, normalized) {
+  const numericChoice = /^[1-3]$/.test(normalized) ? Number(normalized) - 1 : null;
+  const userKey = normalizeAudienceName(username);
+
+  if (destinationGameState.climbPhase === "select") {
+    if (numericChoice === null || !destinationGameState.teams[numericChoice]) return;
+    const oldTeam = destinationGameState.userTeams.get(userKey);
+    ensureUserGameTeam(username, numericChoice);
+    const team = destinationGameState.teams[numericChoice];
+    renderDestinationGame();
+    setDestinationGameFeed(oldTeam === undefined
+      ? `🧗 <b>${escapeHtml(username)}</b> gia nhập đội số ${numericChoice + 1} — <b>${team.name}</b>!`
+      : `🔄 <b>${escapeHtml(username)}</b> chuyển sang đội số ${numericChoice + 1} — <b>${team.name}</b>!`);
+    return;
+  }
+
+  if (numericChoice !== null && destinationGameState.teams[numericChoice]) {
+    const oldTeam = destinationGameState.userTeams.get(userKey);
+    const teamIndex = ensureUserGameTeam(username, numericChoice);
+    if (oldTeam !== undefined && oldTeam !== teamIndex) updateClimbTeamMembers(oldTeam);
+    updateClimbTeamMembers(teamIndex);
+    setDestinationGameFeed(`🙋 <b>${escapeHtml(username)}</b> đang leo cùng <b>${destinationGameState.teams[teamIndex].name}</b>!`);
+    return;
+  }
+
+  const teamIndex = ensureUserGameTeam(username);
+  const team = destinationGameState.teams[teamIndex];
+  if (normalized === "trai") {
+    team.dodgeOffset = -25;
+    team.dodgeUser = username;
+    updateClimbLanePositions();
+    setDestinationGameFeed(`⬅️ <b>${escapeHtml(username)}</b> kéo ${team.name} né sang trái!`);
+  } else if (normalized === "phai") {
+    team.dodgeOffset = 25;
+    team.dodgeUser = username;
+    updateClimbLanePositions();
+    setDestinationGameFeed(`➡️ <b>${escapeHtml(username)}</b> kéo ${team.name} né sang phải!`);
+  } else if (normalized.includes("leo")) {
+    const multiplier = getTeamActionMultiplier(team);
+    const gain = (2.8 + Math.random() * 1.4) * multiplier;
+    team.value = Math.min(100, team.value + gain);
+    addDestinationUserPoints(username, 1);
+    celebrateGameContribution(username, "⛰️");
+    updateClimbLanePositions();
+    setDestinationGameFeed(`🧗 <b>${escapeHtml(username)}</b> tiếp sức cho ${team.name}: +${gain.toFixed(1)}%${multiplier > 1 ? " ⚡x2" : ""}!`);
+    if (team.value >= 100) endDestinationGame();
+  }
+}
+
+function handleDestinationGameComment(username, text) {
+  if (!destinationGameState.active) return;
+  const normalized = removeVietnameseTones(text).trim().toLowerCase();
+  if (destinationGameState.type === "boat") {
+    handleBoatGameComment(username, normalized);
+    return;
+  }
+  if (destinationGameState.type === "climb") {
+    handleClimbGameComment(username, normalized);
+    return;
+  }
+  const numericChoice = /^[1-3]$/.test(normalized) ? Number(normalized) - 1 : null;
+  if (numericChoice !== null && destinationGameState.teams[numericChoice]) {
+    const teamIndex = ensureUserGameTeam(username, numericChoice);
+    setDestinationGameFeed(`🙋 <b>${escapeHtml(username)}</b> gia nhập <b>${destinationGameState.teams[teamIndex].name}</b>!`);
+    renderDestinationGame();
+    return;
+  }
+
+  const teamIndex = ensureUserGameTeam(username);
+  const team = destinationGameState.teams[teamIndex];
+  if (destinationGameState.type === "dance") {
+    if (normalized === "hoa") {
+      ensureUserGameTeam(username, 0);
+      return;
+    }
+    if (normalized === "atiso") {
+      ensureUserGameTeam(username, 1);
+      return;
+    }
+    const expected = removeVietnameseTones(destinationGameState.roundCommand).toLowerCase();
+    const userKey = normalizeAudienceName(username);
+    if (normalized === expected && !destinationGameState.roundAnswered.has(userKey)) {
+      const baseGain = destinationGameState.roundAnswered.size === 0 ? 3 : 1;
+      const gain = baseGain * getTeamActionMultiplier(team);
+      destinationGameState.roundAnswered.add(userKey);
+      team.value += gain;
+      addDestinationUserPoints(username, gain);
+      celebrateGameContribution(username, "🎵");
+      setDestinationGameFeed(`💃 <b>${escapeHtml(username)}</b> làm đúng “${destinationGameState.roundCommand}”: +${gain} điểm!`);
+    } else {
+      return;
+    }
+  } else if (destinationGameState.type === "climb") {
+    const expectedChallenge = removeVietnameseTones(destinationGameState.challenge).toLowerCase();
+    if (destinationGameState.challenge && normalized === expectedChallenge) {
+      team.value = Math.min(100, team.value + 9);
+      addDestinationUserPoints(username, 3);
+      setDestinationGameFeed(`🛡️ <b>${escapeHtml(username)}</b> giúp ${team.name} vượt chướng ngại: +9%!`);
+      destinationGameState.challenge = "";
+      celebrateGameContribution(username, "⭐");
+    } else if (normalized.includes("leo")) {
+      const gain = destinationGameState.challenge ? 1 : 3.5;
+      team.value = Math.min(100, team.value + gain);
+      addDestinationUserPoints(username, 1);
+      celebrateGameContribution(username, "⛰️");
+      setDestinationGameFeed(`🧗 <b>${escapeHtml(username)}</b> tiếp sức cho ${team.name}: +${gain}%`);
+    } else {
+      return;
+    }
+  } else {
+    return;
+  }
+
+  renderDestinationGame();
+  if (destinationGameState.type !== "dance" && destinationGameState.teams.some(currentTeam => currentTeam.value >= 100)) {
+    endDestinationGame();
+  }
+}
+
+function handleDestinationGameGift(username, giftName = "Quà tặng") {
+  if (!destinationGameState.active) return;
+  const teamIndex = ensureUserGameTeam(username);
+  const team = destinationGameState.teams[teamIndex];
+  const giftType = getDestinationGiftType(giftName);
+  const isSelecting = (destinationGameState.type === "boat" && destinationGameState.boatPhase === "select") ||
+    (destinationGameState.type === "climb" && destinationGameState.climbPhase === "select");
+  const { meta, communityBonus } = recordDestinationGift(username, giftType, team);
+  let effectText = "";
+
+  if (giftType === "coffee") {
+    if (isSelecting) {
+      team.turboCharges++;
+      effectText = "đã nạp x2 tốc độ khi xuất phát";
+    } else {
+      team.boostUntil = Math.max(Date.now(), team.boostUntil || 0) + 8000;
+      effectText = "x2 sức mạnh thao tác trong 8 giây";
+      setTimeout(() => {
+        if (destinationGameState.active) renderGiftPowerHud();
+      }, Math.max(0, team.boostUntil - Date.now()) + 100);
+    }
+    addDestinationUserPoints(username, 4);
+  } else if (giftType === "shield") {
+    if (destinationGameState.type === "climb") {
+      team.shieldCharges++;
+      effectText = "chặn chướng ngại kế tiếp";
+    } else {
+      if (isSelecting) team.startBonus = Math.min(20, team.startBonus + 2);
+      else team.value = Math.min(100, team.value + 2);
+      effectText = "bảo vệ nhịp chơi và +2 lực";
+    }
+    addDestinationUserPoints(username, 3);
+  } else {
+    if (isSelecting) team.startBonus = Math.min(20, team.startBonus + 3);
+    else team.value = Math.min(100, team.value + 3);
+    effectText = isSelecting ? "+3 lợi thế xuất phát" : "+3 lực";
+    addDestinationUserPoints(username, 2);
+  }
+
+  createArrivalLiveEffect(meta.icon, findArrivalPassenger(username), giftType === "coffee" ? 20 : 14);
+  setDestinationGameFeed(`${meta.icon} <b>${escapeHtml(username)}</b> tặng ${escapeHtml(meta.label)} cho <b>${escapeHtml(team.name)}</b>: ${effectText}!${communityBonus ? " 🎉 Cả đoàn cùng được +5!" : ""}`);
+  showToast(`${meta.icon} ${meta.label.toUpperCase()}!`, `${username} tiếp sức cho ${team.name}: ${effectText}`, meta.icon);
+  if (destinationGameState.type === "climb") {
+    updateClimbLanePositions();
+  } else {
+    renderDestinationGame();
+  }
+  renderGiftPowerHud();
+  if (destinationGameState.type !== "dance" && destinationGameState.teams.some(currentTeam => currentTeam.value >= 100)) {
+    endDestinationGame();
+  }
+}
+
+function endDestinationGame() {
+  if (!destinationGameState.active) return;
+  const teams = destinationGameState.teams;
+  const maxValue = Math.max(...teams.map(team => team.value));
+  const winnerIndexes = teams.map((team, index) => ({ team, index })).filter(item => item.team.value === maxValue);
+  const winner = winnerIndexes[Math.floor(Math.random() * winnerIndexes.length)].team;
+  const topUser = Array.from(destinationGameState.userPoints.entries()).sort((a, b) => b[1] - a[1])[0];
+  stopDestinationGameTimers();
+  phase3State.stage = "result";
+  document.querySelectorAll("#arrival-passengers-layer .arrival-passenger.on-boat")
+    .forEach(charEl => charEl.classList.remove("on-boat"));
+  document.querySelectorAll("#arrival-passengers-layer .arrival-passenger.on-climb")
+    .forEach(charEl => charEl.classList.remove("on-climb"));
+
+  const titleEl = document.getElementById("destination-game-title");
+  const instructionEl = document.getElementById("destination-game-instruction");
+  const timerEl = document.getElementById("destination-game-timer");
+  const arena = document.getElementById("destination-game-arena");
+  if (titleEl) titleEl.innerText = `🏆 ${winner.name} chiến thắng!`;
+  if (instructionEl) instructionEl.innerText = topUser
+    ? `${topUser[0]} là người đóng góp nhiều nhất và nhận 1 Vé Free!`
+    : "Cảm ơn tất cả khán giả đã tham gia!";
+  if (timerEl) timerEl.innerText = "KẾT THÚC";
+  if (arena) arena.innerHTML = `<div class="destination-game-winner"><span>${winner.icon}</span><b>${winner.name}</b><strong>${Math.round(winner.value)} điểm</strong></div>`;
+  if (topUser) awardFreeTicket(topUser[0]);
+  setDestinationGameFeed("📸 Tiếp tục gõ checkin, tim, hoa hoặc nhảy để giao lưu tại địa điểm!");
+  createArrivalLiveEffect("🏆", null, 20);
+  showToast("🏆 MINI GAME KẾT THÚC!", `${winner.name} đã giành chiến thắng!`, winner.icon);
+}
+
+function handlePhase3Comment(username, text) {
+  const clean = text.trim();
+  if (phase3State.stage === "luggage" && /^[1-5]$/.test(clean)) {
+    claimLuggage(username, Number(clean));
+  } else if (phase3State.stage === "checkin" && /^[1-3]$/.test(clean)) {
+    voteCheckin(username, Number(clean));
+  } else if (phase3State.stage === "result") {
+    handleArrivalLiveInteraction(username, clean);
+  } else if (phase3State.stage === "game") {
+    handleDestinationGameComment(username, clean);
+  }
+}
+
+function startPhase3() {
+  clearPhase3Timers();
+  phase3State.stage = "summary";
+  phase3State.luggageClaims = Array(5).fill(null);
+  phase3State.luggageUserClaims = new Map();
+  phase3State.eligibleLuggageUsers = new Set(
+    state.seatedPassengers.map(passenger => normalizeAudienceName(passenger.username))
+  );
+  phase3State.luggageRejectedUsers = new Set();
+  phase3State.luggagePrizes = shuffledLuggagePrizes();
+  phase3State.checkinVotes = new Map();
+  phase3State.voteCounts = [0, 0, 0];
+  const stage = document.getElementById("dalat-arrival-stage");
+  if (stage) stage.classList.remove("travelling", "unloading", "bus-leaving", "bus-gone");
+  const arrivalTitleEl = document.getElementById("arrival-title");
+  if (arrivalTitleEl) arrivalTitleEl.innerText = "CHÀO MỪNG ĐẾN ĐÀ LẠT";
+  const arrivalRouteEl = document.getElementById("arrival-route-label");
+  if (arrivalRouteEl) arrivalRouteEl.innerText = "🚌 SÀI GÒN → ĐÀ LẠT";
+  const passengerLayer = document.getElementById("arrival-passengers-layer");
+  if (passengerLayer) passengerLayer.innerHTML = "";
+  const effectsLayer = document.getElementById("arrival-live-effects");
+  if (effectsLayer) effectsLayer.innerHTML = "";
+  setArrivalDestinationBackground();
+  renderArrivalSummary();
+  renderLuggageCarousel();
+  renderCheckinOptions();
+  showPhase3Panel("arrival-summary-panel");
+  setPhase3Countdown(10, startLuggageGame);
 }
 
 /* ================== QUẢN LÝ TIMELINE CHUYẾN XE 15 PHÚT (PHASE 2) ================== */
@@ -1964,22 +3572,25 @@ function onTripCompleted() {
   // Phát thanh thông báo loa
   speakStationAnnouncement("Chuyến xe FUONG TRANG đã hoàn thành hành trình đến Đà Lạt. Cảm ơn quý khách đã đồng hành!");
 
-  // Sau 8 giây, reset về bến xe để đón chuyến mới
+  // Chuyển sang Phase 3 để tổng kết, nhận hành lý và bình chọn check-in.
   setTimeout(() => {
     if (state.currentPhase === 2) {
-      resetTripForNextBatch();
+      switchToPhase(3);
     }
-  }, 8000);
+  }, 1800);
 }
 
-/* ================== QUẢN LÝ CHUYỂN ĐỔI GIAO DIỆN PHASE 1 (BẾN XE) & PHASE 2 (TRONG XE) ================== */
+/* ================== QUẢN LÝ CHUYỂN ĐỔI GIAO DIỆN 3 PHASE ================== */
 function switchToPhase(phaseNum) {
   state.currentPhase = phaseNum;
   const interiorEl = document.getElementById("bus-interior-stage");
+  const arrivalEl = document.getElementById("dalat-arrival-stage");
   const badgeStatusEl = document.querySelector(".badge-status");
 
   if (phaseNum === 2) {
     // Chuyển sang Phase 2: Trong xe (public/TRONG_XE.png hiển thị full màn hình)
+    clearPhase3Timers();
+    if (arrivalEl) arrivalEl.classList.add("hidden");
     renderCabinPassengers();
     if (interiorEl) interiorEl.classList.remove("hidden");
     const cabinVideo = document.getElementById("cabin-road-video");
@@ -2002,9 +3613,31 @@ function switchToPhase(phaseNum) {
         triggerGuideActivity();
       }
     }, 1500);
+  } else if (phaseNum === 3) {
+    if (interiorEl) interiorEl.classList.add("hidden");
+    if (arrivalEl) arrivalEl.classList.remove("hidden");
+    const cabinVideo = document.getElementById("cabin-road-video");
+    if (cabinVideo) cabinVideo.pause();
+    clearGuideQuizTimers();
+    currentActiveQA = null;
+    stopTripCountdown();
+    stopWordChain();
+    stopCabinMusic(false);
+    if (isCabinDancing) stopCabinDance();
+    startPhase3();
+
+    if (badgeStatusEl) {
+      badgeStatusEl.innerText = "🏔️ Đã Đến Đà Lạt (Phase 3)";
+      badgeStatusEl.style.color = "#c4b5fd";
+      badgeStatusEl.style.borderColor = "rgba(167, 139, 250, 0.5)";
+      badgeStatusEl.style.background = "rgba(124, 58, 237, 0.16)";
+    }
   } else {
     // Quay lại Phase 1: Bến xe khách
     if (interiorEl) interiorEl.classList.add("hidden");
+    if (arrivalEl) arrivalEl.classList.add("hidden");
+    clearPhase3Timers();
+    phase3State.stage = "idle";
     const cabinVideo = document.getElementById("cabin-road-video");
     if (cabinVideo) {
       cabinVideo.pause();
@@ -2058,6 +3691,7 @@ function triggerBusDeparture() {
 
 /* ================== LÀM MỚI CHUYẾN XE TIẾP THEO ================== */
 function resetTripForNextBatch() {
+  clearPhase3Timers();
   state.seatedPassengers = [];
   initSeats();
   renderCabinPassengers();
@@ -2066,6 +3700,7 @@ function resetTripForNextBatch() {
   // Đặt lại bình xăng và còi cho chuyến mới
   currentFuel = 0;
   currentHornCount = 0;
+  resetTripStats();
   updateFuelUI();
   updateHornUI();
 
@@ -2825,6 +4460,21 @@ function initTestControls() {
     });
   }
 
+  const btnPhaseArrival = document.getElementById("btn-phase-arrival");
+  if (btnPhaseArrival) {
+    btnPhaseArrival.addEventListener("click", () => {
+      switchToPhase(3);
+    });
+  }
+
+  document.querySelectorAll(".btn-test-destination").forEach(button => {
+    button.addEventListener("click", () => {
+      const destinationIndex = Number(button.dataset.destinationIndex || 0);
+      if (state.currentPhase !== 3) switchToPhase(3);
+      startTravelToCheckin(destinationIndex);
+    });
+  });
+
   const btnDepart = document.getElementById("btn-depart");
   if (btnDepart) {
     btnDepart.addEventListener("click", () => {
@@ -2851,6 +4501,19 @@ function initTestControls() {
       tripRemainingSeconds = 30; // Tua còn 30 giây để test
       updateTripTimerUI();
       showToast("⏩ ĐÃ TUA TIMELINE!", "Timeline 15 phút đã được tua xuống còn 30 giây để thử nghiệm đến bến!", "⏱️");
+    });
+  }
+
+  const btnFastForwardVisit = document.getElementById("btn-fast-forward-visit");
+  if (btnFastForwardVisit) {
+    btnFastForwardVisit.addEventListener("click", () => {
+      if (state.currentPhase !== 3 || !phase3State.visitCountdownInterval) {
+        showToast("⚠️ CHƯA THAM QUAN", "Hãy đến một địa điểm check-in trước khi tua thời gian!", "⏱️");
+        return;
+      }
+      phase3State.visitRemainingSeconds = 30;
+      updateDestinationVisitTimerUI();
+      showToast("⏩ ĐÃ TUA THAM QUAN", "Thời gian tham quan còn 30 giây trước khi trở về Đà Lạt!", "🚌");
     });
   }
 
@@ -3312,4 +4975,5 @@ if (typeof window !== "undefined") {
   window.startCabinDance = startCabinDance;
   window.stopCabinDance = stopCabinDance;
   window.triggerMusicChangeByGift = triggerMusicChangeByGift;
+  window.switchToPhase = switchToPhase;
 }

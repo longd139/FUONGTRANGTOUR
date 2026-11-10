@@ -216,6 +216,131 @@
             </div>
           </div>
         </section>
+
+        <!-- GIAO DIỆN PHASE 3: ĐẾN ĐÀ LẠT - TỔNG KẾT, NHẬN HÀNH LÝ, CHECK-IN -->
+        <section id="dalat-arrival-stage" class="dalat-arrival-stage hidden">
+          <div class="dalat-sky-glow"></div>
+          <div class="dalat-mountains mountain-back"></div>
+          <div class="dalat-mountains mountain-front"></div>
+
+          <header class="arrival-header">
+            <div class="arrival-route-label" id="arrival-route-label">🚌 SÀI GÒN → ĐÀ LẠT</div>
+            <div class="arrival-title" id="arrival-title">CHÀO MỪNG ĐẾN ĐÀ LẠT</div>
+            <div class="arrival-stage-timer" id="arrival-stage-timer">00:08</div>
+            <div id="destination-visit-timeline" class="destination-visit-timeline hidden">
+              <div class="visit-timeline-info">
+                <span id="visit-timeline-label">🕒 THỜI GIAN THAM QUAN</span>
+                <b id="visit-timeline-countdown">30:00</b>
+              </div>
+              <div class="visit-timeline-track">
+                <div id="visit-timeline-fill" class="visit-timeline-fill" style="width:0%"></div>
+              </div>
+            </div>
+          </header>
+
+          <div class="arrival-content">
+            <section id="arrival-summary-panel" class="arrival-panel summary-panel">
+              <div class="arrival-panel-kicker">🎉 CHUYẾN ĐI HOÀN THÀNH</div>
+              <h2>BẢNG TỔNG KẾT</h2>
+              <div class="summary-stats">
+                <div class="summary-stat"><span id="summary-passenger-count">0</span><small>Hành khách</small></div>
+                <div class="summary-stat"><span id="summary-fuel-count">0L</span><small>Nhiên liệu</small></div>
+                <div class="summary-stat"><span id="summary-quiz-count">0</span><small>Câu đúng</small></div>
+              </div>
+              <div id="arrival-awards" class="arrival-awards"></div>
+              <div class="arrival-next-hint">Chuẩn bị nhận hành lý...</div>
+            </section>
+
+            <section id="arrival-luggage-panel" class="arrival-panel luggage-panel hidden">
+              <div class="arrival-panel-kicker">🧳 MINI GAME NHẬN HÀNH LÝ</div>
+              <h2>GÕ 1–5 ĐỂ NHẬN VALI</h2>
+              <p>Chỉ hành khách đã có vé từ Phase 1 • Mỗi vali chỉ có một chủ!</p>
+              <div id="luggage-carousel" class="luggage-carousel"></div>
+              <div id="luggage-announcement" class="arrival-announcement">5 chiếc vali đang chờ chủ nhân...</div>
+            </section>
+
+            <section id="arrival-checkin-panel" class="arrival-panel checkin-panel hidden">
+              <div class="arrival-panel-kicker">📸 BÌNH CHỌN ĐỊA ĐIỂM CHECK-IN</div>
+              <h2>GÕ 1, 2 HOẶC 3</h2>
+              <div id="checkin-options" class="checkin-options"></div>
+              <div id="checkin-announcement" class="arrival-announcement">Mọi khán giả đều được bình chọn • Mỗi người có 1 phiếu.</div>
+            </section>
+
+            <section id="arrival-travel-panel" class="arrival-panel travel-panel hidden">
+              <div class="arrival-panel-kicker">🚌 ĐANG DI CHUYỂN ĐẾN ĐIỂM CHECK-IN</div>
+              <h2 id="travel-destination-name">Hồ Xuân Hương</h2>
+              <div class="travel-route-row">
+                <div class="travel-point">
+                  <span>📍</span>
+                  <small>Trung tâm<br>Đà Lạt</small>
+                </div>
+                <div class="travel-track">
+                  <div id="travel-progress-fill" class="travel-progress-fill">
+                    <span class="travel-bus-marker">🚌</span>
+                  </div>
+                </div>
+                <div class="travel-point destination">
+                  <span id="travel-destination-icon">🌊</span>
+                  <small id="travel-distance-label">Cách 2 km</small>
+                </div>
+              </div>
+              <div id="travel-status-text" class="travel-status-text">Xe đang rời bến, cả đoàn chuẩn bị check-in nhé!</div>
+              <div class="travel-scenery-tags" id="travel-scenery-tags"></div>
+            </section>
+
+            <section id="arrival-result-panel" class="arrival-panel result-panel hidden">
+              <div class="result-confetti">✨ 🌸 ✨ 🌸 ✨</div>
+              <div id="checkin-result-icon" class="checkin-result-icon">📸</div>
+              <div class="arrival-panel-kicker">ĐỊA ĐIỂM ĐƯỢC YÊU THÍCH NHẤT</div>
+              <h2 id="checkin-result-name">Hồ Xuân Hương</h2>
+              <p id="checkin-result-votes">0 lượt bình chọn</p>
+              <div id="arrival-passenger-status" class="arrival-passenger-status">🚪 Đang mở cửa xe...</div>
+              <div class="arrival-live-actions">
+                <span>📸 Gõ <b>checkin</b></span>
+                <span>💖 Gõ <b>tim</b></span>
+                <span>🌸 Gõ <b>hoa</b></span>
+                <span>💃 Gõ <b>nhảy</b></span>
+              </div>
+              <div class="arrival-next-hint">Cả đoàn đang tham quan và chụp ảnh • Bấm “Đặt lại bến” khi muốn mở chuyến mới</div>
+            </section>
+
+            <section id="arrival-game-panel" class="arrival-panel arrival-game-panel hidden">
+              <div id="destination-game-kicker" class="arrival-panel-kicker">🎮 MINI GAME ĐỊA ĐIỂM</div>
+              <div id="destination-game-timer" class="destination-game-timer">00:45</div>
+              <h2 id="destination-game-title">Đua thuyền Hồ Xuân Hương</h2>
+              <p id="destination-game-instruction">Gõ 1–3 chọn đội, sau đó gõ “chèo” để tăng tốc!</p>
+              <div id="gift-power-hud" class="gift-power-hud">
+                <div class="gift-power-goal">
+                  <div class="gift-power-goal-copy">
+                    <span>🎯 MỤC TIÊU CỘNG ĐỒNG</span>
+                    <b id="gift-community-count">0/20</b>
+                  </div>
+                  <div class="gift-power-goal-track"><span id="gift-community-fill"></span></div>
+                  <small id="gift-community-hint">Đủ 20 năng lượng: tất cả đội được tiếp sức!</small>
+                </div>
+                <div class="gift-power-items" aria-label="Vật phẩm hỗ trợ mini game">
+                  <div class="gift-power-item flower"><span>🌹</span><b>Hoa</b><small>+3 lực</small></div>
+                  <div class="gift-power-item coffee"><span>☕</span><b>Cà phê</b><small>x2 tốc độ 8s</small></div>
+                  <div class="gift-power-item shield"><span>🛡️</span><b>Khiên</b><small>Chặn 1 vật cản</small></div>
+                </div>
+                <div id="gift-team-status" class="gift-team-status"></div>
+                <div id="gift-supporter-board" class="gift-supporter-board">💝 Chưa có người tiếp sức</div>
+              </div>
+              <div id="destination-game-arena" class="destination-game-arena"></div>
+              <div id="destination-game-feed" class="destination-game-feed">Chọn đội để bắt đầu tranh tài!</div>
+            </section>
+          </div>
+
+          <div id="arrival-passengers-layer" class="arrival-passengers-layer"></div>
+          <div id="arrival-live-effects" class="arrival-live-effects"></div>
+
+          <div class="arrival-bus-scene">
+            <div class="arrival-road"></div>
+            <img src="public/removeBg.png" alt="Xe FUONG TRANG đã đến Đà Lạt" class="arrival-bus-img">
+          </div>
+          <a class="dalat-photo-credit" href="https://commons.wikimedia.org/wiki/File:Da_Lat_-_Viet_Nam.jpg"
+            target="_blank" rel="noopener">Ảnh: Tuong Lam Photos • CC BY-SA 4.0</a>
+        </section>
       </div>
     </div>
 
@@ -560,6 +685,9 @@
                 <div class="input-group">
                   <select id="select-gift" class="form-input">
                     <option value="🌸 Vé xe" selected>🌸 Tặng Hoa (Vé xe)</option>
+                    <option value="🌹 Hoa tiếp sức">🌹 Hoa tiếp sức (+3 lực)</option>
+                    <option value="☕ Cà phê tăng tốc">☕ Cà phê (x2 tốc độ 8 giây)</option>
+                    <option value="🛡️ Khiên bảo vệ">🛡️ Khiên (chặn 1 vật cản)</option>
                     <option value="🚀 Nitro">🚀 Tặng Nitro (Rút ngắn 2 phút)</option>
                     <option value="🍦 Cây Kem">🍦 Tặng Kem</option>
                     <option value="🧢 Nón Lá">🧢 Tặng Nón</option>
@@ -588,13 +716,21 @@
               </div>
             </div>
 
-            <!-- NÚT CHUYỂN ĐỔI PHASE 1 VÀ PHASE 2 -->
+            <!-- NÚT CHUYỂN ĐỔI PHASE 1, PHASE 2 VÀ PHASE 3 -->
             <div class="phase-buttons-group"
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+              style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
               <button id="btn-phase-terminal" class="btn" style="background: #0284c7; color: #fff; font-weight: 800;"
                 type="button">🏢 Phase 1: Bến Xe</button>
               <button id="btn-phase-interior" class="btn" style="background: #10b981; color: #fff; font-weight: 800;"
                 type="button">🚌 Phase 2: Trong Xe</button>
+              <button id="btn-phase-arrival" class="btn" style="background: #7c3aed; color: #fff; font-weight: 800;"
+                type="button">🏔️ Phase 3: Đà Lạt</button>
+            </div>
+            <div class="phase-buttons-group"
+              style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+              <button class="btn btn-test-destination" data-destination-index="0" type="button">🌊 Test Hồ Xuân Hương</button>
+              <button class="btn btn-test-destination" data-destination-index="1" type="button">🌼 Test Lâm Viên</button>
+              <button class="btn btn-test-destination" data-destination-index="2" type="button">⛰️ Test Langbiang</button>
             </div>
 
             <div class="action-buttons-group">
@@ -603,6 +739,9 @@
               <button id="btn-fast-forward-timer" class="btn"
                 style="background: #e11d48; color: #fff; font-weight: 800;" type="button"
                 title="Tua thời gian xuống còn 30 giây để kiểm tra sự kiện đến Đà Lạt">⏩ Tua 30s (Test 15p)</button>
+              <button id="btn-fast-forward-visit" class="btn"
+                style="background: #7c3aed; color: #fff; font-weight: 800;" type="button"
+                title="Tua thời gian tham quan 30 phút xuống còn 30 giây">⏩ Tua tham quan 30s</button>
               <button id="btn-reset" class="btn btn-reset">🔄 Đặt lại bến</button>
             </div>
 
